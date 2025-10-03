@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "AsterixTest": {
+      "commandName": "Project",
+      "commandLineArgs": "datos_asterix/datos_asterix_combinado.ast"
+    }
+  }
+}

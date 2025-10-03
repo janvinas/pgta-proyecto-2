@@ -8,6 +8,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="datos_asterix\datos_asterix_combinado.ast" />
+    <None Remove="datos_asterix_combinado.ast" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="datos_asterix\datos_asterix_combinado.ast">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\AsterixParser\AsterixParser.csproj" />
   </ItemGroup>
 
