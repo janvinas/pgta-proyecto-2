@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "AsterixParser": {
+      "commandName": "Project",
+      "nativeDebugging": false
+    }
+  }
+}
