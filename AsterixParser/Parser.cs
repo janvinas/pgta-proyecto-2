@@ -14,7 +14,7 @@
             int i = 0;
             int k = 0;
 
-            while (i < file.Length && k<3)
+            while (i < file.Length && k<10)
             {
                 byte cat = file[i];
                 ushort length =  (ushort) (file[i+2] | (file[i+1] << 8));
