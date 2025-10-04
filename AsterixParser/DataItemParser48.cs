@@ -569,6 +569,99 @@ namespace AsterixParser
         public static void DataItem21(ref int k, byte[] body)
         {
             Console.WriteLine("(DF-21)");
+
+            string[] Capability = new string[8];
+
+            string COM = null;
+            string STAT = null;
+            string SI = null;
+            string MSSC = null;
+            string ARC = null;
+            int B1A = 0;
+            int B1B = 0;
+
+
+            ushort raw = (ushort)(body[k + 1] | (body[k] << 8));
+
+            Console.WriteLine($"Valor binario : {Convert.ToString(raw, 2).PadLeft(16, '0')}");
+
+            int bits;
+
+            bits = (raw >> 13) & 0b111;
+            switch (bits)
+            {
+                case 0:
+                    COM = "No communications capability";
+                    break;
+                case 1:
+                    COM = "Comm. A and Comm. B capability";
+                    break;
+                case 2:
+                    COM = "Comm. A, Comm. B and Uplink ELM";
+                    break;
+                case 3:
+                    COM = "Comm. A, Comm. B, Uplink ELM and Downlink ELM";
+                    break;
+                case 4:
+                    COM = "Level 5 Transponder capability";
+                    break;
+                case 5:
+                    break;
+                case 6:
+                    break;
+                case 7:
+                    break;
+            }
+
+            bits = (raw >> 10) & 0b111;
+            switch (bits)
+            {
+                case 0:
+                    STAT = "No alert, no SPI, aircraft airborne";
+                    break;
+                case 1:
+                    STAT = "No alert, no SPI, aircraft on ground";
+                    break;
+                case 2:
+                    STAT = "Alert, no SPI, aircraft airborne";
+                    break;
+                case 3:
+                    STAT = "Alert, no SPI, aircraft on ground";
+                    break;
+                case 4:
+                    STAT = "Alert, SPI, aircraft airborne or on ground";
+                    break;
+                case 5:
+                    STAT = "No alert, SPI, aircraft airborne or on ground";
+                    break;
+                case 6:
+                    STAT = "Not assigned";
+                    break;
+                case 7:
+                    STAT = "Unknown";
+                    break;
+            }
+
+            if (raw >> 9 == 1) SI = "II-Code";
+            else SI = "SI-Code";
+
+
+            if (raw >> 7 == 1) MSSC = "Yes";
+            else MSSC = "No";
+
+            if (raw >> 6 == 1) ARC = "25 ft resolution";
+            else ARC = "100 ft resolution";
+
+            B1A = (raw >> 4) & 0b1;
+
+            B1B = raw & 0b1111;
+
+            Capability = [ COM,STAT,SI,MSSC,ARC,Convert.ToString(B1A), Convert.ToString(B1B)];
+
+            Console.WriteLine("Capability and Flight Status: ");
+            foreach (string data in Capability) Console.WriteLine("· " + data);
+
+            k += 2;
         }
 
 
