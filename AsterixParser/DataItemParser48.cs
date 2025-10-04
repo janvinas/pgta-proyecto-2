@@ -97,12 +97,42 @@ namespace AsterixParser
             byte[] address = { body[k], body[k + 1], body[k + 2] };
             string hexAddress = BitConverter.ToString(address).Replace("-","");
             Console.WriteLine(hexAddress);
-            k += 3;
+            k += 3; // 3 octets
         }
 
-        public static void DataItem9(ref int k, byte[] body)
+        public static char DecodificarChar6bit(int val) // Mapejar IA-5 (6 bits) a caràcters
+        {
+            if (val >= 0 && val <= 25)
+                return (char)('A' + val);
+            else if (val >= 26 && val <= 35)
+                return (char)('0' + (val - 26));
+            else if (val == 36)
+                return ' ';
+            else if (val == 37)
+                return '-';
+            else
+                return ' '; // valor no definit
+        }
+        public static void DataItem9(ref int k, byte[] body) // I048/240 Aircraft Identification
         {
             Console.WriteLine("(DF-9)");
+            byte[] id = { body[k], body[k + 1], body[k + 2], body[k + 3], body[k + 4], body[k + 5] };
+            ulong bits = 0; // Concatenar els 6 bytes en un nombre de 48 bits (ulong)
+            for (int i = 0; i < 6; i++)
+            {
+                bits <<= 8;
+                bits |= id[i];
+            }
+            StringBuilder sb = new StringBuilder();
+            // Extraiem 8 blocs de 6 bits
+            for (int i = 7; i >= 0; i--)
+            {
+                int shift = i * 6;
+                int val6bit = (int)((bits >> shift) & 0x3F); // Màscara de 6 bits
+                sb.Append(DecodificarChar6bit(val6bit));
+            }
+            Console.WriteLine(sb.ToString().Trim());
+            k += 6; // 6 octets
         }
 
         public static void DataItem10(ref int k, byte[] body)
