@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using static System.Runtime.InteropServices.JavaScript.JSType;
@@ -9,59 +11,204 @@ namespace AsterixParser
 {
     internal class DataItemParser21
     {
-        public static void DataItem1(ref int k, byte[] body)
+        public static void DataItem1(ref int k, byte[] body) // I021/010 Data Source Identification
         {
-            Console.WriteLine("(1)");
+            Console.WriteLine("(DF-1)");
+            byte SAC = body[k];
+            if (SAC == 20) Console.WriteLine("ESP");
+            else Console.WriteLine("Otro pais");
+            byte SIC = body[k + 1];
+            Console.WriteLine($"Identification Code {SIC}");
+            k += 2;
         }
 
-        public static void DataItem2(ref int k, byte[] body)
+        public static void DataItem2(ref int k, byte[] body) // I021/040 Target Report Descriptor
         {
-            Console.WriteLine("(2)");
+            Console.WriteLine("(DF-2)");
+            int[] primarysubfield = new int[8];
+            for (int i=0; i<8; i++)
+            {
+                primarysubfield[i] = (body[k] >> (7 - i)) & 1; // Vector de bits de l'octet del Subfield Primari
+            }
+            
+            byte atp = 0;
+            atp |= (byte)(primarysubfield[0] << 2);
+            atp |= (byte)(primarysubfield[1] << 1);
+            atp |= (byte)(primarysubfield[2] << 0); // Composem el byte ATP (Address Type)
+
+            byte arc = 0;
+            arc |= (byte)(primarysubfield[3] << 1); // Composem el byte ARC (Altitude Reporting Capability)
+            arc |= (byte)(primarysubfield[4] << 0);
+
+            Console.WriteLine("Address Type: ");
+            if (atp == 0) Console.WriteLine("24-bit ICAO Address."); // Reportings del ATP
+            else if (atp == 1) Console.WriteLine("Duplicate Address.");
+            else if (atp == 2) Console.WriteLine("Surface Vehicle Address");
+            else if (atp == 3) Console.WriteLine("Anonymous Address.");
+            else Console.WriteLine("Reserved for future use.");
+
+            Console.WriteLine("Altitude Reporting Capability: "); // Reportings del ARC
+            if (arc == 0) Console.WriteLine("25 ft.");
+            else if (arc == 1) Console.WriteLine("100 ft.");
+            else if (arc == 2) Console.WriteLine("Unknown");
+            else if (arc == 3) Console.WriteLine("Invalid");
+
+            Console.WriteLine("Range Check"); // Reportings del RC
+            if (primarysubfield[5] == 1) Console.WriteLine("Range Check passed, CPR validation pending");
+            else if (primarysubfield[5] == 0) Console.WriteLine("Default");
+
+            Console.WriteLine("Report Type"); // Reportings del RAB
+            if (primarysubfield[6] == 1) Console.WriteLine("Report from field monitor (fixed transponder).");
+            else if (primarysubfield[6] == 0) Console.WriteLine("Report from target transponder.");
+
+            k++; // Primary Subfield END
+
+            if (primarysubfield[7] == 1) // Anem a la First Extension
+            {
+                int[] firstextension = new int[8];
+                for (int i = 0; i < 8; i++)
+                {
+                    firstextension[i] = (body[k] >> (7 - i)) & 1; // Vector de bits de l'octet de la primera extensió
+                }
+
+                byte cl = 0; // Composem el byte CL (Confidence Level)
+                cl |= (byte)(firstextension[5] << 1);
+                cl |= (byte)(firstextension[6] << 0);
+
+                Console.WriteLine("Differential Correction: "); // Reportings del DCR
+                if (firstextension[0] == 1) Console.WriteLine("Differential Correction (ADS-B)");
+                else Console.WriteLine("No Differential Correction (ADS-B)");
+
+                Console.WriteLine("Ground Bit Setting: "); // Reportings del GBS
+                if (firstextension[1] == 1) Console.WriteLine("Set.");
+                else Console.WriteLine("Not set.");
+
+                Console.WriteLine("Simulated Target: "); // Reportings del SIM
+                if (firstextension[2] == 1) Console.WriteLine("Simulated target report.");
+                else Console.WriteLine("Actual target report.");
+
+                Console.WriteLine("Test Target: "); // Reportings del TST
+                if (firstextension[3] == 1) Console.WriteLine("Test Target.");
+                else Console.WriteLine("Default.");
+
+                Console.WriteLine("Selected Altitud Available: "); // Reportings del SAA
+                if (firstextension[4] == 1) Console.WriteLine("Equipment not capable.");
+                else Console.WriteLine("Equipment capable.");
+                
+                Console.WriteLine("Confidence Level: ");
+                if (cl == 0) Console.WriteLine("Report valid.");
+                else if (cl == 1) Console.WriteLine("Report suspect.");
+                else if (cl == 2) Console.WriteLine("No information.");
+                else if (cl == 3) Console.WriteLine("Reserved for future use.");
+
+                k++; // First Extension END
+
+                if (firstextension[7] == 1) // Anem a la Second Extension
+                {
+                    int[] secondextension = new int[8];
+                    for (int i = 0; i < 8; i++)
+                    {
+                        secondextension[i] = (body[k] >> (7 - i)) & 1; // Vector de bits de l'octet de la segona extensió
+                    }
+
+                    Console.WriteLine("Independent Position Check: "); // Reportings del IPC
+                    if (secondextension[2] == 1) Console.WriteLine("Failed.");
+                    else Console.WriteLine("Default.");
+                     
+                    Console.WriteLine("No-go Bit Status: "); // Reportings del NOGO
+                    if (secondextension[3] == 1) Console.WriteLine("Set.");
+                    else Console.WriteLine("Not set.");
+
+                    Console.WriteLine("Compact Position Reporting: "); // Reportings del CPR
+                    if (secondextension[4] == 1) Console.WriteLine("Failed.");
+                    else Console.WriteLine("Correct.");
+
+                    Console.WriteLine("Local Decoding Position Jump: "); // Reportings del LDPJ
+                    if (secondextension[5] == 1) Console.WriteLine("LDPJ detected.");
+                    else Console.WriteLine("LDPJ not detected.");
+
+                    Console.WriteLine("Range Check: "); // Reportings del RCF
+                    if (secondextension[6] == 1) Console.WriteLine("Failed.");
+                    else Console.WriteLine("Default.");
+
+                    k++; // Second Extension END
+
+                    if (secondextension[7] == 1) // Anem a la Third Extension
+                    {
+                        // Aquí què? :(
+                    }
+                }
+            }
         }
 
         public static void DataItem3(ref int k, byte[] body)
         {
             Console.WriteLine("(3)");
+            k += 2;
         }
 
         public static void DataItem4(ref int k, byte[] body)
         {
             Console.WriteLine("(4)");
+            k++;
         }
 
         public static void DataItem5(ref int k, byte[] body)
         {
             Console.WriteLine("(5)");
+            k += 3;
         }
 
         public static void DataItem6(ref int k, byte[] body)
         {
             Console.WriteLine("(6)");
+            k += 6;
         }
 
-        public static void DataItem7(ref int k, byte[] body)
+        public static void DataItem7(ref int k, byte[] body) // I021/131 High-Resolution Position in WGS-84 Co-ordinates
         {
-            Console.WriteLine("(7)");
+            Console.WriteLine("(DF-7)");
+            int lat_i = (body[k] << 24) | (body[k + 1] << 16) | (body[k + 2] << 8) | body[k + 3]; // Composem el integer de latitud
+            int lon_i = (body[k + 4] << 24) | (body[k + 5] << 16) | (body[k + 6] << 8) | body[k + 7]; // Composem el integer de longitud
+
+            float lat = lat_i;
+            lat = lat * 180 / (float)(Math.Pow(2, 30));
+            float lon = lon_i;
+            lon = lon * 180 / (float)(Math.Pow(2, 30));
+
+            if (lat >= 0) Console.WriteLine($"Latitude: {lat} degrees North.");
+            else Console.WriteLine($"Latitude: {lat} degrees South.");
+            if (lon >= 0) Console.WriteLine($"Longitude: {lon} degrees East.");
+            else Console.WriteLine($"Longitude: {lon} degrees West.");
+
+            k += 8;
         }
 
         public static void DataItem8(ref int k, byte[] body)
         {
             Console.WriteLine("(8)");
+            k += 3;
         }
 
         public static void DataItem9(ref int k, byte[] body)
         {
             Console.WriteLine("(9)");
+            k += 2;
         }
 
         public static void DataItem10(ref int k, byte[] body)
         {
             Console.WriteLine("(10)");
+            k += 2;
         }
 
-        public static void DataItem11(ref int k, byte[] body)
+        public static void DataItem11(ref int k, byte[] body) // I021/080 Target Address
         {
-            Console.WriteLine("(11)");
+            Console.WriteLine("(DF-11)");
+            byte[] address = { body[k], body[k + 1], body[k + 2] };
+            string hexAddress = BitConverter.ToString(address).Replace("-", "");
+            Console.WriteLine(hexAddress);
+            k += 3; // 3 octets
         }
 
         public static void DataItem12(ref int k, byte[] body)
