@@ -32,21 +32,152 @@ namespace AsterixParser
         public static void DataItem3(ref int k, byte[] body) //No esta hecho, solo lo salto, no lo entiendo jeje (Pau)
         {
             Console.WriteLine("(DF-3)");
+            Queue<string> TargetReport = new Queue<string>();
             bool fx = true;
 
-            while (fx)
+            string TYP = null;
+            string SIM = null;
+            string RDP = null;
+            string SPI = null;
+            string RAB = null;
+            string TST = null;
+            string ERR = null;
+            string XPP = null;
+            string ME = null;
+            string MI = null;
+            string FOE = null;
+            string ADSB_EP = null;
+            string ADSB_VAL = null;
+            string SCN_EP = null;
+            string SCN_VAL = null;
+            string PAI_EP = null;
+            string PAI_VAL = null;
+
+            int bits;
+
+            bits = (body[k] >> 5) & 0b111;
+            switch (bits)
             {
-                byte b = body[k];
-                for (int i = 7; i > 0; i--)
-                {
-                    int v = (b >> i) & 1;
-                    Console.Write(v); //Recorre byte y lo imprime
-                }
-                Console.WriteLine();
-                int bit = b & 1;
-                if (bit == 0) fx = false;
-                k++;
+                case 0b000:
+                    TYP = "No detection";
+                    break;
+                case 0b001:
+                    TYP = "PSR";
+                    break;
+                case 0b010:
+                    TYP = "SSR";
+                    break;
+                case 0b011:
+                    TYP = "SSR + PSR";
+                    break;
+                case 0b100:
+                    TYP = "ModeS All-Call";
+                    break;
+                case 0b101:
+                    TYP = "ModeS Roll-Call";
+                    break;
+                case 0b110:
+                    TYP = "ModeS All-Call + PSR";
+                    break;
+                case 0b111:
+                    TYP = "ModeS Roll-Call + PSR";
+                    break;
             }
+            TargetReport.Enqueue(TYP);
+
+            if (body[k] >> 4 == 1) SIM = "Simulated";
+            else SIM = "Actual";
+            TargetReport.Enqueue(SIM);
+
+            if (body[k] >> 3 == 1) RDP = "Chain 2";
+            else RDP = "Chain 1";
+            TargetReport.Enqueue(RDP);
+
+            if (body[k] >> 2 == 1) SPI = "No SPI";
+            else SPI = "SPI";
+            TargetReport.Enqueue(SPI);
+
+            if (body[k] >> 1 == 1) RAB = "Field Monitor";
+            else RAB = "Aircraft";
+            TargetReport.Enqueue(RAB);
+
+            if (body[k] == 1)
+            {
+                k += 1;
+                if (body[k] >> 7 == 1) TST = "Test";
+                else TST = "Real";
+                TargetReport.Enqueue(TST);
+
+                if (body[k] >> 6 == 1) ERR = "Extended";
+                else ERR = "No Extended";
+                TargetReport.Enqueue(ERR);
+
+                if (body[k] >> 5 == 1) XPP = "No X-Pulse";
+                else XPP = "X-Pulse";
+                TargetReport.Enqueue(XPP);
+
+                if (body[k] >> 4 == 1) ME = "Military Emergency";
+                else ME = "No Military Emergency";
+                TargetReport.Enqueue(ME);
+
+                if (body[k] >> 3 == 1) MI = "Military ID";
+                else MI = "No Military ID";
+                TargetReport.Enqueue(MI);
+
+                bits = (body[k] >> 1) & 0b11;
+                switch (bits)
+                {
+                    case 0b00:
+                        FOE = "No Mode 4";
+                        break;
+                    case 0b01:
+                        FOE = "Friendly target";
+                        break;
+                    case 0b10:
+                        FOE = "Unknown target";
+                        break;
+                    case 0b11:
+                        FOE = "No reply";
+                        break;
+                }
+                TargetReport.Enqueue(FOE);
+
+                if (body[k] == 1)
+                {
+                    k += 1;
+
+                    if (body[k] >> 7 == 1) ADSB_EP = "ADSB populated";
+                    else ADSB_EP = "ADSB not populated";
+                    TargetReport.Enqueue(ADSB_EP);
+
+                    if (body[k] >> 6 == 1) ADSB_VAL = "Available";
+                    else ADSB_VAL = "Not Available";
+                    TargetReport.Enqueue(ADSB_VAL);
+
+                    if (body[k] >> 5 == 1) SCN_EP = "SCN populated";
+                    else SCN_EP = "SCN not populated";
+                    TargetReport.Enqueue(SCN_EP);
+
+                    if (body[k] >> 4 == 1) SCN_VAL = "Available";
+                    else SCN_VAL = "Not Available";
+                    TargetReport.Enqueue(SCN_VAL);
+
+                    if (body[k] >> 3 == 1) PAI_EP = "PAI populated";
+                    else PAI_EP = "PAI not populated";
+                    TargetReport.Enqueue(PAI_EP);
+
+                    if (body[k] >> 2 == 1) PAI_VAL = "Available";
+                    else PAI_VAL = "Not Available";
+                    TargetReport.Enqueue(PAI_VAL);
+
+                }
+
+
+            }
+
+            k += 1;
+            Console.WriteLine("Target Report data: ");
+            foreach (string data in TargetReport) Console.WriteLine("· " + data);
 
         }
 
@@ -54,9 +185,9 @@ namespace AsterixParser
         {
             Console.WriteLine("(DF-4)");
             ushort rho_raw = (ushort)(body[k + 1] | (body[k] << 8));
-            ushort theta_raw = (ushort)(body[k + 2] << 8| body[k + 3]);
+            ushort theta_raw = (ushort)(body[k + 2] << 8 | body[k + 3]);
             float rho = rho_raw / 256f;
-            float theta = theta_raw * 360f / (float)Math.Pow(2,16);
+            float theta = theta_raw * 360f / (float)Math.Pow(2, 16);
 
             Console.WriteLine("Rho: " + rho);
             Console.WriteLine("Theta: " + theta);
@@ -67,6 +198,27 @@ namespace AsterixParser
         public static void DataItem5(ref int k, byte[] body) //No esta hecho, solo lo salto
         {
             Console.WriteLine("(DF-5)");
+
+            string V = null;
+            string G = null;
+            string L = null;
+
+            ushort raw = (ushort)(body[k + 1] | (body[k] << 8));
+
+            if (raw >> 15 == 1) V = "Not Validated";
+            else V = "Validated";
+
+            if (raw >> 14 == 1) G = "Garbled code";
+            else G = "Default";
+
+            if (raw >> 13 == 1) L = "Not Last Scan";
+            else L = "Replay";
+
+            int mode3A = raw & 0x0FFF;
+
+            string octalCode = Convert.ToString(mode3A, 8);
+            Console.WriteLine($"Mode-3/A en octal: {octalCode}");
+
             k += 2;
         }
 
