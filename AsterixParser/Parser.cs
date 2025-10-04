@@ -39,8 +39,11 @@
                     case 48:
                         Console.Write("CAT-" + cat + "\n");
 
-                        CAT048 = new CAT48(body);
+                        var message = new AsterixMessage();
+                        CAT048 = new CAT48(body, message);
                         error = CAT048.CAT48Reader(i, length);
+
+                        Console.WriteLine(message);
                         
                         break;
                 }

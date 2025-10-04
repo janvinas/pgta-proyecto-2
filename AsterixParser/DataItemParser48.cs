@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading.Tasks;
 using static System.Runtime.InteropServices.JavaScript.JSType;
@@ -9,7 +10,46 @@ namespace AsterixParser
 {
     internal class DataItemParser48
     {
-        public static void DataItem1(ref int k, byte[] body) // I048/010
+        private readonly AsterixMessage message;
+
+        /*Jan decia de hacerlo asi:
+        public Action[] functions = {}
+        */
+        //Para poner el valor de "k" y poderlo modificar se necesita poner ref y por lo cual crear el delegate 
+        public delegate void DelegateFunctions(ref int k, byte[] body);
+        public DelegateFunctions[] functions;
+        // las funciones deben definirse en el constructor porque son propiedades de la instancia (no estáticas)
+
+        public DataItemParser48(AsterixMessage message) {
+            this.message = message;
+
+            functions =
+            [
+                DataItem1,
+                DataItem2,
+                DataItem3,
+                DataItem4,
+                DataItem5,
+                DataItem6,
+                DataItem7,
+                DataItem8,
+                DataItem9,
+                DataItem10,
+                DataItem11,
+                DataItem12,
+                DataItem13,
+                DataItem14,
+                DataItem15,
+                DataItem16,
+                DataItem17,
+                DataItem18,
+                DataItem19,
+                DataItem20,
+                DataItem21
+            ];
+        }
+
+        public void DataItem1(ref int k, byte[] body) // I048/010
         {
             Console.WriteLine("(DF-1)");
             byte SAC = body[k];
@@ -17,19 +57,23 @@ namespace AsterixParser
             else Console.WriteLine("Otro pais");
             byte SIC = body[k + 1];
             Console.WriteLine($"Identification Code {SIC}");
+            message.SIC = SIC;
+            message.SAC = SAC;
+
             k += 2;
         }
 
-        public static void DataItem2(ref int k, byte[] body) //Comprobar si esta bien, ya que el primero que sale realmente en el de prueba no existe
+        public void DataItem2(ref int k, byte[] body) //Comprobar si esta bien, ya que el primero que sale realmente en el de prueba no existe
         {
             Console.WriteLine("(DF-2)");
             int date = (body[k + 2] | body[k + 1] << 8 | (body[k] << 16));
             float hour = date/128f;
+            message.TimeOfDay = hour;
             Console.WriteLine("Time: " + TimeSpan.FromSeconds(hour));
             k += 3;
         }
 
-        public static void DataItem3(ref int k, byte[] body) //No esta hecho, solo lo salto, no lo entiendo jeje (Pau)
+        public void DataItem3(ref int k, byte[] body) //No esta hecho, solo lo salto, no lo entiendo jeje (Pau)
         {
             Console.WriteLine("(DF-3)");
             Queue<string> TargetReport = new Queue<string>();
@@ -181,7 +225,7 @@ namespace AsterixParser
 
         }
 
-        public static void DataItem4(ref int k, byte[] body) //Creo que no esta acabado
+        public void DataItem4(ref int k, byte[] body) //Creo que no esta acabado
         {
             Console.WriteLine("(DF-4)");
             ushort rho_raw = (ushort)(body[k + 1] | (body[k] << 8));
@@ -195,7 +239,7 @@ namespace AsterixParser
             k += 4;
         }
 
-        public static void DataItem5(ref int k, byte[] body) //No esta hecho, solo lo salto
+        public void DataItem5(ref int k, byte[] body) //No esta hecho, solo lo salto
         {
             Console.WriteLine("(DF-5)");
 
@@ -222,11 +266,11 @@ namespace AsterixParser
             k += 2;
         }
 
-        public static void DataItem6(ref int k, byte[] body)
+        public void DataItem6(ref int k, byte[] body)
         {
             Console.WriteLine("(DF-6)");
-            if (body[k] >> 7 == 1) Console.WriteLine("Code not validated");
-            if (body[k] >> 6 == 1) Console.WriteLine("Garbled code");
+            if (((body[k] >> 7) & 1) == 1) Console.WriteLine("Code not validated");
+            if (((body[k] >> 6) & 1) == 1) Console.WriteLine("Garbled code");
             ushort FL_raw = (ushort)(body[k + 1] | (body[k] << 8));
 
             FL_raw &= 0x3FFF;
@@ -234,11 +278,12 @@ namespace AsterixParser
             float FL = FL_raw / 4f;
 
             Console.WriteLine(FL);
+            message.FlightLevel = FL;
 
             k += 2;
         }
 
-        public static Queue<int> PrimarySubfieldDecoder(ref int k, byte[] body) // Para leer subfield primario del I048/130 (por ahora)
+        public Queue<int> PrimarySubfieldDecoder(ref int k, byte[] body) // Para leer subfield primario del I048/130 (por ahora)
         {
             bool fx = true;
             Queue<int> nSubfield = new Queue<int>();
@@ -265,7 +310,7 @@ namespace AsterixParser
             return nSubfield;
         }
 
-        public static void DataItem7(ref int k, byte[] body) // I048/130 Radar Plot Characteristics
+        public void DataItem7(ref int k, byte[] body) // I048/130 Radar Plot Characteristics
         {
             Console.WriteLine("(DF-7)");
             int n;
@@ -343,7 +388,7 @@ namespace AsterixParser
             
         }
 
-        public static void DataItem8(ref int k, byte[] body) // I048/220 Aircraft Address
+        public void DataItem8(ref int k, byte[] body) // I048/220 Aircraft Address
         {
             Console.WriteLine("(DF-8)");
             byte[] address = { body[k], body[k + 1], body[k + 2] };
@@ -352,7 +397,7 @@ namespace AsterixParser
             k += 3; // 3 octets
         }
 
-        public static char DecodificarChar6bit(int val) // Mapejar IA-5 (6 bits) a caràcters
+        public char DecodificarChar6bit(int val) // Mapejar IA-5 (6 bits) a caràcters
         {
             if (val >= 0 && val <= 25)
                 return (char)('A' + val - 1);
@@ -363,7 +408,7 @@ namespace AsterixParser
             else
                 return ' '; // valor no definit
         }
-        public static void DataItem9(ref int k, byte[] body) // I048/240 Aircraft Identification
+        public void DataItem9(ref int k, byte[] body) // I048/240 Aircraft Identification
         {
             Console.WriteLine("(DF-9)");
             byte[] id = { body[k], body[k + 1], body[k + 2], body[k + 3], body[k + 4], body[k + 5] };
@@ -385,12 +430,12 @@ namespace AsterixParser
             k += 6; // 6 octets
         }
 
-        public static void DataItem10(ref int k, byte[] body)
+        public void DataItem10(ref int k, byte[] body)
         {
             Console.WriteLine("(DF-10)");
         }
 
-        public static void DataItem11(ref int k, byte[] body)
+        public void DataItem11(ref int k, byte[] body)
         {
             Console.WriteLine("(DF-11)");
 
@@ -402,14 +447,14 @@ namespace AsterixParser
             k += 2;
         }
 
-        public static void DataItem12(ref int k, byte[] body)
+        public void DataItem12(ref int k, byte[] body)
         {
             Console.WriteLine("(DF-12)");
 
             k += 4;
         }
 
-        public static void DataItem13(ref int k, byte[] body)
+        public void DataItem13(ref int k, byte[] body)
         {
             Console.WriteLine("(DF-13)");
 
@@ -425,7 +470,7 @@ namespace AsterixParser
             k += 4;
         }
 
-        public static void DataItem14(ref int k, byte[] body)
+        public void DataItem14(ref int k, byte[] body)
         {
             Console.WriteLine("(DF-14)");
 
@@ -519,14 +564,14 @@ namespace AsterixParser
             k += 1;
         }
 
-        public static void DataItem15(ref int k, byte[] body)
+        public void DataItem15(ref int k, byte[] body)
         {
             Console.WriteLine("(DF-15)");
 
             k += 4;
         }
 
-        public static void DataItem16(ref int k, byte[] body)
+        public void DataItem16(ref int k, byte[] body)
         {
             Console.WriteLine("(DF-16)");
 
@@ -534,28 +579,28 @@ namespace AsterixParser
             else k += 1;
         }
 
-        public static void DataItem17(ref int k, byte[] body)
+        public void DataItem17(ref int k, byte[] body)
         {
             Console.WriteLine("(DF-17)");
 
             k += 2;
         }
 
-        public static void DataItem18(ref int k, byte[] body)
+        public void DataItem18(ref int k, byte[] body)
         {
             Console.WriteLine("(DF-18)");
 
             k += 4;
         }
 
-        public static void DataItem19(ref int k, byte[] body)
+        public void DataItem19(ref int k, byte[] body)
         {
             Console.WriteLine("(DF-19)");
 
             k += 2;
         }
 
-        public static void DataItem20(ref int k, byte[] body)
+        public void DataItem20(ref int k, byte[] body)
         {
             Console.WriteLine("(DF-20)");
             int dk = 1; // Starts by 1 as it must jump the base octet
@@ -566,7 +611,7 @@ namespace AsterixParser
             k += dk;
         }
 
-        public static void DataItem21(ref int k, byte[] body)
+        public void DataItem21(ref int k, byte[] body)
         {
             Console.WriteLine("(DF-21)");
 
@@ -663,37 +708,5 @@ namespace AsterixParser
 
             k += 2;
         }
-
-
-        /*Jan decia de hacerlo asi:
-        public static Action[] functions = {}
-        */
-        //Para poner el valor de "k" y poderlo modificar se necesita poner ref y por lo cual crear el delegate 
-        public delegate void DelegateFunctions(ref int k, byte[] body);
-
-        public static DelegateFunctions[] functions = {
-            DataItem1, 
-            DataItem2, 
-            DataItem3, 
-            DataItem4, 
-            DataItem5, 
-            DataItem6, 
-            DataItem7,
-            DataItem8,
-            DataItem9,
-            DataItem10,
-            DataItem11,
-            DataItem12,
-            DataItem13,
-            DataItem14,
-            DataItem15,
-            DataItem16,
-            DataItem17,
-            DataItem18,
-            DataItem19,
-            DataItem20,
-            DataItem21
-
-        };
     }
 }
