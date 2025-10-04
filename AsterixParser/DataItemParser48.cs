@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -92,9 +91,13 @@ namespace AsterixParser
             Console.WriteLine("(DF-7)");
         }
 
-        public static void DataItem8(ref int k, byte[] body)
+        public static void DataItem8(ref int k, byte[] body) // I048/220 Aircraft Address
         {
             Console.WriteLine("(DF-8)");
+            byte[] address = { body[k], body[k + 1], body[k + 2] };
+            string hexAddress = BitConverter.ToString(address).Replace("-","");
+            Console.WriteLine(hexAddress);
+            k += 3;
         }
 
         public static void DataItem9(ref int k, byte[] body)
@@ -145,95 +148,34 @@ namespace AsterixParser
         public static void DataItem14(ref int k, byte[] body)
         {
             Console.WriteLine("(DF-14)");
+            int dk = 1; // Bytes de salto del datafield (dependiendo de FX)
 
             Queue<string> TrackStatus = new Queue<string>();
 
-            string CNF = null;
-            string RAD = null;
-            string DOU = null;
-            string MAH = null;
-            string CDM = null;
-            string TRE = null;
-            string GHO = null;
-            string SUP = null;
-            string TCC = null;
+            string CNF;
+            string RAD;
+            string DOU;
+            string MAH;
+            string CDM;
+            string TRE;
+            string GHO;
+            string SUP;
+            string TCC;
 
-            int bits;
-
-            if (body[k] >> 7 == 1) CNF = "Tentative Track";
-            else CNF = "Confirmed Track";
-            TrackStatus.Enqueue(CNF);
-
-            bits = (body[k] >> 5) & 0b11;
-            switch (bits)
+            if (body[k] >> 7 == 1)
             {
-                case 0b00:
-                    RAD = "Combined Track";
-                    break;
-                case 0b01:
-                    RAD = "PSR Track";
-                    break;
-                case 0b10:
-                    RAD = "SSR/Mode S Track";
-                    break;
-                case 0b11:
-                    RAD = "Invalid";
-                    break;
+                CNF = "Confirmed Track";
+                Console.WriteLine("Code not validated");
             }
-            TrackStatus.Enqueue(RAD);
-
-            if (body[k] >> 4 == 1) DOU = "Low confidence in plot to track association";
-            else DOU = "Normal confidence";
-            TrackStatus.Enqueue(DOU);
-
-            if (body[k] >> 3 == 1) MAH = "No horizontal man. sensed";
-            else MAH = "Horizontal man. sensed";
-            TrackStatus.Enqueue(MAH);
-
-            bits = (body[k] >> 1) & 0b11;
-            switch (bits)
+            else
             {
-                case 0b00:
-                    CDM = "Maintaining";
-                    break;
-                case 0b01:
-                    CDM = "Climbing";
-                    break;
-                case 0b10:
-                    CDM = "Descending";
-                    break;
-                case 0b11:
-                    CDM = "Unknown";
-                    break;
+                CNF = "Tentative Track";
+                Console.WriteLine("Code not validated");
             }
-            TrackStatus.Enqueue(CDM);
+            if (body[k] >> 6 == 1) Console.WriteLine("Garbled code");
+            else Console.WriteLine("Code not validated");
 
-            if (body[k] >> 0 == 1)
-            {
-                k += 1;
-
-                if (body[k] >> 7 == 1) TRE = "End of track lifetime(last report for this track)";
-                else TRE = "Track still alive";
-                TrackStatus.Enqueue(TRE);
-
-                if (body[k] >> 6 == 1) GHO = "Ghost target Track";
-                else GHO = "True target track";
-                TrackStatus.Enqueue(GHO);
-
-                if (body[k] >> 5 == 1) SUP = "No";
-                else SUP = "Yes";
-                TrackStatus.Enqueue(SUP);
-
-                if (body[k] >> 4 == 1) TCC = "Slant range correction";
-                else TCC = "Radar Plane";
-                TrackStatus.Enqueue(TCC);
-            }
-
-            // Lo printeamos por consola, el puto Pau dice que no, pero me suda la polla
-            Console.WriteLine("Track status data: ");
-            foreach (string data in TrackStatus) Console.WriteLine(data);
-
-            k += 1;
+            k += dk;
         }
 
         public static void DataItem15(ref int k, byte[] body)
