@@ -423,6 +423,9 @@ namespace AsterixParser
         public static void DataItem16(ref int k, byte[] body)
         {
             Console.WriteLine("(DF-16)");
+
+            if (body[k] >> 1 == 1) k += 2;
+            else k += 1;
         }
 
         public static void DataItem17(ref int k, byte[] body)
@@ -449,6 +452,12 @@ namespace AsterixParser
         public static void DataItem20(ref int k, byte[] body)
         {
             Console.WriteLine("(DF-20)");
+            int dk = 1; // Starts by 1 as it must jump the base octet
+
+            if (body[k] >> 7 == 1) dk += 2; // Presence of subfield #1 (2 Octets)
+            if (body[k] >> 6 == 1) dk += 7; // Presence of subfield #2 (7 octets)
+
+            k += dk;
         }
 
         public static void DataItem21(ref int k, byte[] body)
