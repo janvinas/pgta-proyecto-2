@@ -4,7 +4,21 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:AsterixViewer"
+        xmlns:tabs="clr-namespace:AsterixViewer.Tabs"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid/>
+        Title="ASTERIX Decoder" Height="450" Width="800">
+    <TabControl>
+        <TabItem>
+            <TabItem.Header>Start</TabItem.Header>
+            <tabs:StartTab></tabs:StartTab>
+        </TabItem>
+        <TabItem>
+            <TabItem.Header>Table</TabItem.Header>
+            <tabs:TableTab></tabs:TableTab>
+        </TabItem>
+        <TabItem>
+            <TabItem.Header>Map</TabItem.Header>
+            <tabs:MapTab></tabs:MapTab>
+        </TabItem>
+    </TabControl>
 </Window>

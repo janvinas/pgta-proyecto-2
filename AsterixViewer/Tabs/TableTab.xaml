@@ -1,0 +1,25 @@
+﻿<UserControl x:Class="AsterixViewer.Tabs.TableTab"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:AsterixViewer.Tabs"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Menu Grid.Row="0">
+            <MenuItem Header="Filtros">
+                <MenuItem Header="CAT021" IsCheckable="True" IsChecked="True"></MenuItem>
+                <MenuItem Header="CAT048" IsCheckable="True" IsChecked="True"></MenuItem>
+                <MenuItem Header="Blanco Puro" IsCheckable="True" IsChecked="True"></MenuItem>
+                <MenuItem Header="Transponder Fijo" IsCheckable="True" IsChecked="True"></MenuItem>
+            </MenuItem>
+            <MenuItem Header="Exportar"></MenuItem>
+        </Menu>
+        <DataGrid Grid.Row="1"></DataGrid>
+    </Grid>
+</UserControl>
