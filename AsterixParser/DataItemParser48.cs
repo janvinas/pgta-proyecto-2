@@ -118,119 +118,75 @@ namespace AsterixParser
             Console.WriteLine("(DF-7)");
             int n;
             Queue<int> nSubfield = PrimarySubfieldDecoder(ref k, body);
-            int i = 0;
-            while (i < nSubfield.Count)
+            while (nSubfield.Count > 0)
             {
-
-                switch (i)
+                n = nSubfield.Dequeue();
+                switch (n)
                 {
-                    case 0: // Subfield 1 SRL
-                        n = nSubfield.Dequeue();
-                        if (n == 1)
-                        {
+                    case 1: // Subfield 1 SRL
                             double srl = body[k];
-                            srl = srl * 360 / (2 ^ 13); // SRL in degrees
+                            srl = srl * 360 / Math.Pow(2,13); // SRL in degrees
                             Console.WriteLine($"Range Covered (SRL): {srl} degrees.");
                             k++;
-                        }
                         break;
-                    case 1: // Subfield 2 SRR
-                        n = nSubfield.Dequeue();
-                        if (n == 1)
-                        {
+                    case 2: // Subfield 2 SRR
                             int srr = body[k]; // Number of Received Replies for (M)SSR
                             Console.WriteLine($"Number of Received Replies for (M)SSR: {srr}.");
                             k++;
-                        }
                         break;
-                    case 2: // Subfield 3 SAM
-                        n = nSubfield.Dequeue();
-                        if (n == 1)
-                        {
+                    case 3: // Subfield 3 SAM
                             sbyte sam = (sbyte)body[k]; // Amplitude of M(SSR) Reply in dBm
                             Console.WriteLine($"Amplitude of M(SSR) Reply in dBm: {sam} dBm.");
                             k++;
-                        }
                         break;
-                    case 3: // Subfield 4 PRL
-                        n = nSubfield.Dequeue();
-                        if (n == 1)
-                        {
+                    case 4: // Subfield 4 PRL
                             double prl = body[k];
-                            prl = prl * 360 / (2 ^ 13); // PRL in degrees
+                            prl = prl * 360 / Math.Pow(2,13); // PRL in degrees
                             Console.WriteLine($"Range Covered (PRL): {prl} degrees.");
                             k++;
-                        }
                         break;
-                    case 4: // Subfield 5 PAM
-                        n = nSubfield.Dequeue();
-                        if (n == 1)
-                        {
+                    case 5: // Subfield 5 PAM
                             sbyte pam = (sbyte)body[k]; // Amplitude of PSR Reply in dBm
                             Console.WriteLine($"Amplitude of PSR Reply in dBm: {pam} dBm.");
                             k++;
-                        }
                         break;
-                    case 5: // Subfield 6 RPD
-                        n = nSubfield.Dequeue();
-                        if (n == 1)
-                        {
+                    case 6: // Subfield 6 RPD
                             sbyte rpd_byte = (sbyte)body[k];
-                            double rpd = rpd_byte / 256; // Difference in Range Betweeen PSR and SSR (PSR-SSR) in NM
+                            double rpd = rpd_byte;
+                            rpd = rpd / 256; // Difference in Range Betweeen PSR and SSR (PSR-SSR) in NM
                             Console.WriteLine($"Difference in Range Betweeen PSR and SSR (PSR-SSR): {rpd} NM.");
                             k++;
-                        }
                         break;
-                    case 6: // Subfield 7 APD
-                        n = nSubfield.Dequeue();
-                        if (n == 1)
-                        {
-                            double apd = body[k];
-                            apd = apd * 360 / (2 ^ 14); // Difference in azimuth between PSR and SSR plot in degrees
+                    case 7: // Subfield 7 APD
+                            sbyte apd_byte = (sbyte)body[k];
+                            double apd = apd_byte;
+                            apd = apd_byte * 360 / Math.Pow(2, 14); // Difference in azimuth between PSR and SSR plot in degrees
                             Console.WriteLine($"Difference in azimuth between PSR and SSR plot: {apd} degrees.");
                             k++;
-                        }
                         break;
-                    case 7: // Subfield 8 SCO
-                        n = nSubfield.Dequeue();
-                        if (n == 1)
-                        {
+                    case 8: // Subfield 8 SCO
                             Console.WriteLine($"Score: {body[k]}");
                             k++;
-                        }
                         break;
-                    case 8: // Subfield 9 SCR
-                        n = nSubfield.Dequeue();
-                        if (n == 1)
-                        {
+                    case 9: // Subfield 9 SCR
                             ushort scr_combined = (ushort)((body[k] << 8) | body[k+1]);
                             double scr = scr_combined * 0.1; // Signal / Clutter Radio
                             Console.WriteLine($"Signal / Clutter Radio: {scr} dB.");
                             k += 2;
-                        }
                         break;
-                    case 9: // Subfield 10 RW
-                        n = nSubfield.Dequeue();
-                        if (n == 1)
-                        {
+                    case 10: // Subfield 10 RW
                             ushort rw_combined = (ushort)((body[k] << 8) | body[k + 1]);
                             double rw = rw_combined / 256; // Range Width in NM
                             Console.WriteLine($"Range Width: {rw} NM.");
                             k += 2;
-                        }
                         break;
-                    case 10: // Subfield 11 AR
-                        n = nSubfield.Dequeue();
-                        if (n == 1)
-                        {
+                    case 11: // Subfield 11 AR
                             ushort ar_combined = (ushort)((body[k] << 8) | body[k + 1]);
                             double ar = ar_combined / 256; // Ambiguous Range in NM
                             Console.WriteLine($"Ambiguous Range: {ar} NM.");
                             k += 2;
-                        }
                         break;
                 }
-                i++;
             }
             
         }
@@ -247,13 +203,11 @@ namespace AsterixParser
         public static char DecodificarChar6bit(int val) // Mapejar IA-5 (6 bits) a caràcters
         {
             if (val >= 0 && val <= 25)
-                return (char)('A' + val);
-            else if (val >= 26 && val <= 35)
-                return (char)('0' + (val - 26));
-            else if (val == 36)
+                return (char)('A' + val - 1);
+            else if (val >= 48 && val <= 57)
+                return (char)('0' + (val - 48));
+            else if (val == 32)
                 return ' ';
-            else if (val == 37)
-                return '-';
             else
                 return ' '; // valor no definit
         }
