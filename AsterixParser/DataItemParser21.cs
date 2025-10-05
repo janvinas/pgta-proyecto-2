@@ -213,7 +213,11 @@ namespace AsterixParser
 
         public static void DataItem12(ref int k, byte[] body)
         {
-            Console.WriteLine("(12)");
+            Console.WriteLine("(DF-12)");
+            int date = (body[k + 2] | body[k + 1] << 8 | (body[k] << 16));
+            float hour = date / 128f;
+            Console.WriteLine("Time: " + TimeSpan.FromSeconds(hour));
+            k += 3;
         }
 
         public static void DataItem13(ref int k, byte[] body)
