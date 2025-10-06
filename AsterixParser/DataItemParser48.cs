@@ -625,6 +625,7 @@ namespace AsterixParser
             string SI = null;
             string MSSC = null;
             string ARC = null;
+            string AIC = null;
             int B1A = 0;
             int B1B = 0;
 
@@ -690,21 +691,27 @@ namespace AsterixParser
                     break;
             }
 
-            if (raw >> 9 == 1) SI = "II-Code";
+            bits = (raw >> 9) & 0b1;
+            if (bits == 1) SI = "II-Code";
             else SI = "SI-Code";
 
-
-            if (raw >> 7 == 1) MSSC = "Yes";
+            bits = (raw >> 7) & 0b1;
+            if (bits == 1) MSSC = "Yes";
             else MSSC = "No";
 
-            if (raw >> 6 == 1) ARC = "25 ft resolution";
+            bits = (raw >> 6) & 0b1;
+            if (bits == 1) ARC = "25 ft resolution";
             else ARC = "100 ft resolution";
+
+            bits = (raw >> 5) & 0b1;
+            if (bits == 1) AIC = "Yes";
+            else AIC = "No";
 
             B1A = (raw >> 4) & 0b1;
 
             B1B = raw & 0b1111;
 
-            Capability = [ COM,STAT,SI,MSSC,ARC,Convert.ToString(B1A), Convert.ToString(B1B)];
+            Capability = [ COM,STAT,SI,MSSC,ARC,AIC,Convert.ToString(B1A), Convert.ToString(B1B)];
 
             Console.WriteLine("Capability and Flight Status: ");
             foreach (string data in Capability) Console.WriteLine("· " + data);
