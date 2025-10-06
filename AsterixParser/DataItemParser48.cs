@@ -137,8 +137,8 @@ namespace AsterixParser
             else RDP = "Chain 1";
             TargetReport.Enqueue(RDP);
 
-            if (body[k] >> 2 == 1) SPI = "No SPI";
-            else SPI = "SPI";
+            if (body[k] >> 2 == 1) SPI = "SPI";
+            else SPI = "No SPI";
             TargetReport.Enqueue(SPI);
 
             if (body[k] >> 1 == 1) RAB = "Field Monitor";
@@ -241,23 +241,32 @@ namespace AsterixParser
         {
             Console.WriteLine("(DF-5)");
 
+            string[] Config = new string[3];
             string V = null;
             string G = null;
             string L = null;
 
             ushort raw = (ushort)(body[k + 1] | (body[k] << 8));
+            int bits;
 
-            if (raw >> 15 == 1) V = "Not Validated";
+            bits = (raw >> 15) & 0b1;
+            if (bits == 1) V = "Not Validated";
             else V = "Validated";
 
-            if (raw >> 14 == 1) G = "Garbled code";
+            bits = (raw >> 14) & 0b1;
+            if (bits == 1) G = "Garbled code";
             else G = "Default";
 
-            if (raw >> 13 == 1) L = "Not Last Scan";
+            bits = (raw >> 13) & 0b1;
+            if (bits == 1) L = "Not Last Scan";
             else L = "Replay";
 
             int mode3A = raw & 0x0FFF;
 
+            Config = [V,G,L];
+
+            Console.WriteLine("Config 3/A: ");
+            foreach (string config in Config) Console.WriteLine("· " + config);
             string octalCode = Convert.ToString(mode3A, 8);
             Console.WriteLine($"Mode-3/A en octal: {octalCode}");
 
