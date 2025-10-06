@@ -73,6 +73,8 @@ namespace AsterixParser
                 Console.WriteLine($"Siguiente Byte: {k}");
             }
 
+            Console.WriteLine("Last byte: " + k);
+
             return error;
         }
 

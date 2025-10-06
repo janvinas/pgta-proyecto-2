@@ -223,21 +223,25 @@ namespace AsterixParser
         public static void DataItem13(ref int k, byte[] body)
         {
             Console.WriteLine("(13)");
+            k += 4;
         }
 
         public static void DataItem14(ref int k, byte[] body)
         {
             Console.WriteLine("(14)");
+            k += 3;
         }
 
         public static void DataItem15(ref int k, byte[] body)
         {
             Console.WriteLine("(15)");
+            k += 4;
         }
 
         public static void DataItem16(ref int k, byte[] body)
         {
             Console.WriteLine("(16)");
+            k += 2;
         }
 
         public static void DataItem17(ref int k, byte[] body)
@@ -248,66 +252,133 @@ namespace AsterixParser
         public static void DataItem18(ref int k, byte[] body)
         {
             Console.WriteLine("(18)");
+            k += 1;
         }
 
         public static void DataItem19(ref int k, byte[] body)
         {
             Console.WriteLine("(19)");
+
+            string V = null;
+            string G = null;
+            string L = null;
+
+            ushort raw = (ushort)(body[k + 1] | (body[k] << 8));
+
+            if (raw >> 15 == 1) V = "Not Validated";
+            else V = "Validated";
+
+            if (raw >> 14 == 1) G = "Garbled code";
+            else G = "Default";
+
+            if (raw >> 13 == 1) L = "Not Last Scan";
+            else L = "Replay";
+
+            int mode3A = raw & 0x0FFF;
+
+            string octalCode = Convert.ToString(mode3A, 8);
+            Console.WriteLine($"Mode-3/A en octal: {octalCode}");
+
+            k += 2;
         }
 
         public static void DataItem20(ref int k, byte[] body)
         {
             Console.WriteLine("(20)");
+            k += 2;
         }
 
         public static void DataItem21(ref int k, byte[] body)
         {
             Console.WriteLine("(21)");
+
+            ushort FL_raw = (ushort)(body[k + 1] | (body[k] << 8));
+            float FL = FL_raw / 4f;
+
+            k += 2;
         }
 
         public static void DataItem22(ref int k, byte[] body)
         {
             Console.WriteLine("(22)");
+            k += 2;
         }
 
         public static void DataItem23(ref int k, byte[] body)
         {
             Console.WriteLine("(23)");
+            k += 1;
         }
 
         public static void DataItem24(ref int k, byte[] body)
         {
             Console.WriteLine("(24)");
+            k += 2;
         }
 
         public static void DataItem25(ref int k, byte[] body)
         {
             Console.WriteLine("(25)");
+            k += 2;
         }
 
         public static void DataItem26(ref int k, byte[] body)
         {
             Console.WriteLine("(26)");
+            k += 4;
         }
 
         public static void DataItem27(ref int k, byte[] body)
         {
             Console.WriteLine("(27)");
+            k += 2;
         }
 
         public static void DataItem28(ref int k, byte[] body)
         {
             Console.WriteLine("(28)");
+            k += 3;
         }
 
+        public static char DecodificarChar6bit(int val)
+        {
+            if (val >= 0 && val <= 25)
+                return (char)('A' + val - 1);
+            else if (val >= 48 && val <= 57)
+                return (char)('0' + (val - 48));
+            else if (val == 32)
+                return ' ';
+            else
+                return ' ';
+        }
         public static void DataItem29(ref int k, byte[] body)
         {
             Console.WriteLine("(29)");
+
+            byte[] id = { body[k], body[k + 1], body[k + 2], body[k + 3], body[k + 4], body[k + 5] };
+            ulong bits = 0; // Concatenar els 6 bytes en un nombre de 48 bits (ulong)
+            for (int i = 0; i < 6; i++)
+            {
+                bits <<= 8;
+                bits |= id[i];
+            }
+            StringBuilder sb = new StringBuilder();
+            // Extraiem 8 blocs de 6 bits
+            for (int i = 7; i >= 0; i--)
+            {
+                int shift = i * 6;
+                int val6bit = (int)((bits >> shift) & 0x3F); // Màscara de 6 bits
+                sb.Append(DecodificarChar6bit(val6bit));
+            }
+            Console.WriteLine(sb.ToString().Trim());
+
+            k += 6;
         }
 
         public static void DataItem30(ref int k, byte[] body)
         {
             Console.WriteLine("(30)");
+            k += 1;
         }
 
         public static void DataItem31(ref int k, byte[] body)
@@ -318,11 +389,13 @@ namespace AsterixParser
         public static void DataItem32(ref int k, byte[] body)
         {
             Console.WriteLine("(32)");
+            k += 2;
         }
 
         public static void DataItem33(ref int k, byte[] body)
         {
             Console.WriteLine("(33)");
+            k += 2;
         }
 
         public static void DataItem34(ref int k, byte[] body)
@@ -333,11 +406,13 @@ namespace AsterixParser
         public static void DataItem35(ref int k, byte[] body)
         {
             Console.WriteLine("(35)");
+            k += 1;
         }
 
         public static void DataItem36(ref int k, byte[] body)
         {
             Console.WriteLine("(36)");
+            k += 1;
         }
 
         public static void DataItem37(ref int k, byte[] body)
@@ -348,6 +423,7 @@ namespace AsterixParser
         public static void DataItem38(ref int k, byte[] body)
         {
             Console.WriteLine("(38)");
+            k += 1;
         }
 
         public static void DataItem39(ref int k, byte[] body)
@@ -358,11 +434,13 @@ namespace AsterixParser
         public static void DataItem40(ref int k, byte[] body)
         {
             Console.WriteLine("(40)");
+            k += 7;
         }
 
         public static void DataItem41(ref int k, byte[] body)
         {
             Console.WriteLine("(41)");
+            k += 1;
         }
 
         public static void DataItem42(ref int k, byte[] body)
@@ -398,6 +476,8 @@ namespace AsterixParser
         public static void DataItem48(ref int k, byte[] body)
         {
             Console.WriteLine("(48)");
+
+
         }
 
 

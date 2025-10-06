@@ -215,8 +215,6 @@ namespace AsterixParser
                     TargetReport.Enqueue(PAI_VAL);
 
                 }
-
-
             }
 
             k += 1;
@@ -433,6 +431,11 @@ namespace AsterixParser
         public void DataItem10(ref int k, byte[] body)
         {
             Console.WriteLine("(DF-10)");
+
+            byte REP = body[k];
+            Console.WriteLine("Number of REPs of BDS: " + REP);
+
+            k += 1 + 8 * REP;
         }
 
         public void DataItem11(ref int k, byte[] body)
@@ -442,7 +445,7 @@ namespace AsterixParser
             ushort TrackNum = (ushort)(body[k + 1] | (body[k] << 8));
             TrackNum &= 0x0FFF;
 
-            Console.WriteLine(TrackNum);
+            Console.WriteLine("Track Number: " + TrackNum);
 
             k += 2;
         }
@@ -461,7 +464,7 @@ namespace AsterixParser
             ushort GS_raw = (ushort)(body[k + 1] | (body[k] << 8));
             ushort Head_raw = (ushort)(body[k + 3] | (body[k + 2] << 8));
 
-            float GS = GS_raw / (float)Math.Pow(2, 14);
+            float GS = GS_raw / (float)Math.Pow(2, 14) * 3600;
             float Head = Head_raw * 360f / (float)Math.Pow(2, 16);
 
             Console.WriteLine("GroundSpeed: " + GS);
