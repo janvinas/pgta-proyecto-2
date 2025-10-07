@@ -3,8 +3,10 @@
     public class Parser
     {
 
-        public static void ParseFile(byte[] file)
+        public static List<AsterixMessage> ParseFile(byte[] file)
         {
+            List<AsterixMessage> messages = [];
+
             CAT21 CAT021;
             CAT48 CAT048;
 
@@ -40,8 +42,11 @@
                         Console.Write("CAT-" + cat + "\n");
 
                         var message = new AsterixMessage();
+                        message.Cat = CAT.CAT048;
                         CAT048 = new CAT48(body, message);
                         error = CAT048.CAT48Reader(i, length);
+
+                        if (error == 0) messages.Add(message); 
 
                         Console.WriteLine(message);
                         
@@ -50,6 +55,8 @@
                 k ++;
                 i += length;
             }
+
+            return messages;
         }
     }
 }
