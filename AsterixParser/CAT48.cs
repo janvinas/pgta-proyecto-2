@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace AsterixParser
 {
-    internal class CAT48(byte[] body)
+    internal class CAT48(byte[] body, AsterixMessage message)
     {
         public int CAT48Reader(int i, ushort length) 
         {
@@ -62,15 +62,18 @@ namespace AsterixParser
         public int DataItem(Queue<int> nFSPEC)
         {
             int error = 0;
+            var parser = new DataItemParser48(message);
             
             while (nFSPEC.Count > 0)
             { 
                 int n = nFSPEC.Dequeue();
                 //Console.WriteLine(n);
                 //En un array de funciones le pasa el numero del DataField que quiere decodificar
-                DataItemParser48.functions[n-1](ref k, body); 
+                parser.functions[n-1](ref k, body); 
                 Console.WriteLine($"Siguiente Byte: {k}");
             }
+
+            Console.WriteLine("Last byte: " + k);
 
             return error;
         }
