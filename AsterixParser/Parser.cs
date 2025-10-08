@@ -17,7 +17,7 @@ namespace AsterixParser
             int i = 0;
             int k = 0;
 
-            while (i < file.Length && k<5)
+            while (i < file.Length && k<10)
             {
                 Console.WriteLine("------------------------------------------------");
                 Console.WriteLine("------------------------------------------------");

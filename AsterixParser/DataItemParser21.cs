@@ -247,6 +247,17 @@ namespace AsterixParser
         public static void DataItem17(ref int k, byte[] body)
         {
             Console.WriteLine("(17)");
+
+            if (body[k] >> 0 == 1)
+            {
+                k += 1;
+                if (body[k] >> 0 == 1)
+                {
+                    k += 1;
+                    if (body[k] >> 0 == 1) k += 1;
+                }
+            }
+            k += 1;
         }
 
         public static void DataItem18(ref int k, byte[] body)
@@ -384,6 +395,14 @@ namespace AsterixParser
         public static void DataItem31(ref int k, byte[] body)
         {
             Console.WriteLine("(31)");
+
+            int dk = 0;
+            if (body[k] >> 7 == 1) dk += 2;
+            if (body[k] >> 6 == 1) dk += 2;
+            if (body[k] >> 5 == 1) dk += 2;
+            if (body[k] >> 4 == 1) dk += 1;
+
+            k += dk;
         }
 
         public static void DataItem32(ref int k, byte[] body)
@@ -401,6 +420,17 @@ namespace AsterixParser
         public static void DataItem34(ref int k, byte[] body)
         {
             Console.WriteLine("(34)");
+
+            int dk = 0;
+            if (body[k] >> 7 == 1) dk += 1;
+            if (body[k] >> 6 == 1)
+            {
+                int REP = body[k + 1 + dk];
+                dk += 1 + 15 * k;
+            }
+            dk += 1;
+
+            k += dk;
         }
 
         public static void DataItem35(ref int k, byte[] body)
@@ -418,6 +448,7 @@ namespace AsterixParser
         public static void DataItem37(ref int k, byte[] body)
         {
             Console.WriteLine("(37)");
+
         }
 
         public static void DataItem38(ref int k, byte[] body)

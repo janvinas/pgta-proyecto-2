@@ -38,7 +38,7 @@ namespace AsterixParser
             int FRN = 1;
 
             Console.WriteLine("Lectura de FSPEC:");
-            while (fx) {
+            while (fx || FRN > 22) {
                 byte b = body[k];
                 for (int i = 7; i > 0; i--)
                 {
