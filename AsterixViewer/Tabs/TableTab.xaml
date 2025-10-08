@@ -20,6 +20,6 @@
             </MenuItem>
             <MenuItem Header="Exportar"></MenuItem>
         </Menu>
-        <DataGrid Grid.Row="1"></DataGrid>
+        <DataGrid x:Name="DataGrid" Grid.Row="1" IsReadOnly="True" CanUserAddRows="False"></DataGrid>
     </Grid>
 </UserControl>

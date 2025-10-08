@@ -7,7 +7,7 @@
         xmlns:tabs="clr-namespace:AsterixViewer.Tabs"
         mc:Ignorable="d"
         Title="ASTERIX Decoder" Height="450" Width="800">
-    <TabControl>
+    <TabControl x:Name="TabControl">
         <TabItem>
             <TabItem.Header>Start</TabItem.Header>
             <tabs:StartTab></tabs:StartTab>

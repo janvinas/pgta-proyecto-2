@@ -11,9 +11,10 @@
             <ColumnDefinition Width="Auto"></ColumnDefinition>
         </Grid.ColumnDefinitions>
         <StackPanel Grid.Column="0">
-            <Button Content="Button1"></Button>
+            <Button Content="Load File" Click="OpenFile_click"></Button>
             <Button Content="Button2"></Button>
             <Button Content="Button3"></Button>
+            <ProgressBar x:Name="ProgressBar" Height="10"/>
         </StackPanel>
         <Image Grid.Column="1" Source="/Resources/Welcome_image.jpg" Stretch="Fill"/>
     </Grid>

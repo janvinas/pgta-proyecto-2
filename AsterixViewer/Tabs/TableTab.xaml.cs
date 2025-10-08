@@ -23,6 +23,13 @@ namespace AsterixViewer.Tabs
         public TableTab()
         {
             InitializeComponent();
+            Loaded += OnLoaded;
+        }
+
+        private void OnLoaded(object sender, RoutedEventArgs e)
+        {
+            DataStore dataStore = (DataStore)DataContext;
+            DataGrid.ItemsSource = dataStore.messages;
         }
     }
 }

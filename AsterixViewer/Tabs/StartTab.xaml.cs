@@ -1,5 +1,8 @@
-﻿using System;
+﻿using AsterixParser;
+using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -23,6 +26,31 @@ namespace AsterixViewer.Tabs
         public StartTab()
         {
             InitializeComponent();
+        }
+
+        private async void OpenFile_click (object sender, RoutedEventArgs args)
+        {
+            var dialog = new OpenFileDialog();
+            if (dialog.ShowDialog() != true)
+                return;
+
+            string path = dialog.FileName;
+
+            try
+            {
+                byte[] data = await File.ReadAllBytesAsync(path);
+                ProgressBar.Value = 0;
+                var progress = new Progress<double>(p => ProgressBar.Value = p);
+
+                var result = await Parser.ParseFileAsync(data, progress);
+                ((DataStore)DataContext).messages = result;
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            catch (Exception)
+            {
+            }
         }
     }
 }

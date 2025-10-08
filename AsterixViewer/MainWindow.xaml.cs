@@ -24,5 +24,11 @@ namespace AsterixViewer
             DataStore dataStore = new DataStore();
             DataContext = dataStore;
         }
+        public void SetTab(int index)
+        {
+            Dispatcher.BeginInvoke((Action)(() => TabControl.SelectedIndex = index));
+        }
     }
+
+
 }
