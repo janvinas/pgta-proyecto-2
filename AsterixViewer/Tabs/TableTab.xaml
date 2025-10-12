@@ -33,7 +33,9 @@
                 <DataGridTextColumn Header="SAC" Binding="{Binding SAC}"/>
                 <DataGridTextColumn Header="Time" Binding="{Binding TimeOfDay, Converter={StaticResource TimeConverter}}"/>
                 <DataGridTextColumn Header="FL" Binding="{Binding FlightLevel, Converter={StaticResource FLConverter}}"/>
-                
+                <DataGridTextColumn Header="Slant Angle" Binding="{Binding SlantAngle, StringFormat={}{0:F2}°, TargetNullValue=''}"/>
+                <DataGridTextColumn Header="Azimuth" Binding="{Binding Azimuth, StringFormat={}{0:F2}°, TargetNullValue=''}"/>
+
                 <DataGridTextColumn Header="SRL" Binding="{Binding RadarPlotCharacteristics.SRL, StringFormat={}{0:F2}°, TargetNullValue=''}"/>
                 <DataGridTextColumn Header="SSR" Binding="{Binding RadarPlotCharacteristics.SSR}"/>
                 <DataGridTextColumn Header="SAM" Binding="{Binding RadarPlotCharacteristics.SAM, StringFormat={}{0} dBm, TargetNullValue=''}"/>

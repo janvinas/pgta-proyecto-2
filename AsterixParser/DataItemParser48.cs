@@ -190,24 +190,24 @@ namespace AsterixParser
                     else ADSB_EP = "ADSB not populated";
                     TargetReport.Enqueue(ADSB_EP);
 
-                    if (body[k] >> 6 == 1) ADSB_VAL = "Available";
-                    else ADSB_VAL = "Not Available";
+                    if (body[k] >> 6 == 1) ADSB_VAL = "ADSB available";
+                    else ADSB_VAL = "ADSB Not Available";
                     TargetReport.Enqueue(ADSB_VAL);
 
                     if (body[k] >> 5 == 1) SCN_EP = "SCN populated";
                     else SCN_EP = "SCN not populated";
                     TargetReport.Enqueue(SCN_EP);
 
-                    if (body[k] >> 4 == 1) SCN_VAL = "Available";
-                    else SCN_VAL = "Not Available";
+                    if (body[k] >> 4 == 1) SCN_VAL = "SCN Available";
+                    else SCN_VAL = "SCN Not Available";
                     TargetReport.Enqueue(SCN_VAL);
 
                     if (body[k] >> 3 == 1) PAI_EP = "PAI populated";
                     else PAI_EP = "PAI not populated";
                     TargetReport.Enqueue(PAI_EP);
 
-                    if (body[k] >> 2 == 1) PAI_VAL = "Available";
-                    else PAI_VAL = "Not Available";
+                    if (body[k] >> 2 == 1) PAI_VAL = "PAI Available";
+                    else PAI_VAL = "PAI Not Available";
                     TargetReport.Enqueue(PAI_VAL);
 
                 }
@@ -224,11 +224,11 @@ namespace AsterixParser
             Console.WriteLine("(DF-4)");
             ushort rho_raw = (ushort)(body[k + 1] | (body[k] << 8));
             ushort theta_raw = (ushort)(body[k + 2] << 8 | body[k + 3]);
-            float rho = rho_raw / 256f;
-            float theta = theta_raw * 360f / (float)Math.Pow(2, 16);
+            message.SlantAngle = rho_raw / 256f;
+            message.Azimuth = theta_raw * 360f / (float)Math.Pow(2, 16);
 
-            Console.WriteLine("Rho: " + rho);
-            Console.WriteLine("Theta: " + theta);
+            Console.WriteLine("Rho: " + message.SlantAngle);
+            Console.WriteLine("Theta: " + message.Azimuth);
 
             k += 4;
         }

@@ -44,7 +44,8 @@ namespace AsterixParser
         public byte SAC { get; set; } // DI1
         public double? TimeOfDay { get; set; } // DI2
         //TODO data item 3
-        //TODO data item 4
+        public float? SlantAngle { get; set; } // DI3 theta
+        public float? Azimuth { get; set; } // DI3 rho
         //TODO data item 5
         public FlightLevel? FlightLevel { get; set; } // DI6
         public RadarPlotCharacteristics? RadarPlotCharacteristics { get; set; } // DI7
