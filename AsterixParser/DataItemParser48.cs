@@ -72,7 +72,6 @@ namespace AsterixParser
         {
             Console.WriteLine("(DF-3)");
             Queue<string> TargetReport = new Queue<string>();
-            bool fx = true;
 
             string TYP = null;
             string SIM = null;
@@ -140,7 +139,8 @@ namespace AsterixParser
             else RAB = "Aircraft";
             TargetReport.Enqueue(RAB);
 
-            if (body[k] == 1)
+            bits = body[k] >> 0 & 0b1;
+            if ( bits == 1)
             {
                 k += 1;
                 if (body[k] >> 7 == 1) TST = "Test";
@@ -181,7 +181,8 @@ namespace AsterixParser
                 }
                 TargetReport.Enqueue(FOE);
 
-                if (body[k] == 1)
+                bits = body[k] >> 0 & 0b1;
+                if (bits == 1)
                 {
                     k += 1;
 
