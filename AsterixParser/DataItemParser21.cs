@@ -449,6 +449,8 @@ namespace AsterixParser
         {
             Console.WriteLine("(37)");
 
+            if (body[k] >> 0 == 1) k += 1;
+            k += 1;
         }
 
         public static void DataItem38(ref int k, byte[] body)
@@ -460,6 +462,9 @@ namespace AsterixParser
         public static void DataItem39(ref int k, byte[] body)
         {
             Console.WriteLine("(39)");
+
+            byte REP = body[k];
+            k += 1 + 8 * REP;
         }
 
         public static void DataItem40(ref int k, byte[] body)
@@ -477,6 +482,119 @@ namespace AsterixParser
         public static void DataItem42(ref int k, byte[] body)
         {
             Console.WriteLine("(42)");
+
+            int length = body[k];
+            k ++;
+
+            int k_old = k;
+            k++;
+            if (body[k_old] >> 7 == 1)
+            {
+                int BPS_raw = (ushort)(body[k + 1] | (body[k] << 8)) & 0x0FFF;
+                float BPS = BPS_raw * 0.1f;
+
+                k += 2;
+            }
+            if (body[k_old] >> 6 == 1)
+            {
+                int SelH_raw = (ushort)(body[k + 1] | (body[k] << 8)) & 0x03FF;
+                float SelH = SelH_raw * 0.703125f;
+
+                string HRD;
+                if (body[k] >> 3 == 0) HRD = "True North";
+                else HRD = "Magnetic North";
+
+                string Stat;
+                if (body[k] >> 2 == 0) Stat = "Data Unavailable/Invalid";
+                else Stat = "Data Available/Valid";
+
+                k += 2;
+            }
+            if (body[k_old] >> 5 == 1)
+            {
+                string AP;
+                if (body[k] >> 7 == 1) AP = "Autopilot engaged";
+                else AP = "Autopilot not engaged";
+
+                string VN;
+                if (body[k] >> 6 == 1) VN = "VNAV active";
+                else VN = "VNAV not active";
+
+                string AH;
+                if (body[k] >> 5 == 1) AH = "Altitude Hold engaged";
+                else AH = "Altitude Hold not engaged";
+
+                string AM;
+                if (body[k] >> 4 == 1) AM = "Approach Mode active";
+                else AM = "Approach Mode not active";
+
+                string MFM_EP;
+                if (body[k] >> 5 == 1) MFM_EP = "Element populated";
+                else MFM_EP = "Element not populated";
+
+                string MFM_VAL;
+                if (body[k] >> 4 == 1) MFM_VAL = "MCP/FCU ModeBits populated";
+                else MFM_VAL = "MCP/FCU ModeBits not populated";
+
+                k += 1;
+            }
+            if (body[k_old] >> 4 == 1)
+            {
+                int GAOlat_raw = (body[k] & 0b1110_0000) >> 5;
+                int GAOlat = GAOlat_raw * 2;
+
+                int GAOlong_raw = body[k] & 0x1F;
+                int GAOlong = GAOlong_raw * 2;
+
+                k += 1;
+            }
+            if (body[k_old] >> 3 == 1)
+            {
+                string STP;
+                if (body[k] >> 7 == 1) STP = "Aircraft has stopped";
+                else STP = "Aircraft has not stopped";
+
+                string HTS;
+                if (body[k] >> 6 == 1) HTS = "Heading/Ground Track data is valid";
+                else HTS = "Heading/Ground Track data is not valid";
+
+                string HTT;
+                if (body[k] >> 5 == 1) HTT = "Ground Track provided";
+                else HTT = "Heading data provided";
+
+                string HRD;
+                if (body[k] >> 4 == 1) HRD = "Magnetic North";
+                else HRD = "True North";
+
+                int GSS_raw = (ushort)(body[k + 1] | (body[k] << 8) >> 4) & 0x07FF;
+                float GSS = GSS_raw * 0.125f;
+
+                if (body[k+1] >> 0 == 1)
+                {
+                    k += 2;
+
+                    int HGT_raw = (body[k] >> 1);
+                    float HGT = HGT_raw * 2.8125f;
+
+                    k += 1;
+                }
+                else k += 2;
+            }
+            // ESTE ES UN PALAZO INCREIBLE (2.8 STA)
+            if (body[k_old] >> 2 == 1)
+            {
+            }
+            if (body[k_old] >> 1 == 1)
+            {
+                ushort TNH_raw = (ushort)(body[k + 2] << 8 | body[k + 3]);
+                float TNH = TNH_raw * 360f / (float)Math.Pow(2, 16);
+
+                k += 2;
+            }
+            // ESTE TAMBIEN ES UN PALAZO INCREIBLE (2.10 MES)
+            if (body[k_old] >> 0 == 1)
+            {
+            }
         }
 
         public static void DataItem43(ref int k, byte[] body)
