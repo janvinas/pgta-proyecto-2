@@ -271,12 +271,13 @@ namespace AsterixParser
 
         public void DataItem6(ref int k, byte[] body)
         {
-            if (((body[k] >> 7) & 1) == 1) { k += 2; return; } // Code not validated
-            if (((body[k] >> 6) & 1) == 1) { k += 2; return; }// Garbled code
+            bool notValidated = ((body[k] >> 7) & 1) == 1;
+            bool garbledCode = ((body[k] >> 6) & 1) == 1;
+
             ushort FL_raw = (ushort)(body[k + 1] | (body[k] << 8));
             FL_raw &= 0x3FFF;
 
-            message.FlightLevel = FL_raw / 4f;
+            message.FlightLevel = new FlightLevel(FL_raw / 4f, garbledCode, notValidated);
             k += 2;
         }
 

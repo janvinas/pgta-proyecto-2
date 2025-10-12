@@ -2,6 +2,7 @@
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -23,6 +24,8 @@ namespace AsterixViewer.Tabs
     /// </summary>
     public partial class StartTab : UserControl
     {
+        public event EventHandler? FinishedLoadingFile;
+
         public StartTab()
         {
             InitializeComponent();
@@ -38,12 +41,15 @@ namespace AsterixViewer.Tabs
 
             try
             {
+                Debug.WriteLine("Reading file");
                 byte[] data = await File.ReadAllBytesAsync(path);
                 ProgressBar.Value = 0;
                 var progress = new Progress<double>(p => ProgressBar.Value = p);
 
                 var result = await Parser.ParseFileAsync(data, progress);
-                ((DataStore)DataContext).messages = result;
+                ((DataStore) DataContext).messages = result;
+
+                FinishedLoadingFile?.Invoke(this, EventArgs.Empty);
             }
             catch (OperationCanceledException)
             {

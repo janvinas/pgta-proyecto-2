@@ -1,4 +1,5 @@
 ﻿using AsterixViewer.AsterixMap;
+using System.Diagnostics;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -24,9 +25,11 @@ namespace AsterixViewer
             DataStore dataStore = new DataStore();
             DataContext = dataStore;
         }
-        public void SetTab(int index)
+
+        private void StartTab_FinishedLoadingFile(object sender, EventArgs e)
         {
-            Dispatcher.BeginInvoke((Action)(() => TabControl.SelectedIndex = index));
+            // go to table
+            TabControl.SelectedIndex = 1;
         }
     }
 

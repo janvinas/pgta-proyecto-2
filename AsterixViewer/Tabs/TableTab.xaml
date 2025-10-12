@@ -4,8 +4,14 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:AsterixViewer.Tabs"
+             xmlns:main="clr-namespace:AsterixViewer"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
+        <main:AddressConverter x:Key="AddressConverter"/>
+        <main:TimeConverter x:Key="TimeConverter"/>
+        <main:FLConverter x:Key="FLConverter"/>
+    </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"/>
@@ -20,6 +26,32 @@
             </MenuItem>
             <MenuItem Header="Exportar"></MenuItem>
         </Menu>
-        <DataGrid x:Name="DataGrid" Grid.Row="1" IsReadOnly="True" CanUserAddRows="False"></DataGrid>
+        <DataGrid x:Name="DataGrid" Grid.Row="1" IsReadOnly="True" AutoGenerateColumns="False" CanUserAddRows="False">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="CAT" Binding="{Binding Cat, StringFormat={}{0}, TargetNullValue='Unknown'}"/>
+                <DataGridTextColumn Header="SIC" Binding="{Binding SIC}"/>
+                <DataGridTextColumn Header="SAC" Binding="{Binding SAC}"/>
+                <DataGridTextColumn Header="Time" Binding="{Binding TimeOfDay, Converter={StaticResource TimeConverter}}"/>
+                <DataGridTextColumn Header="FL" Binding="{Binding FlightLevel, Converter={StaticResource FLConverter}}"/>
+                
+                <DataGridTextColumn Header="SRL" Binding="{Binding RadarPlotCharacteristics.SRL, StringFormat={}{0:F2}°, TargetNullValue=''}"/>
+                <DataGridTextColumn Header="SSR" Binding="{Binding RadarPlotCharacteristics.SSR}"/>
+                <DataGridTextColumn Header="SAM" Binding="{Binding RadarPlotCharacteristics.SAM, StringFormat={}{0} dBm, TargetNullValue=''}"/>
+                <DataGridTextColumn Header="PRL" Binding="{Binding RadarPlotCharacteristics.PRL, StringFormat={}{0:F2}°, TargetNullValue=''}"/>
+                <DataGridTextColumn Header="PAM" Binding="{Binding RadarPlotCharacteristics.PAM, StringFormat={}{0} dBm, TargetNullValue=''}"/>
+                <DataGridTextColumn Header="RPD" Binding="{Binding RadarPlotCharacteristics.RPD, StringFormat={}{0} NM, TargetNullValue=''}"/>
+                <DataGridTextColumn Header="APD" Binding="{Binding RadarPlotCharacteristics.APD, StringFormat={}{0:F2}°, TargetNullValue=''}"/>
+                <DataGridTextColumn Header="SCO" Binding="{Binding RadarPlotCharacteristics.SCO}"/>
+                <DataGridTextColumn Header="SCR" Binding="{Binding RadarPlotCharacteristics.SCR}"/>
+                <DataGridTextColumn Header="RW" Binding="{Binding RadarPlotCharacteristics.RW, StringFormat={}{0} NM, TargetNullValue=''}"/>
+                <DataGridTextColumn Header="AR" Binding="{Binding RadarPlotCharacteristics.AR, StringFormat={}{0} NM, TargetNullValue=''}"/>
+
+                <DataGridTextColumn Header="Address" Binding="{Binding Address, Converter={StaticResource AddressConverter}}"/>
+                <DataGridTextColumn Header="Callsign" Binding="{Binding Identification}"/>
+                <DataGridTextColumn Header="Track N." Binding="{Binding TrackNum}"/>
+                <DataGridTextColumn Header="Gr. Speed" Binding="{Binding GS, StringFormat={}{0:F2} kt, TargetNullValue=''}"/>
+                <DataGridTextColumn Header="Heading" Binding="{Binding Heading, StringFormat={}{0:F2}°, TargetNullValue=''}"/>
+            </DataGrid.Columns>
+        </DataGrid>
     </Grid>
 </UserControl>

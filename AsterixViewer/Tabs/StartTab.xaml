@@ -14,7 +14,7 @@
             <Button Content="Load File" Click="OpenFile_click"></Button>
             <Button Content="Button2"></Button>
             <Button Content="Button3"></Button>
-            <ProgressBar x:Name="ProgressBar" Height="10"/>
+            <ProgressBar x:Name="ProgressBar" Height="10" Minimum="0" Maximum="1"/>
         </StackPanel>
         <Image Grid.Column="1" Source="/Resources/Welcome_image.jpg" Stretch="Fill"/>
     </Grid>

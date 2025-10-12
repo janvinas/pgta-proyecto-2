@@ -10,7 +10,7 @@
     <TabControl x:Name="TabControl">
         <TabItem>
             <TabItem.Header>Start</TabItem.Header>
-            <tabs:StartTab></tabs:StartTab>
+            <tabs:StartTab FinishedLoadingFile="StartTab_FinishedLoadingFile"></tabs:StartTab>
         </TabItem>
         <TabItem>
             <TabItem.Header>Table</TabItem.Header>

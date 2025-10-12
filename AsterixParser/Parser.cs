@@ -70,9 +70,9 @@ namespace AsterixParser
                 List<AsterixMessage> messages = [];
 
                 int i = 0;
-                int k = 0;
+                double prog = 0;
 
-                while (i < file.Length && k < 10)
+                while (i < file.Length)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
@@ -107,11 +107,14 @@ namespace AsterixParser
 
                     // report progress:
                     i += length;
-                    k++;
-
-                    progress?.Report(i / file.Length);
+                    var newProg = (double)i / (double)file.Length;
+                    if (newProg - prog > 0.01)
+                    {
+                        progress?.Report(newProg);
+                        prog = newProg;
+                    }
                 }
-
+                progress?.Report(0); // finished
                 return messages;
             });
 
