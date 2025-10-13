@@ -40,8 +40,13 @@ namespace AsterixViewer.Tabs
                 var item = btn.DataContext;
                 if (item is AsterixMessage message)
                 {
-                    if (message.TargetReportDescriptor == null) return;
-                    MessageBox.Show(String.Join("\n", message.TargetReportDescriptor), "Target Report Descriptor");
+                    if (message.TargetReportDescriptor == null)
+                    {
+                        MessageBox.Show("No data", "Target Report Descriptor");
+                    } else
+                    {
+                        MessageBox.Show(String.Join("\n", message.TargetReportDescriptor), "Target Report Descriptor");
+                    }
                 }
             }
         }
