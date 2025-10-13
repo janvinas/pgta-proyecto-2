@@ -68,21 +68,22 @@ namespace AsterixParser
         public CAT Cat { get; set; }
         public byte SIC { get; set; } // DI1
         public byte SAC { get; set; } // DI1
-        public double? TimeOfDay { get; set; } // DI2
+        public double? TimeOfDay { get; set; } // DI2 CAT48 y DI12 CAT21
         public List<string>? TargetReportDescriptor { get; set; } // DI3
         public float? SlantAngle { get; set; } // DI4 theta
         public float? Azimuth { get; set; } // DI4 rho
         public ushort? Mode3A { get; set; } // DI5
         public FlightLevel? FlightLevel { get; set; } // DI6
         public RadarPlotCharacteristics? RadarPlotCharacteristics { get; set; } // DI7
-        public uint? Address { get; set; } // DI8
+        public uint? Address { get; set; } // DI8 CAT48 y DI11 CAT21
         public string? Identification {  get; set; } // DI9
-        public ushort? TrackNum { get; set; } // DI11
+        public ushort? TrackNum { get; set; } // DI11 CAT48
         public double? GS { get; set; } // DI13
         public double? Heading { get; set; } // DI13
         public TrackStatus? TrackStatus { get; set; } // DI14 CAT48
         public I048230? I048230 { get; set; } // DI21 CAT48
-        public float? Latitude { get; set; } //DI
-        public float? Longitude { get; set; }
+        public float? Latitude { get; set; } //DI7 CAT21
+        public float? Longitude { get; set; } //DI7 CAT21
+        public float? BPS { get; set; } // DI48 CAT21
     }
 }

@@ -175,10 +175,10 @@ namespace AsterixParser
             byte primary = body[k];
             k++;
 
-            int ATP = (primary >> 5) & 0b111;
-            int ARC = (primary >> 3) & 0b11;
-            string RC = (primary >> 2 & 1) == 1 ? "Range Check passed, CPR validation pending" : "Default";
-            string RAB = (primary >> 1 & 1) == 1 ? "Report from field monitor (fixed transponder)" : "Report from target transponder";
+            int ATP = (primary >> 5) & 0b111; // Address Type
+            int ARC = (primary >> 3) & 0b11; // Altitude Reporting Capability
+            string RC = (primary >> 2 & 1) == 1 ? "Range Check passed, CPR validation pending" : "Default"; // Range Check
+            string RAB = (primary >> 1 & 1) == 1 ? "Report from field monitor (fixed transponder)" : "Report from target transponder"; // Report Type
             bool FX = (primary & 1) == 1;
 
             string ATP_VAL;
@@ -401,7 +401,7 @@ namespace AsterixParser
             k += 1;
         }
 
-        public void DataItem19(ref int k, byte[] body)
+        public void DataItem19(ref int k, byte[] body) // I021/070 Mode 3/A Code
         {
             Console.WriteLine("(DF-19)");
 
@@ -485,7 +485,7 @@ namespace AsterixParser
             else
                 return ' ';
         }
-        public static void DataItem29(ref int k, byte[] body)
+        public void DataItem29(ref int k, byte[] body)
         {
             Console.WriteLine("(29)");
 
@@ -504,6 +504,7 @@ namespace AsterixParser
                 int val6bit = (int)((bits >> shift) & 0x3F); // Màscara de 6 bits
                 sb.Append(DecodificarChar6bit(val6bit));
             }
+            message.Identification = sb.ToString().Trim();
             Console.WriteLine(sb.ToString().Trim());
 
             k += 6;
@@ -647,7 +648,7 @@ namespace AsterixParser
             Console.WriteLine("(47)");
         }
 
-        public static void DataItem48(ref int k, byte[] body)
+        public void DataItem48(ref int k, byte[] body)
         {
             Console.WriteLine("(DF-48)");
 
@@ -660,7 +661,7 @@ namespace AsterixParser
             {
                 int BPS_raw = (ushort)(body[k + 1] | (body[k] << 8)) & 0x0FFF;
                 float BPS = BPS_raw * 0.1f;
-
+                message.BPS = BPS;
                 k += 2;
             }
 
