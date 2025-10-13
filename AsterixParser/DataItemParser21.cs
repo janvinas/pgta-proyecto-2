@@ -11,14 +11,38 @@ namespace AsterixParser
 {
     internal class DataItemParser21
     {
-        public static void DataItem1(ref int k, byte[] body) // I021/010 Data Source Identification
+        private readonly AsterixMessage message;
+
+        /*Jan decia de hacerlo asi:
+        public static Action[] functions = {}
+        */
+        //Para poner el valor de "k" y poderlo modificar se necesita poner ref y por lo cual crear el delegate 
+        public delegate void DelegateFunctions(ref int k, byte[] body);
+        public DelegateFunctions[] functions;
+
+        public DataItemParser21(AsterixMessage message)
+        {
+            this.message = message;
+
+            functions = [
+            DataItem1, DataItem2, DataItem3, DataItem4, DataItem5, DataItem6, DataItem7, DataItem8, DataItem9, DataItem10,
+            DataItem11, DataItem12, DataItem13, DataItem14, DataItem15, DataItem16, DataItem17, DataItem18, DataItem19,
+            DataItem20, DataItem21, DataItem22, DataItem23, DataItem24, DataItem25, DataItem26, DataItem27, DataItem28, DataItem29,
+            DataItem30, DataItem31, DataItem32, DataItem33, DataItem34, DataItem35, DataItem36, DataItem37, DataItem38, DataItem39,
+            DataItem40, DataItem41, DataItem42, DataItem43, DataItem44, DataItem45, DataItem46, DataItem47, DataItem48];
+
+        }
+
+        public void DataItem1(ref int k, byte[] body) // I021/010 Data Source Identification
         {
             Console.WriteLine("(DF-1)");
+
             byte SAC = body[k];
-            if (SAC == 20) Console.WriteLine("ESP");
-            else Console.WriteLine("Otro pais");
             byte SIC = body[k + 1];
-            Console.WriteLine($"Identification Code {SIC}");
+
+            message.SIC = SIC;
+            message.SAC = SAC;
+
             k += 2;
         }
 
@@ -269,7 +293,7 @@ namespace AsterixParser
             k += 6;
         }
 
-        public static void DataItem7(ref int k, byte[] body) // I021/131 High-Resolution Position in WGS-84 Co-ordinates
+        public void DataItem7(ref int k, byte[] body) // I021/131 High-Resolution Position in WGS-84 Co-ordinates
         {
             Console.WriteLine("(DF-7)");
             int lat_i = (body[k] << 24) | (body[k + 1] << 16) | (body[k + 2] << 8) | body[k + 3]; // Composem el integer de latitud
@@ -284,6 +308,9 @@ namespace AsterixParser
             else Console.WriteLine($"Latitude: {lat} degrees South.");
             if (lon >= 0) Console.WriteLine($"Longitude: {lon} degrees East.");
             else Console.WriteLine($"Longitude: {lon} degrees West.");
+
+            message.Latitude = lat;
+            message.Longitude =  lon;
 
             k += 8;
         }
@@ -306,22 +333,25 @@ namespace AsterixParser
             k += 2;
         }
 
-        public static void DataItem11(ref int k, byte[] body) // I021/080 Target Address
+        public void DataItem11(ref int k, byte[] body) // I021/080 Target Address
         {
             Console.WriteLine("(DF-11)");
-            byte[] address = { body[k], body[k + 1], body[k + 2] };
-            string hexAddress = BitConverter.ToString(address).Replace("-", "");
-            Console.WriteLine(hexAddress);
+            //byte[] address = { body[k], body[k + 1], body[k + 2] };
+            //string hexAddress = BitConverter.ToString(address).Replace("-", "");
+            //Console.WriteLine(hexAddress);
+            uint address = (uint)(body[k] << 16 | body[k + 1] << 8 | body[k + 2]);
+            message.Address = address;
             k += 3; // 3 octets
         }
 
-        public static void DataItem12(ref int k, byte[] body)
+        public void DataItem12(ref int k, byte[] body)
         {
             Console.WriteLine("(DF-12)");
             int date = (body[k + 2] | body[k + 1] << 8 | (body[k] << 16));
-            float hour = date / 128f;
+            float seconds = date / 128f;
 
-            Console.WriteLine("Time: " + TimeSpan.FromSeconds(hour));
+            message.TimeOfDay = seconds;
+
             k += 3;
         }
 
@@ -371,13 +401,14 @@ namespace AsterixParser
             k += 1;
         }
 
-        public static void DataItem19(ref int k, byte[] body)
+        public void DataItem19(ref int k, byte[] body)
         {
             Console.WriteLine("(DF-19)");
 
             ushort raw = (ushort)(body[k + 1] | (body[k] << 8));
 
-            int mode3A = raw & 0x0FFF;
+            ushort mode3A = (ushort)(raw & 0x0FFF);
+            message.Mode3A = mode3A;
 
             string octalCode = Convert.ToString(mode3A, 8);
             Console.WriteLine($"Mode-3/A en octal: {octalCode}");
@@ -391,13 +422,13 @@ namespace AsterixParser
             k += 2;
         }
 
-        public static void DataItem21(ref int k, byte[] body)
+        public void DataItem21(ref int k, byte[] body)
         {
             Console.WriteLine("(21)");
 
             ushort FL_raw = (ushort)(body[k + 1] | (body[k] << 8));
-            float FL = FL_raw / 4f;
 
+            message.FlightLevel = new FlightLevel(FL_raw / 4f, false, false);
             k += 2;
         }
 
@@ -995,23 +1026,5 @@ namespace AsterixParser
                 }
             }
         }
-
-
-
-
-        /*Jan decia de hacerlo asi:
-        public static Action[] functions = {}
-        */
-        //Para poner el valor de "k" y poderlo modificar se necesita poner ref y por lo cual crear el delegate 
-        public delegate void DelegateFunctions(ref int k, byte[] body);
-
-        public static DelegateFunctions[] functions = {
-            DataItem1, DataItem2, DataItem3, DataItem4, DataItem5, DataItem6, DataItem7, DataItem8, DataItem9, DataItem10,
-            DataItem11, DataItem12, DataItem13, DataItem14, DataItem15, DataItem16, DataItem17, DataItem18, DataItem19,
-            DataItem20, DataItem21, DataItem22, DataItem23, DataItem24, DataItem25, DataItem26, DataItem27, DataItem28, DataItem29,
-            DataItem30, DataItem31, DataItem32, DataItem33, DataItem34, DataItem35, DataItem36, DataItem37, DataItem38, DataItem39,
-            DataItem40, DataItem41, DataItem42, DataItem43, DataItem44, DataItem45, DataItem46, DataItem47, DataItem48
-
-        };
     }
 }

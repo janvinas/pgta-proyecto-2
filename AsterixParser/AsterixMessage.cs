@@ -11,7 +11,7 @@ namespace AsterixParser
 {
     public enum CAT
     {
-        CAT028,
+        CAT021,
         CAT048,
     }
 
@@ -54,5 +54,7 @@ namespace AsterixParser
         public ushort? TrackNum { get; set; } // DI11
         public double? GS { get; set; } // DI13
         public double? Heading { get; set; } // DI13
+        public float? Latitude { get; set; } //DI
+        public float? Longitude { get; set; }
     }
 }

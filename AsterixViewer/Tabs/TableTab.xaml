@@ -44,6 +44,8 @@
                 <DataGridTextColumn Header="FL" Binding="{Binding FlightLevel, Converter={StaticResource FLConverter}}"/>
                 <DataGridTextColumn Header="Slant Angle" Binding="{Binding SlantAngle, StringFormat={}{0:F2}°, TargetNullValue=''}"/>
                 <DataGridTextColumn Header="Azimuth" Binding="{Binding Azimuth, StringFormat={}{0:F2}°, TargetNullValue=''}"/>
+                <DataGridTextColumn Header="Longitude" Binding="{Binding Longitude, StringFormat={}{0:F3}°, TargetNullValue=''}"/>
+                <DataGridTextColumn Header="Latitude" Binding="{Binding Latitude, StringFormat={}{0:F3}°, TargetNullValue=''}"/>
 
                 <DataGridTextColumn Header="SRL" Binding="{Binding RadarPlotCharacteristics.SRL, StringFormat={}{0:F2}°, TargetNullValue=''}"/>
                 <DataGridTextColumn Header="SSR" Binding="{Binding RadarPlotCharacteristics.SSR}"/>

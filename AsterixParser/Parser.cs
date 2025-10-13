@@ -35,27 +35,35 @@ namespace AsterixParser
                 switch (cat)
                 {
                     case 21:
-                        Console.Write("CAT-" + cat + "\n");
-                        
-                        CAT021 = new CAT21(body);
-                        error = CAT021.CAT21Reader(i, length);
-                        
-                        break;
-                    case 48:
-                        Console.Write("CAT-" + cat + "\n");
-
-                        var message = new AsterixMessage
                         {
-                            Cat = CAT.CAT048
-                        };
-                        CAT048 = new CAT48(body, message);
-                        error = CAT048.CAT48Reader(i, length);
+                            Console.Write("CAT-" + cat + "\n");
 
-                        if (error == 0) messages.Add(message); 
+                            var message = new AsterixMessage
+                            {
+                                Cat = CAT.CAT021
+                            };
+                            CAT021 = new CAT21(body, message);
+                            error = CAT021.CAT21Reader(i, length);
 
-                        Console.WriteLine(message);
-                        
-                        break;
+                            break;
+                        }
+                    case 48:
+                        {
+                            Console.Write("CAT-" + cat + "\n");
+
+                            var message = new AsterixMessage
+                            {
+                                Cat = CAT.CAT048
+                            };
+                            CAT048 = new CAT48(body, message);
+                            error = CAT048.CAT48Reader(i, length);
+
+                            if (error == 0) messages.Add(message);
+
+                            Console.WriteLine(message);
+
+                            break;
+                        }
                 }
                 k ++;
                 i += length;
@@ -88,8 +96,14 @@ namespace AsterixParser
                     {
                         case 21:
                             {
-                                var CAT021 = new CAT21(body);
+                                var message = new AsterixMessage
+                                {
+                                    Cat = CAT.CAT021
+                                };
+                                var CAT021 = new CAT21(body,message);
                                 var error = CAT021.CAT21Reader(i, length);
+
+                                if (error == 0) messages.Add(message);
                                 break;
                             }
                         case 48:

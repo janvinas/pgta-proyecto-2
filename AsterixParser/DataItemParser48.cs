@@ -11,7 +11,6 @@ namespace AsterixParser
 {
     internal class DataItemParser48
     {
-
         private readonly AsterixMessage message;
 
         /*Jan decia de hacerlo asi:
