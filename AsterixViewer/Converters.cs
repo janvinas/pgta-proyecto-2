@@ -35,7 +35,7 @@ namespace AsterixViewer
             if (value is double seconds)
             {
                 TimeSpan time = TimeSpan.FromSeconds(seconds);
-                return time.ToString(@"hh\:mm\:ss\.ff");
+                return time.ToString(@"hh\:mm\:ss\.fff");
             }
 
             return "Unknown";
