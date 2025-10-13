@@ -22,6 +22,7 @@ namespace AsterixParser
             k += 2;
         }
 
+        /* 
         public static void DataItem2(ref int k, byte[] body) // I021/040 Target Report Descriptor
         {
             Console.WriteLine("(DF-2)");
@@ -140,28 +141,131 @@ namespace AsterixParser
                 }
             }
         }
+        */
+
+        public static void DataItem2(ref int k, byte[] body)
+        {
+            Console.WriteLine("(DF-2) Target Report Descriptor");
+
+            // --- Primary subfield ---
+            byte primary = body[k];
+            k++;
+
+            int ATP = (primary >> 5) & 0b111;
+            int ARC = (primary >> 3) & 0b11;
+            string RC = (primary >> 2 & 1) == 1 ? "Range Check passed, CPR validation pending" : "Default";
+            string RAB = (primary >> 1 & 1) == 1 ? "Report from field monitor (fixed transponder)" : "Report from target transponder";
+            bool FX = (primary & 1) == 1;
+
+            string ATP_VAL;
+            switch (ATP)
+            {
+                case 0: ATP_VAL = "24-bit ICAO Address"; break;
+                case 1: ATP_VAL = "Duplicate Address"; break;
+                case 2: ATP_VAL = "Surface Vehicle Address"; break;
+                case 3: ATP_VAL = "Anonymous Address"; break;
+                default: ATP_VAL = "Reserved for future use"; break;
+            }
+
+            string ARC_VAL;
+            switch (ARC)
+            {
+                case 0: ARC_VAL = "25 ft."; break;
+                case 1: ARC_VAL = "100 ft."; break;
+                case 2: ARC_VAL = "Unknown"; break;
+                case 3: ARC_VAL = "Invalid"; break;
+                default: ARC_VAL = "Invalid"; break;
+            }
+
+            Console.WriteLine($"Address Type: {ATP_VAL}");
+            Console.WriteLine($"Altitude Reporting Capability: {ARC_VAL}");
+            Console.WriteLine($"Range Check: {RC}");
+            Console.WriteLine($"Report Type: {RAB}");
+
+            // --- First extension ---
+            if (FX)
+            {
+                byte ext1 = body[k];
+                k++;
+
+                string DCR = (ext1 >> 7 & 1) == 1 ? "Differential Correction (ADS-B)" : "No Differential Correction (ADS-B)";
+                string GBS = (ext1 >> 6 & 1) == 1 ? "Set" : "Not set";
+                string SIM = (ext1 >> 5 & 1) == 1 ? "Simulated target report" : "Actual target report";
+                string TST = (ext1 >> 4 & 1) == 1 ? "Test Target" : "Default";
+                string SAA = (ext1 >> 3 & 1) == 1 ? "Equipment not capable" : "Equipment capable";
+
+                int CL = (ext1 >> 1) & 0b11;
+                string CL_VAL;
+                switch (CL)
+                {
+                    case 0: CL_VAL = "Report valid"; break;
+                    case 1: CL_VAL = "Report suspect"; break;
+                    case 2: CL_VAL = "No information"; break;
+                    case 3: CL_VAL = "Reserved for future use"; break;
+                    default: CL_VAL = "Unknown"; break;
+                }
+
+                Console.WriteLine($"Differential Correction: {DCR}");
+                Console.WriteLine($"Ground Bit Setting: {GBS}");
+                Console.WriteLine($"Simulated Target: {SIM}");
+                Console.WriteLine($"Test Target: {TST}");
+                Console.WriteLine($"Selected Altitude Available: {SAA}");
+                Console.WriteLine($"Confidence Level: {CL_VAL}");
+
+                FX = (ext1 & 1) == 1;
+
+                // --- Second extension ---
+                if (FX)
+                {
+                    byte ext2 = body[k];
+                    k++;
+
+                    string IPC = (ext2 >> 5 & 1) == 1 ? "Failed" : "Default";
+                    string NOGO = (ext2 >> 4 & 1) == 1 ? "Set" : "Not set";
+                    string CPR = (ext2 >> 3 & 1) == 1 ? "Failed" : "Correct";
+                    string LDPJ = (ext2 >> 2 & 1) == 1 ? "LDPJ detected" : "LDPJ not detected";
+                    string RCF = (ext2 >> 1 & 1) == 1 ? "Failed" : "Default";
+
+                    Console.WriteLine($"  Independent Position Check: {IPC}");
+                    Console.WriteLine($"  No-go Bit Status: {NOGO}");
+                    Console.WriteLine($"  Compact Position Reporting: {CPR}");
+                    Console.WriteLine($"  Local Decoding Position Jump: {LDPJ}");
+                    Console.WriteLine($"  Range Check: {RCF}");
+
+                    FX = (ext2 & 1) == 1;
+
+                    // --- Third extension ---
+                    if (FX)
+                    {
+                        byte ext3 = body[k];
+                        k++;
+                        Console.WriteLine($"  Third Extension present (not defined in specification). Byte value: {ext3:X2}");
+                    }
+                }
+            }
+        }
 
         public static void DataItem3(ref int k, byte[] body)
         {
-            Console.WriteLine("(DF-3)");
+            Console.WriteLine("(3)");
             k += 2;
         }
 
         public static void DataItem4(ref int k, byte[] body)
         {
-            Console.WriteLine("(DF-4)");
+            Console.WriteLine("(4)");
             k++;
         }
 
         public static void DataItem5(ref int k, byte[] body)
         {
-            Console.WriteLine("(DF-5)");
+            Console.WriteLine("(5)");
             k += 3;
         }
 
         public static void DataItem6(ref int k, byte[] body)
         {
-            Console.WriteLine("(DF-6)");
+            Console.WriteLine("(6)");
             k += 6;
         }
 
@@ -186,19 +290,19 @@ namespace AsterixParser
 
         public static void DataItem8(ref int k, byte[] body)
         {
-            Console.WriteLine("(DF-8)");
+            Console.WriteLine("(8)");
             k += 3;
         }
 
         public static void DataItem9(ref int k, byte[] body)
         {
-            Console.WriteLine("(DF-9)");
+            Console.WriteLine("(9)");
             k += 2;
         }
 
         public static void DataItem10(ref int k, byte[] body)
         {
-            Console.WriteLine("(DF-10)");
+            Console.WriteLine("(10)");
             k += 2;
         }
 
@@ -269,7 +373,7 @@ namespace AsterixParser
 
         public static void DataItem19(ref int k, byte[] body)
         {
-            Console.WriteLine("(19)");
+            Console.WriteLine("(DF-19)");
 
             ushort raw = (ushort)(body[k + 1] | (body[k] << 8));
 
@@ -514,7 +618,7 @@ namespace AsterixParser
 
         public static void DataItem48(ref int k, byte[] body)
         {
-            Console.WriteLine("(48)");
+            Console.WriteLine("(DF-48)");
 
             int length = body[k];
             k++;
@@ -783,7 +887,7 @@ namespace AsterixParser
             }
             if ((body[k_old] >> 1 & 1) == 1)
             {
-                ushort TNH_raw = (ushort)(body[k + 2] << 8 | body[k + 3]);
+                ushort TNH_raw = (ushort)(body[k] << 8 | body[k + 1]);
                 float TNH = TNH_raw * 360f / (float)Math.Pow(2, 16);
 
                 k += 2;

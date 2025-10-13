@@ -128,19 +128,19 @@ namespace AsterixParser
             }
             if (TYP != null) TargetReport.Add(TYP);
 
-            if (body[k] >> 4 == 1) SIM = "Simulated";
+            if ((body[k] >> 4 & 0b1) == 1) SIM = "Simulated";
             else SIM = "Actual";
             TargetReport.Add(SIM);
 
-            if (body[k] >> 3 == 1) RDP = "Chain 2";
+            if ((body[k] >> 3 & 0b1) == 1) RDP = "Chain 2";
             else RDP = "Chain 1";
             TargetReport.Add(RDP);
 
-            if (body[k] >> 2 == 1) SPI = "SPI";
+            if ((body[k] >> 2 & 0b1) == 1) SPI = "SPI";
             else SPI = "No SPI";
             TargetReport.Add(SPI);
 
-            if (body[k] >> 1 == 1) RAB = "Field Monitor";
+            if ((body[k] >> 1 & 0b1) == 1) RAB = "Field Monitor";
             else RAB = "Aircraft";
             TargetReport.Add(RAB);
 
@@ -148,23 +148,23 @@ namespace AsterixParser
             if ( bits == 1)
             {
                 k += 1;
-                if (body[k] >> 7 == 1) TST = "Test";
+                if ((body[k] >> 7 & 0b1) == 1) TST = "Test";
                 else TST = "Real";
                 TargetReport.Add(TST);
 
-                if (body[k] >> 6 == 1) ERR = "Extended";
+                if ((body[k] >> 6 & 0b1) == 1) ERR = "Extended";
                 else ERR = "No Extended";
                 TargetReport.Add(ERR);
 
-                if (body[k] >> 5 == 1) XPP = "No X-Pulse";
+                if ((body[k] >> 5 & 0b1) == 1) XPP = "No X-Pulse";
                 else XPP = "X-Pulse";
                 TargetReport.Add(XPP);
 
-                if (body[k] >> 4 == 1) ME = "Military Emergency";
+                if ((body[k] >> 4 & 0b1) == 1) ME = "Military Emergency";
                 else ME = "No Military Emergency";
                 TargetReport.Add(ME);
 
-                if (body[k] >> 3 == 1) MI = "Military ID";
+                if ((body[k] >> 3 & 0b1) == 1) MI = "Military ID";
                 else MI = "No Military ID";
                 TargetReport.Add(MI);
 
@@ -191,26 +191,26 @@ namespace AsterixParser
                 {
                     k += 1;
 
-                    if (body[k] >> 7 == 1)
+                    if ((body[k] >> 7 & 0b1) == 1)
                     {
                         // ADSB Populated
-                        if (body[k] >> 6 == 1) ADSB_VAL = "ADSB available";
+                        if ((body[k] >> 6 & 0b1) == 1) ADSB_VAL = "ADSB available";
                         else ADSB_VAL = "ADSB Not Available";
                         TargetReport.Add(ADSB_VAL);
                     }
 
-                    if (body[k] >> 5 == 1)
+                    if ((body[k] >> 5 & 0b1) == 1)
                     {
                         // SCN Populated
-                        if (body[k] >> 4 == 1) SCN_VAL = "SCN Available";
+                        if ((body[k] >> 4 & 0b1) == 1) SCN_VAL = "SCN Available";
                         else SCN_VAL = "SCN Not Available";
                         TargetReport.Add(SCN_VAL);
                     }
 
-                    if (body[k] >> 3 == 1)
+                    if ((body[k] >> 3 & 0b1) == 1)
                     {
                         // PAI Populated
-                        if (body[k] >> 2 == 1) PAI_VAL = "PAI Available";
+                        if ((body[k] >> 2 & 0b1) == 1) PAI_VAL = "PAI Available";
                         else PAI_VAL = "PAI Not Available";
                         TargetReport.Add(PAI_VAL);
                     }
@@ -502,11 +502,11 @@ namespace AsterixParser
             }
             TrackStatus.Enqueue(RAD);
 
-            if (body[k] >> 4 == 1) DOU = "Low confidence in plot to track association";
+            if ((body[k] >> 4 & 0b1) == 1) DOU = "Low confidence in plot to track association";
             else DOU = "Normal confidence";
             TrackStatus.Enqueue(DOU);
 
-            if (body[k] >> 3 == 1) MAH = "No horizontal man. sensed";
+            if ((body[k] >> 3 & 0b1) == 1) MAH = "No horizontal man. sensed";
             else MAH = "Horizontal man. sensed";
             TrackStatus.Enqueue(MAH);
 
@@ -528,23 +528,23 @@ namespace AsterixParser
             }
             TrackStatus.Enqueue(CDM);
 
-            if (body[k] >> 0 == 1)
+            if ((body[k] & 0b1) == 1)
             {
                 k += 1;
 
-                if (body[k] >> 7 == 1) TRE = "End of track lifetime(last report for this track)";
+                if ((body[k] >> 7 & 0b1) == 1) TRE = "End of track lifetime(last report for this track)";
                 else TRE = "Track still alive";
                 TrackStatus.Enqueue(TRE);
 
-                if (body[k] >> 6 == 1) GHO = "Ghost target Track";
+                if ((body[k] >> 6 & 0b1) == 1) GHO = "Ghost target Track";
                 else GHO = "True target track";
                 TrackStatus.Enqueue(GHO);
 
-                if (body[k] >> 5 == 1) SUP = "No";
+                if ((body[k] >> 5 & 0b1) == 1) SUP = "No";
                 else SUP = "Yes";
                 TrackStatus.Enqueue(SUP);
 
-                if (body[k] >> 4 == 1) TCC = "Slant range correction";
+                if ((body[k] >> 4 & 0b1) == 1) TCC = "Slant range correction";
                 else TCC = "Radar Plane";
                 TrackStatus.Enqueue(TCC);
             }
@@ -597,8 +597,8 @@ namespace AsterixParser
             Console.WriteLine("(DF-20)");
             int dk = 1; // Starts by 1 as it must jump the base octet
 
-            if (body[k] >> 7 == 1) dk += 2; // Presence of subfield #1 (2 Octets)
-            if (body[k] >> 6 == 1) dk += 7; // Presence of subfield #2 (7 octets)
+            if ((body[k] >> 7 & 0b1) == 1) dk += 2; // Presence of subfield #1 (2 Octets)
+            if ((body[k] >> 6 & 0b1) == 1) dk += 7; // Presence of subfield #2 (7 octets)
 
             k += dk;
         }
