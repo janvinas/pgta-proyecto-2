@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AsterixParser;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -30,6 +31,19 @@ namespace AsterixViewer.Tabs
         {
             DataStore dataStore = (DataStore)DataContext;
             DataGrid.ItemsSource = dataStore.messages;
+        }
+
+        private void OnTRDClick(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn)
+            {
+                var item = btn.DataContext;
+                if (item is AsterixMessage message)
+                {
+                    if (message.TargetReportDescriptor == null) return;
+                    MessageBox.Show(String.Join("\n", message.TargetReportDescriptor), "Target Report Descriptor");
+                }
+            }
         }
     }
 }

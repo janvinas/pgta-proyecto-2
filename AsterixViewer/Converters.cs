@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Data;
 
 namespace AsterixViewer
@@ -46,6 +47,42 @@ namespace AsterixViewer
         }
     }
 
+    internal class TargetReportDescriptorConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is List<string> trd)
+            {
+                return String.Join("\n", trd);
+            }
+
+            return "No data";
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    internal class Mode3AConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is ushort code)
+            {
+                string octal = System.Convert.ToString(code, 8);
+                return octal.PadLeft(4, '0');
+            }
+            return "";
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
     internal class FLConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
@@ -65,4 +102,5 @@ namespace AsterixViewer
             throw new NotImplementedException();
         }
     }
+
 }

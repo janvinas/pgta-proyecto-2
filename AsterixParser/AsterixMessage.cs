@@ -43,10 +43,10 @@ namespace AsterixParser
         public byte SIC { get; set; } // DI1
         public byte SAC { get; set; } // DI1
         public double? TimeOfDay { get; set; } // DI2
-        //TODO data item 3
-        public float? SlantAngle { get; set; } // DI3 theta
-        public float? Azimuth { get; set; } // DI3 rho
-        //TODO data item 5
+        public List<string>? TargetReportDescriptor { get; set; } // DI3
+        public float? SlantAngle { get; set; } // DI4 theta
+        public float? Azimuth { get; set; } // DI4 rho
+        public ushort? Mode3A { get; set; } // DI5
         public FlightLevel? FlightLevel { get; set; } // DI6
         public RadarPlotCharacteristics? RadarPlotCharacteristics { get; set; } // DI7
         public uint? Address { get; set; } // DI8

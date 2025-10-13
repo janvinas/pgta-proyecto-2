@@ -10,6 +10,7 @@
     <UserControl.Resources>
         <main:AddressConverter x:Key="AddressConverter"/>
         <main:TimeConverter x:Key="TimeConverter"/>
+        <main:Mode3AConverter x:Key="Mode3AConverter"/>
         <main:FLConverter x:Key="FLConverter"/>
     </UserControl.Resources>
     <Grid>
@@ -32,6 +33,14 @@
                 <DataGridTextColumn Header="SIC" Binding="{Binding SIC}"/>
                 <DataGridTextColumn Header="SAC" Binding="{Binding SAC}"/>
                 <DataGridTextColumn Header="Time" Binding="{Binding TimeOfDay, Converter={StaticResource TimeConverter}}"/>
+                <DataGridTemplateColumn Header="TRD">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Button x:Name="InfoButton" Content="ℹ️" Click="OnTRDClick"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="Mode 3/A" Binding="{Binding Mode3A, Converter={StaticResource Mode3AConverter}}"/>
                 <DataGridTextColumn Header="FL" Binding="{Binding FlightLevel, Converter={StaticResource FLConverter}}"/>
                 <DataGridTextColumn Header="Slant Angle" Binding="{Binding SlantAngle, StringFormat={}{0:F2}°, TargetNullValue=''}"/>
                 <DataGridTextColumn Header="Azimuth" Binding="{Binding Azimuth, StringFormat={}{0:F2}°, TargetNullValue=''}"/>

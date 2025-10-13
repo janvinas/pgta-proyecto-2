@@ -68,10 +68,10 @@ namespace AsterixParser
             k += 3;
         }
 
-        public void DataItem3(ref int k, byte[] body) //No esta hecho, solo lo salto, no lo entiendo jeje (Pau)
+        public void DataItem3(ref int k, byte[] body) // I048/020
         {
             Console.WriteLine("(DF-3)");
-            Queue<string> TargetReport = new Queue<string>();
+            List<string> TargetReport = [];
 
             string TYP = null;
             string SIM = null;
@@ -121,23 +121,23 @@ namespace AsterixParser
                     TYP = "ModeS Roll-Call + PSR";
                     break;
             }
-            TargetReport.Enqueue(TYP);
+            if (TYP != null) TargetReport.Add(TYP);
 
             if (body[k] >> 4 == 1) SIM = "Simulated";
             else SIM = "Actual";
-            TargetReport.Enqueue(SIM);
+            TargetReport.Add(SIM);
 
             if (body[k] >> 3 == 1) RDP = "Chain 2";
             else RDP = "Chain 1";
-            TargetReport.Enqueue(RDP);
+            TargetReport.Add(RDP);
 
             if (body[k] >> 2 == 1) SPI = "SPI";
             else SPI = "No SPI";
-            TargetReport.Enqueue(SPI);
+            TargetReport.Add(SPI);
 
             if (body[k] >> 1 == 1) RAB = "Field Monitor";
             else RAB = "Aircraft";
-            TargetReport.Enqueue(RAB);
+            TargetReport.Add(RAB);
 
             bits = body[k] >> 0 & 0b1;
             if ( bits == 1)
@@ -145,23 +145,23 @@ namespace AsterixParser
                 k += 1;
                 if (body[k] >> 7 == 1) TST = "Test";
                 else TST = "Real";
-                TargetReport.Enqueue(TST);
+                TargetReport.Add(TST);
 
                 if (body[k] >> 6 == 1) ERR = "Extended";
                 else ERR = "No Extended";
-                TargetReport.Enqueue(ERR);
+                TargetReport.Add(ERR);
 
                 if (body[k] >> 5 == 1) XPP = "No X-Pulse";
                 else XPP = "X-Pulse";
-                TargetReport.Enqueue(XPP);
+                TargetReport.Add(XPP);
 
                 if (body[k] >> 4 == 1) ME = "Military Emergency";
                 else ME = "No Military Emergency";
-                TargetReport.Enqueue(ME);
+                TargetReport.Add(ME);
 
                 if (body[k] >> 3 == 1) MI = "Military ID";
                 else MI = "No Military ID";
-                TargetReport.Enqueue(MI);
+                TargetReport.Add(MI);
 
                 bits = (body[k] >> 1) & 0b11;
                 switch (bits)
@@ -179,36 +179,36 @@ namespace AsterixParser
                         FOE = "No reply";
                         break;
                 }
-                TargetReport.Enqueue(FOE);
+                if (FOE != null) TargetReport.Add(FOE);
 
                 bits = body[k] >> 0 & 0b1;
                 if (bits == 1)
                 {
                     k += 1;
 
-                    if (body[k] >> 7 == 1) ADSB_EP = "ADSB populated";
-                    else ADSB_EP = "ADSB not populated";
-                    TargetReport.Enqueue(ADSB_EP);
+                    if (body[k] >> 7 == 1)
+                    {
+                        // ADSB Populated
+                        if (body[k] >> 6 == 1) ADSB_VAL = "ADSB available";
+                        else ADSB_VAL = "ADSB Not Available";
+                        TargetReport.Add(ADSB_VAL);
+                    }
 
-                    if (body[k] >> 6 == 1) ADSB_VAL = "ADSB available";
-                    else ADSB_VAL = "ADSB Not Available";
-                    TargetReport.Enqueue(ADSB_VAL);
+                    if (body[k] >> 5 == 1)
+                    {
+                        // SCN Populated
+                        if (body[k] >> 4 == 1) SCN_VAL = "SCN Available";
+                        else SCN_VAL = "SCN Not Available";
+                        TargetReport.Add(SCN_VAL);
+                    }
 
-                    if (body[k] >> 5 == 1) SCN_EP = "SCN populated";
-                    else SCN_EP = "SCN not populated";
-                    TargetReport.Enqueue(SCN_EP);
-
-                    if (body[k] >> 4 == 1) SCN_VAL = "SCN Available";
-                    else SCN_VAL = "SCN Not Available";
-                    TargetReport.Enqueue(SCN_VAL);
-
-                    if (body[k] >> 3 == 1) PAI_EP = "PAI populated";
-                    else PAI_EP = "PAI not populated";
-                    TargetReport.Enqueue(PAI_EP);
-
-                    if (body[k] >> 2 == 1) PAI_VAL = "PAI Available";
-                    else PAI_VAL = "PAI Not Available";
-                    TargetReport.Enqueue(PAI_VAL);
+                    if (body[k] >> 3 == 1)
+                    {
+                        // PAI Populated
+                        if (body[k] >> 2 == 1) PAI_VAL = "PAI Available";
+                        else PAI_VAL = "PAI Not Available";
+                        TargetReport.Add(PAI_VAL);
+                    }
 
                 }
             }
@@ -216,6 +216,8 @@ namespace AsterixParser
             k += 1;
             Console.WriteLine("Target Report data: ");
             foreach (string data in TargetReport) Console.WriteLine("· " + data);
+
+            message.TargetReportDescriptor = TargetReport;
 
         }
 
@@ -233,7 +235,7 @@ namespace AsterixParser
             k += 4;
         }
 
-        public void DataItem5(ref int k, byte[] body) //No esta hecho, solo lo salto
+        public void DataItem5(ref int k, byte[] body) // I048/070
         {
             Console.WriteLine("(DF-5)");
 
@@ -257,7 +259,8 @@ namespace AsterixParser
             if (bits == 1) L = "Not Last Scan";
             else L = "Replay";
 
-            int mode3A = raw & 0x0FFF;
+            ushort mode3A = (ushort) (raw & 0x0FFF);
+            message.Mode3A = mode3A;
 
             Config = [V,G,L];
 
