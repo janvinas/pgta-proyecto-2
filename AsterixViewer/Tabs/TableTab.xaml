@@ -20,13 +20,14 @@
         </Grid.RowDefinitions>
         <Menu Grid.Row="0">
             <MenuItem Header="Filtros">
-                <MenuItem Header="CAT021" IsCheckable="True" IsChecked="True"></MenuItem>
-                <MenuItem Header="CAT048" IsCheckable="True" IsChecked="True"></MenuItem>
-                <MenuItem Header="Blanco Puro" IsCheckable="True" IsChecked="True"></MenuItem>
-                <MenuItem Header="Transponder Fijo" IsCheckable="True" IsChecked="True"></MenuItem>
+                <MenuItem x:Name="Cat021Filter" Header="CAT021" IsCheckable="True" IsChecked="True" Click="OnFilterChanged"/>
+                <MenuItem x:Name="Cat048Filter" Header="CAT048" IsCheckable="True" IsChecked="True" Click="OnFilterChanged"/>
+                <MenuItem x:Name="BlancoPuroFilter" Header="Blanco Puro" IsCheckable="True" IsChecked="False" Click="OnFilterChanged"/>
+                <MenuItem x:Name="TransponderFijoFilter" Header="Transponder Fijo" IsCheckable="True" IsChecked="True" Click="OnFilterChanged"/>
             </MenuItem>
             <MenuItem Header="Exportar"></MenuItem>
         </Menu>
+
         <DataGrid x:Name="DataGrid" Grid.Row="1" IsReadOnly="True" AutoGenerateColumns="False" CanUserAddRows="False">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="CAT" Binding="{Binding Cat, StringFormat={}{0}, TargetNullValue='Unknown'}"/>
