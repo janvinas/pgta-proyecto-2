@@ -143,25 +143,25 @@ namespace AsterixParser
 
         public static void DataItem3(ref int k, byte[] body)
         {
-            Console.WriteLine("(3)");
+            Console.WriteLine("(DF-3)");
             k += 2;
         }
 
         public static void DataItem4(ref int k, byte[] body)
         {
-            Console.WriteLine("(4)");
+            Console.WriteLine("(DF-4)");
             k++;
         }
 
         public static void DataItem5(ref int k, byte[] body)
         {
-            Console.WriteLine("(5)");
+            Console.WriteLine("(DF-5)");
             k += 3;
         }
 
         public static void DataItem6(ref int k, byte[] body)
         {
-            Console.WriteLine("(6)");
+            Console.WriteLine("(DF-6)");
             k += 6;
         }
 
@@ -186,19 +186,19 @@ namespace AsterixParser
 
         public static void DataItem8(ref int k, byte[] body)
         {
-            Console.WriteLine("(8)");
+            Console.WriteLine("(DF-8)");
             k += 3;
         }
 
         public static void DataItem9(ref int k, byte[] body)
         {
-            Console.WriteLine("(9)");
+            Console.WriteLine("(DF-9)");
             k += 2;
         }
 
         public static void DataItem10(ref int k, byte[] body)
         {
-            Console.WriteLine("(10)");
+            Console.WriteLine("(DF-10)");
             k += 2;
         }
 
@@ -216,6 +216,7 @@ namespace AsterixParser
             Console.WriteLine("(DF-12)");
             int date = (body[k + 2] | body[k + 1] << 8 | (body[k] << 16));
             float hour = date / 128f;
+
             Console.WriteLine("Time: " + TimeSpan.FromSeconds(hour));
             k += 3;
         }
@@ -471,9 +472,52 @@ namespace AsterixParser
         public static void DataItem42(ref int k, byte[] body)
         {
             Console.WriteLine("(42)");
+            int dk = 0;
+
+            bool fx = true;
+            while (fx)
+            {
+                byte b = body[k];
+                for (int i = 7; i > 0; i--) { if (((b >> i) & 1) == 1) dk += 1; }
+
+                if ((b & 1) == 0) fx = false;
+                k++;
+            }
+
+            k += dk;
+        }
+
+        public static void DataItem43(ref int k, byte[] body)
+        {
+            Console.WriteLine("(43)");
+        }
+
+        public static void DataItem44(ref int k, byte[] body)
+        {
+            Console.WriteLine("(44)");
+        }
+
+        public static void DataItem45(ref int k, byte[] body)
+        {
+            Console.WriteLine("(45)");
+        }
+
+        public static void DataItem46(ref int k, byte[] body)
+        {
+            Console.WriteLine("(46)");
+        }
+
+        public static void DataItem47(ref int k, byte[] body)
+        {
+            Console.WriteLine("(47)");
+        }
+
+        public static void DataItem48(ref int k, byte[] body)
+        {
+            Console.WriteLine("(48)");
 
             int length = body[k];
-            k ++;
+            k++;
 
             int k_old = k;
             k++;
@@ -558,7 +602,7 @@ namespace AsterixParser
                 int GSS_raw = (ushort)(body[k + 1] | (body[k] << 8) >> 4) & 0x07FF;
                 float GSS = GSS_raw * 0.125f;
 
-                if (body[k+1] >> 0 == 1)
+                if (body[k + 1] >> 0 == 1)
                 {
                     k += 2;
 
@@ -756,10 +800,10 @@ namespace AsterixParser
                 bool SUM = (mesPrimary >> 7 & 1) == 1; // Mode 5 Summary
                 bool PNO = (mesPrimary >> 6 & 1) == 1; // Mode 5 PIN / National Origin
                 bool EM1 = (mesPrimary >> 5 & 1) == 1; // Extended Mode 1 Code
-                bool XP  = (mesPrimary >> 4 & 1) == 1; // X Pulse Presence
+                bool XP = (mesPrimary >> 4 & 1) == 1; // X Pulse Presence
                 bool FOM = (mesPrimary >> 3 & 1) == 1; // Figure of Merit
-                bool M2  = (mesPrimary >> 2 & 1) == 1; // Mode 2 Code
-                bool FX  = (mesPrimary & 1) == 1;      // Extension
+                bool M2 = (mesPrimary >> 2 & 1) == 1; // Mode 2 Code
+                bool FX = (mesPrimary & 1) == 1;      // Extension
 
                 Console.WriteLine($"  Subfields: SUM={SUM}, PNO={PNO}, EM1={EM1}, XP={XP}, FOM={FOM}, M2={M2}");
 
@@ -769,14 +813,14 @@ namespace AsterixParser
                     byte mode5 = body[k];
                     k++;
 
-                    string M5  = (mode5 >> 7 & 1) == 1 ? "Mode 5 interrogation" : "No Mode 5 interrogation";
-                    string ID  = (mode5 >> 6 & 1) == 1 ? "Authenticated Mode 5 ID reply" : "No authenticated Mode 5 ID reply";
-                    string DA  = (mode5 >> 5 & 1) == 1 ? "Authenticated Mode 5 Data reply" : "No authenticated Mode 5 Data reply";
-                    string M1  = (mode5 >> 4 & 1) == 1 ? "Mode 1 code from Mode 5" : "No Mode 1 code from Mode 5";
+                    string M5 = (mode5 >> 7 & 1) == 1 ? "Mode 5 interrogation" : "No Mode 5 interrogation";
+                    string ID = (mode5 >> 6 & 1) == 1 ? "Authenticated Mode 5 ID reply" : "No authenticated Mode 5 ID reply";
+                    string DA = (mode5 >> 5 & 1) == 1 ? "Authenticated Mode 5 Data reply" : "No authenticated Mode 5 Data reply";
+                    string M1 = (mode5 >> 4 & 1) == 1 ? "Mode 1 code from Mode 5" : "No Mode 1 code from Mode 5";
                     string M2s = (mode5 >> 3 & 1) == 1 ? "Mode 2 code from Mode 5" : "No Mode 2 code from Mode 5";
-                    string M3  = (mode5 >> 2 & 1) == 1 ? "Mode 3 code from Mode 5" : "No Mode 3 code from Mode 5";
-                    string MC  = (mode5 >> 1 & 1) == 1 ? "Flight Level from Mode 5" : "No Flight Level from Mode 5";
-                    string PO  = (mode5 & 1) == 1 ? "Position from Mode 5" : "Position not from Mode 5";
+                    string M3 = (mode5 >> 2 & 1) == 1 ? "Mode 3 code from Mode 5" : "No Mode 3 code from Mode 5";
+                    string MC = (mode5 >> 1 & 1) == 1 ? "Flight Level from Mode 5" : "No Flight Level from Mode 5";
+                    string PO = (mode5 & 1) == 1 ? "Position from Mode 5" : "Position not from Mode 5";
 
                     Console.WriteLine($"  [SUM] {M5} | {ID} | {DA} | {M1} | {M2s} | {M3} | {MC} | {PO}");
                 }
@@ -846,38 +890,6 @@ namespace AsterixParser
                     // FALTA -- AQUI HACER LA LECTURA OCTAL 
                 }
             }
-        }
-
-        public static void DataItem43(ref int k, byte[] body)
-        {
-            Console.WriteLine("(43)");
-        }
-
-        public static void DataItem44(ref int k, byte[] body)
-        {
-            Console.WriteLine("(44)");
-        }
-
-        public static void DataItem45(ref int k, byte[] body)
-        {
-            Console.WriteLine("(45)");
-        }
-
-        public static void DataItem46(ref int k, byte[] body)
-        {
-            Console.WriteLine("(46)");
-        }
-
-        public static void DataItem47(ref int k, byte[] body)
-        {
-            Console.WriteLine("(47)");
-        }
-
-        public static void DataItem48(ref int k, byte[] body)
-        {
-            Console.WriteLine("(48)");
-
-
         }
 
 

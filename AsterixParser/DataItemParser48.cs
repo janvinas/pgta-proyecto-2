@@ -53,6 +53,8 @@ namespace AsterixParser
 
         public void DataItem1(ref int k, byte[] body) // I048/010
         {
+            Console.WriteLine("(DF-1)");
+
             byte SAC = body[k];
             byte SIC = body[k + 1];
             message.SIC = SIC;
@@ -62,6 +64,8 @@ namespace AsterixParser
 
         public void DataItem2(ref int k, byte[] body) //Comprobar si esta bien, ya que el primero que sale realmente en el de prueba no existe
         {
+            Console.WriteLine("(DF-2)");
+
             int date = (body[k + 2] | body[k + 1] << 8 | (body[k] << 16));
             float seconds = date/128f;
             message.TimeOfDay = seconds;
@@ -71,6 +75,7 @@ namespace AsterixParser
         public void DataItem3(ref int k, byte[] body) // I048/020
         {
             Console.WriteLine("(DF-3)");
+
             List<string> TargetReport = [];
 
             string TYP = null;
@@ -274,6 +279,8 @@ namespace AsterixParser
 
         public void DataItem6(ref int k, byte[] body)
         {
+            Console.WriteLine("(DF-6)");
+
             bool notValidated = ((body[k] >> 7) & 1) == 1;
             bool garbledCode = ((body[k] >> 6) & 1) == 1;
 
@@ -308,6 +315,8 @@ namespace AsterixParser
 
         public void DataItem7(ref int k, byte[] body) // I048/130 Radar Plot Characteristics
         {
+            Console.WriteLine("(DF-7)");
+
             RadarPlotCharacteristics ch = new();
             int n;
             Queue<int> nSubfield = PrimarySubfieldDecoder(ref k, body);
@@ -379,6 +388,8 @@ namespace AsterixParser
 
         public void DataItem8(ref int k, byte[] body) // I048/220 Aircraft Address
         {
+            Console.WriteLine("(DF-8)");
+
             uint address = (uint)( body[k] << 16 | body[k+1] << 8 | body[k+2]);
             message.Address = address;
             k += 3; // 3 octets
@@ -397,6 +408,8 @@ namespace AsterixParser
         }
         public void DataItem9(ref int k, byte[] body) // I048/240 Aircraft Identification
         {
+            Console.WriteLine("(DF-9)");
+
             byte[] id = { body[k], body[k + 1], body[k + 2], body[k + 3], body[k + 4], body[k + 5] };
             ulong bits = 0; // Concatenar els 6 bytes en un nombre de 48 bits (ulong)
             for (int i = 0; i < 6; i++)

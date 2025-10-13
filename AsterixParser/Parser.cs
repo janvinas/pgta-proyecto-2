@@ -15,11 +15,12 @@ namespace AsterixParser
             int error = 0;
 
             int i = 0;
-            int k = 0;
+            int k = 1;
 
-            while (i < file.Length && k<10)
+            while (i < file.Length)
             {
                 Console.WriteLine("------------------------------------------------");
+                Console.WriteLine("MENSAJE NUMERO: " + k);
                 Console.WriteLine("------------------------------------------------");
 
                 byte cat = file[i];
