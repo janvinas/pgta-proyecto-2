@@ -438,7 +438,7 @@ namespace AsterixParser
             k += 1 + 8 * REP;
         }
 
-        public void DataItem11(ref int k, byte[] body)
+        public void DataItem11(ref int k, byte[] body) // I048/161 Track Number
         {
             ushort TrackNum = (ushort)(body[k + 1] | (body[k] << 8));
             TrackNum &= 0x0FFF;
@@ -461,9 +461,11 @@ namespace AsterixParser
             k += 4;
         }
 
-        public void DataItem14(ref int k, byte[] body)
+        public void DataItem14(ref int k, byte[] body) // I048/170 Track Status
         {
             Console.WriteLine("(DF-14)");
+
+            TrackStatus ts = new();
 
             Queue<string> TrackStatus = new Queue<string>();
 
@@ -481,6 +483,7 @@ namespace AsterixParser
 
             if (body[k] >> 7 == 1) CNF = "Tentative Track";
             else CNF = "Confirmed Track";
+            ts.CNF = CNF;
             TrackStatus.Enqueue(CNF);
 
             bits = (body[k] >> 5) & 0b11;
@@ -499,14 +502,17 @@ namespace AsterixParser
                     RAD = "Invalid";
                     break;
             }
+            ts.RAD = RAD;
             TrackStatus.Enqueue(RAD);
 
             if ((body[k] >> 4 & 0b1) == 1) DOU = "Low confidence in plot to track association";
             else DOU = "Normal confidence";
+            ts.DOU = DOU;
             TrackStatus.Enqueue(DOU);
 
             if ((body[k] >> 3 & 0b1) == 1) MAH = "No horizontal man. sensed";
             else MAH = "Horizontal man. sensed";
+            ts.MAH = MAH;
             TrackStatus.Enqueue(MAH);
 
             bits = (body[k] >> 1) & 0b11;
@@ -525,6 +531,7 @@ namespace AsterixParser
                     CDM = "Unknown";
                     break;
             }
+            ts.CDM = CDM;
             TrackStatus.Enqueue(CDM);
 
             if ((body[k] & 0b1) == 1)
@@ -533,18 +540,22 @@ namespace AsterixParser
 
                 if ((body[k] >> 7 & 0b1) == 1) TRE = "End of track lifetime(last report for this track)";
                 else TRE = "Track still alive";
+                ts.TRE = TRE;
                 TrackStatus.Enqueue(TRE);
 
                 if ((body[k] >> 6 & 0b1) == 1) GHO = "Ghost target Track";
                 else GHO = "True target track";
+                ts.GHO = GHO;
                 TrackStatus.Enqueue(GHO);
 
                 if ((body[k] >> 5 & 0b1) == 1) SUP = "No";
                 else SUP = "Yes";
+                ts.SUP = SUP;
                 TrackStatus.Enqueue(SUP);
 
                 if ((body[k] >> 4 & 0b1) == 1) TCC = "Slant range correction";
                 else TCC = "Radar Plane";
+                ts.TCC = TCC;
                 TrackStatus.Enqueue(TCC);
             }
 
@@ -553,6 +564,7 @@ namespace AsterixParser
             foreach (string data in TrackStatus) Console.WriteLine(data);
 
             k += 1;
+            message.TrackStatus = ts;
         }
 
         public void DataItem15(ref int k, byte[] body)
@@ -602,19 +614,21 @@ namespace AsterixParser
             k += dk;
         }
 
-        public void DataItem21(ref int k, byte[] body)
+        public void DataItem21(ref int k, byte[] body) // I048/230 Communications/ACAS Capability and Flight Status
         {
             Console.WriteLine("(DF-21)");
 
+            I048230 ch = new();
+
             string[] Capability = new string[8];
 
-            string COM = null;
-            string STAT = null;
-            string SI = null;
-            string MSSC = null;
-            string ARC = null;
-            string AIC = null;
-            int B1A = 0;
+            string COM = null; // Communications capability of the transponder
+            string STAT = null; // Flight Status
+            string SI = null; // SI/II Transponder Capability
+            string MSSC = null; // Mode-S Specific Service Capability
+            string ARC = null; // Altitude reporting capability
+            string AIC = null; // Aircraft identification capability
+            int B1A = 0; 
             int B1B = 0;
 
 
@@ -649,6 +663,7 @@ namespace AsterixParser
                 case 7:
                     break;
             }
+            ch.COM = COM;
 
             bits = (raw >> 10) & 0b111;
             switch (bits)
@@ -678,26 +693,36 @@ namespace AsterixParser
                     STAT = "Unknown";
                     break;
             }
+            ch.STAT = STAT;
+
 
             bits = (raw >> 9) & 0b1;
             if (bits == 1) SI = "II-Code";
             else SI = "SI-Code";
+            ch.SI = SI;
 
             bits = (raw >> 7) & 0b1;
             if (bits == 1) MSSC = "Yes";
             else MSSC = "No";
+            ch.MSSC = MSSC;
 
             bits = (raw >> 6) & 0b1;
             if (bits == 1) ARC = "25 ft resolution";
             else ARC = "100 ft resolution";
+            ch.ARC = ARC;
 
             bits = (raw >> 5) & 0b1;
             if (bits == 1) AIC = "Yes";
             else AIC = "No";
+            ch.AIC = AIC;
 
             B1A = (raw >> 4) & 0b1;
 
+            ch.B1A = B1A;
+
             B1B = raw & 0b1111;
+
+            ch.B1B = B1B;
 
             Capability = [ COM,STAT,SI,MSSC,ARC,AIC,Convert.ToString(B1A), Convert.ToString(B1B)];
 
@@ -705,6 +730,7 @@ namespace AsterixParser
             foreach (string data in Capability) Console.WriteLine("· " + data);
 
             k += 2;
+            message.I048230 = ch;
         }
     }
 }

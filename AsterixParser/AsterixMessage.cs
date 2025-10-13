@@ -30,6 +30,32 @@ namespace AsterixParser
         public double? AR { get; set; }  // Ambiguous Range in NM
     }
 
+    public class TrackStatus
+    {
+        public string? CNF { get; set; }
+        public string? RAD { get; set; }
+        public string? DOU { get; set; }
+        public string? MAH { get; set; }
+        public string? CDM { get; set; }
+        public string? TRE { get; set; }
+        public string? GHO { get; set; }
+        public string? SUP { get; set; }
+        public string? TCC { get; set; }
+
+    }
+
+    public class  I048230
+    {
+        public string? COM { get; set; }
+        public string? STAT { get; set; }
+        public string? SI { get; set; }
+        public string? MSSC { get; set; }
+        public string? ARC { get; set; }
+        public string? AIC { get; set; }
+        public int? B1A { get; set; }
+        public int? B1B { get; set; }
+    }
+
     public class FlightLevel(float? flightLevel, bool garbledCode, bool codeNotValidated)
     {
         public float? flightLevel = flightLevel;
@@ -54,6 +80,8 @@ namespace AsterixParser
         public ushort? TrackNum { get; set; } // DI11
         public double? GS { get; set; } // DI13
         public double? Heading { get; set; } // DI13
+        public TrackStatus? TrackStatus { get; set; } // DI14 CAT48
+        public I048230? I048230 { get; set; } // DI21 CAT48
         public float? Latitude { get; set; } //DI
         public float? Longitude { get; set; }
     }
