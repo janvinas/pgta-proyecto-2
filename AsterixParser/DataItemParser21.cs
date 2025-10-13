@@ -426,7 +426,7 @@ namespace AsterixParser
         {
             Console.WriteLine("(21)");
 
-            ushort FL_raw = (ushort)(body[k + 1] | (body[k] << 8));
+            short FL_raw = (short)(body[k + 1] | (body[k] << 8));
 
             message.FlightLevel = new FlightLevel(FL_raw / 4f, false, false);
             k += 2;

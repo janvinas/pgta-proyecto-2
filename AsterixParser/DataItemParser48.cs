@@ -283,7 +283,7 @@ namespace AsterixParser
             bool notValidated = ((body[k] >> 7) & 1) == 1;
             bool garbledCode = ((body[k] >> 6) & 1) == 1;
 
-            ushort FL_raw = (ushort)(body[k + 1] | (body[k] << 8));
+            short FL_raw = (short)(body[k + 1] | (body[k] << 8));
             FL_raw &= 0x3FFF;
 
             message.FlightLevel = new FlightLevel(FL_raw / 4f, garbledCode, notValidated);
