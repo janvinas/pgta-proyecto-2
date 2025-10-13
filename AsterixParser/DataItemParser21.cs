@@ -248,13 +248,13 @@ namespace AsterixParser
         {
             Console.WriteLine("(17)");
 
-            if (body[k] >> 0 == 1)
+            if ((body[k] >> 0 & 1) == 1)
             {
                 k += 1;
-                if (body[k] >> 0 == 1)
+                if ((body[k] >> 0 & 1) == 1)
                 {
                     k += 1;
-                    if (body[k] >> 0 == 1) k += 1;
+                    if ((body[k] >> 0 & 1) == 1) k += 1;
                 }
             }
             k += 1;
@@ -270,20 +270,7 @@ namespace AsterixParser
         {
             Console.WriteLine("(19)");
 
-            string V = null;
-            string G = null;
-            string L = null;
-
             ushort raw = (ushort)(body[k + 1] | (body[k] << 8));
-
-            if (raw >> 15 == 1) V = "Not Validated";
-            else V = "Validated";
-
-            if (raw >> 14 == 1) G = "Garbled code";
-            else G = "Default";
-
-            if (raw >> 13 == 1) L = "Not Last Scan";
-            else L = "Replay";
 
             int mode3A = raw & 0x0FFF;
 
@@ -397,10 +384,10 @@ namespace AsterixParser
             Console.WriteLine("(31)");
 
             int dk = 0;
-            if (body[k] >> 7 == 1) dk += 2;
-            if (body[k] >> 6 == 1) dk += 2;
-            if (body[k] >> 5 == 1) dk += 2;
-            if (body[k] >> 4 == 1) dk += 1;
+            if ((body[k] >> 7 & 1)== 1) dk += 2;
+            if ((body[k] >> 6 & 1)== 1) dk += 2;
+            if ((body[k] >> 5 & 1)== 1) dk += 2;
+            if ((body[k] >> 4 & 1)== 1) dk += 1;
 
             k += dk;
         }
@@ -421,14 +408,16 @@ namespace AsterixParser
         {
             Console.WriteLine("(34)");
 
-            int dk = 0;
-            if (body[k] >> 7 == 1) dk += 1;
-            if (body[k] >> 6 == 1)
+            int dk = 1;
+            byte b = body[k];
+
+            if ((b >> 7 & 1) == 1) dk += 1;
+
+            if ((b >> 6 & 1) == 1)
             {
-                int REP = body[k + 1 + dk];
-                dk += 1 + 15 * k;
+                int REP = body[k + dk];
+                dk += 1 + 15 * REP;
             }
-            dk += 1;
 
             k += dk;
         }
@@ -449,7 +438,7 @@ namespace AsterixParser
         {
             Console.WriteLine("(37)");
 
-            if (body[k] >> 0 == 1) k += 1;
+            if ((body[k] >> 0 & 1) == 1) k += 1;
             k += 1;
         }
 
@@ -488,57 +477,57 @@ namespace AsterixParser
 
             int k_old = k;
             k++;
-            if (body[k_old] >> 7 == 1)
+            if ((body[k_old] >> 7 & 1) == 1)
             {
                 int BPS_raw = (ushort)(body[k + 1] | (body[k] << 8)) & 0x0FFF;
                 float BPS = BPS_raw * 0.1f;
 
                 k += 2;
             }
-            if (body[k_old] >> 6 == 1)
+            if ((body[k_old] >> 6 & 1) == 1)
             {
                 int SelH_raw = (ushort)(body[k + 1] | (body[k] << 8)) & 0x03FF;
                 float SelH = SelH_raw * 0.703125f;
 
                 string HRD;
-                if (body[k] >> 3 == 0) HRD = "True North";
+                if ((body[k] >> 3 & 1) == 0) HRD = "True North";
                 else HRD = "Magnetic North";
 
                 string Stat;
-                if (body[k] >> 2 == 0) Stat = "Data Unavailable/Invalid";
+                if ((body[k] >> 2 & 1) == 0) Stat = "Data Unavailable/Invalid";
                 else Stat = "Data Available/Valid";
 
                 k += 2;
             }
-            if (body[k_old] >> 5 == 1)
+            if ((body[k_old] >> 5 & 1) == 1)
             {
                 string AP;
-                if (body[k] >> 7 == 1) AP = "Autopilot engaged";
+                if ((body[k] >> 7 & 1) == 1) AP = "Autopilot engaged";
                 else AP = "Autopilot not engaged";
 
                 string VN;
-                if (body[k] >> 6 == 1) VN = "VNAV active";
+                if ((body[k] >> 6 & 1) == 1) VN = "VNAV active";
                 else VN = "VNAV not active";
 
                 string AH;
-                if (body[k] >> 5 == 1) AH = "Altitude Hold engaged";
+                if ((body[k] >> 5 & 1) == 1) AH = "Altitude Hold engaged";
                 else AH = "Altitude Hold not engaged";
 
                 string AM;
-                if (body[k] >> 4 == 1) AM = "Approach Mode active";
+                if ((body[k] >> 4 & 1) == 1) AM = "Approach Mode active";
                 else AM = "Approach Mode not active";
 
                 string MFM_EP;
-                if (body[k] >> 5 == 1) MFM_EP = "Element populated";
+                if ((body[k] >> 5 & 1) == 1) MFM_EP = "Element populated";
                 else MFM_EP = "Element not populated";
 
                 string MFM_VAL;
-                if (body[k] >> 4 == 1) MFM_VAL = "MCP/FCU ModeBits populated";
+                if ((body[k] >> 4 & 1) == 1) MFM_VAL = "MCP/FCU ModeBits populated";
                 else MFM_VAL = "MCP/FCU ModeBits not populated";
 
                 k += 1;
             }
-            if (body[k_old] >> 4 == 1)
+            if ((body[k_old] >> 4 & 1) == 1)
             {
                 int GAOlat_raw = (body[k] & 0b1110_0000) >> 5;
                 int GAOlat = GAOlat_raw * 2;
@@ -548,22 +537,22 @@ namespace AsterixParser
 
                 k += 1;
             }
-            if (body[k_old] >> 3 == 1)
+            if ((body[k_old] >> 3 & 1) == 1)
             {
                 string STP;
-                if (body[k] >> 7 == 1) STP = "Aircraft has stopped";
+                if ((body[k] >> 7 & 1) == 1) STP = "Aircraft has stopped";
                 else STP = "Aircraft has not stopped";
 
                 string HTS;
-                if (body[k] >> 6 == 1) HTS = "Heading/Ground Track data is valid";
+                if ((body[k] >> 6 & 1) == 1) HTS = "Heading/Ground Track data is valid";
                 else HTS = "Heading/Ground Track data is not valid";
 
                 string HTT;
-                if (body[k] >> 5 == 1) HTT = "Ground Track provided";
+                if ((body[k] >> 5 & 1) == 1) HTT = "Ground Track provided";
                 else HTT = "Heading data provided";
 
                 string HRD;
-                if (body[k] >> 4 == 1) HRD = "Magnetic North";
+                if ((body[k] >> 4 & 1) == 1) HRD = "Magnetic North";
                 else HRD = "True North";
 
                 int GSS_raw = (ushort)(body[k + 1] | (body[k] << 8) >> 4) & 0x07FF;
@@ -581,10 +570,174 @@ namespace AsterixParser
                 else k += 2;
             }
             // ESTE ES UN PALAZO INCREIBLE (2.8 STA)
-            if (body[k_old] >> 2 == 1)
+            if ((body[k_old] >> 2 & 1) == 1)
             {
+                Console.WriteLine("STA: Aircraft Status");
+
+                // Primary subfield
+                byte staByte = body[k];
+                k++;
+
+                string ES = (staByte >> 7 & 1) == 1 ? "1090ES IN capable" : "Not 1090ES IN capable";
+                string UAT = (staByte >> 6 & 1) == 1 ? "UAT IN capable" : "Not UAT IN capable";
+
+                string RCE_EP = (staByte >> 5 & 1) == 1 ? "RCE Element Populated" : "RCE Element Not Populated";
+                int RCE = (staByte >> 4 & 0b11);
+                string RCE_VAL;
+                switch (RCE)
+                {
+                    case 1: RCE_VAL = "TABS"; break;
+                    case 3: RCE_VAL = "Other RCE"; break;
+                    default: RCE_VAL = "Not RCE"; break;
+                }
+
+                string RRL_EP = (staByte >> 2 & 1) == 1 ? "RRL Element Populated" : "RRL Element Not Populated";
+                string RRL_VAL = (staByte >> 1 & 1) == 1 ? "Reply Rate Limiting active" : "Reply Rate Limiting not active";
+
+                Console.WriteLine($"  ES: {ES} | UAT: {UAT} | {RCE_EP} ({RCE_VAL}) | {RRL_EP} ({RRL_VAL})");
+
+                bool FX = (staByte & 0b0000_0001) == 1;
+                // --- First extension ---
+                if (FX)
+                {
+                    byte ext1 = body[k];
+                    k++;
+
+                    string PS3_EP = (ext1 >> 7 & 1) == 1 ? "PS3 Element Populated" : "PS3 Element Not Populated";
+                    int PS3 = (ext1 >> 4 & 0b111);
+                    string PS3_VAL;
+                    switch (PS3)
+                    {
+                        case 1: PS3_VAL = "General emergency"; break;
+                        case 2: PS3_VAL = "UAS/RPAS - Lost Link"; break;
+                        case 3: PS3_VAL = "Minimum fuel"; break;
+                        case 4: PS3_VAL = "No communications"; break;
+                        case 5: PS3_VAL = "Unlawful interference"; break;
+                        case 6: PS3_VAL = "Aircraft in Distress Automatic Activation"; break;
+                        case 7: PS3_VAL = "Aircraft in Distress Manual Activation"; break;
+                        default: PS3_VAL = "Not emergency"; break;
+                    }
+
+                    string TPW_EP = (ext1 >> 3 & 1) == 1 ? "TPW Element Populated" : "TPW Element Not Populated";
+                    int TPW = (ext1 >> 1 & 0b11);
+                    string TPW_VAL;
+                    switch (TPW)
+                    {
+                        case 1: TPW_VAL = "70W"; break;
+                        case 2: TPW_VAL = "125W"; break;
+                        case 3: TPW_VAL = "200W"; break;
+                        default: TPW_VAL = "Unavailable"; break;
+                    }
+
+                    Console.WriteLine($"  PS3: {PS3_EP} ({PS3_VAL}) | {TPW_EP} ({TPW_VAL})");
+
+                    FX = (ext1 & 1) == 1;
+                }
+
+                // --- Second extension ---
+                if (FX)
+                {
+                    byte ext2 = body[k];
+                    k++;
+
+                    string TSI_EP = (ext2 >> 7 & 1) == 1 ? "TSI Element Populated" : "TSI Element Not Populated";
+                    int TSI = (ext2 >> 5 & 0b11);
+                    string TSI_VAL;
+                    switch (TSI)
+                    {
+                        case 1: TSI_VAL = "Transponder #1"; break;
+                        case 2: TSI_VAL = "Transponder #2"; break;
+                        case 3: TSI_VAL = "Transponder #3"; break;
+                        default: TSI_VAL = "Unknown"; break;
+                    }
+
+                    string MUO_EP = (ext2 >> 4 & 1) == 1 ? "MUO Element Populated" : "MUO Element Not Populated";
+                    string MUO_VAL = (ext2 >> 3 & 1) == 1 ? "Unmanned Operation" : "Manned Operation";
+
+                    string RWC_EP = (ext2 >> 2 & 1) == 1 ? "RWC Element Populated" : "RWC Element Not Populated";
+                    string RWC_VAL = (ext2 >> 1 & 1) == 1 ? "RWC Corrective Alert active" : "RWC Corrective Alert not active";
+
+                    Console.WriteLine($"  TSI: {TSI_EP} ({TSI_VAL}) | {MUO_EP} ({MUO_VAL}) | {RWC_EP} ({RWC_VAL})");
+
+                    FX = (ext2 & 1) == 1;
+                }
+
+                // --- Third extension ---
+                if (FX)
+                {
+                    byte ext3 = body[k];
+                    k++;
+
+                    string DAA_EP = (ext3 >> 7 & 1) == 1 ? "DAA Element Populated" : "DAA Element Not Populated";
+                    int DAA = (ext3 >> 5 & 0b11);
+                    string DAA_VAL;
+                    switch (DAA)
+                    {
+                        case 1: DAA_VAL = "RWC/RA/OCM Capability"; break;
+                        case 2: DAA_VAL = "RWC/OCM Capability"; break;
+                        case 3: DAA_VAL = "Invalid"; break;
+                        default: DAA_VAL = "No RWC Capability"; break;
+                    }
+
+                    string DF17CA_EP = (ext3 >> 4 & 1) == 1 ? "DF17CA Element Populated" : "DF17CA Element Not Populated";
+                    int DF17CA = (ext3 >> 1 & 0b1111);
+                    string DF17CA_VAL = $"CA Code: {DF17CA}";
+
+                    Console.WriteLine($"  DAA: {DAA_EP} ({DAA_VAL}) | {DF17CA_EP} ({DF17CA_VAL})");
+
+                    FX = (ext3 & 1) == 1;
+                }
+
+                // --- Fourth extension ---
+                if (FX)
+                {
+                    byte ext4 = body[k];
+                    k++;
+
+                    string SVH_EP = (ext4 >> 7 & 1) == 1 ? "SVH Element Populated" : "SVH Element Not Populated";
+                    int SVH = (ext4 >> 5 & 0b11);
+                    string SVH_VAL;
+                    switch (SVH)
+                    {
+                        case 1: SVH_VAL = "Horizontal Only"; break;
+                        case 2: SVH_VAL = "Blended"; break;
+                        case 3: SVH_VAL = "Vertical/Horizontal per intruder"; break;
+                        default: SVH_VAL = "Vertical Only"; break;
+                    }
+
+                    string CATC_EP = (ext4 >> 4 & 1) == 1 ? "CATC Element Populated" : "CATC Element Not Populated";
+                    int CATC = (ext4 >> 1 & 0b1111);
+                    string CATC_VAL;
+                    switch (CATC)
+                    {
+                        case 1: CATC_VAL = "Active CAS"; break;
+                        case 2: CATC_VAL = "Active CAS with OCM"; break;
+                        case 3: CATC_VAL = "Active CAS of Junior Status"; break;
+                        case 4: CATC_VAL = "Passive CAS with 1030 TCAS"; break;
+                        case 5: CATC_VAL = "Passive CAS with only OCM"; break;
+                        default: CATC_VAL = "TCAS II or no CAS"; break;
+                    }
+
+                    Console.WriteLine($"  SVH: {SVH_EP} ({SVH_VAL}) | {CATC_EP} ({CATC_VAL})");
+
+                    FX = (ext4 & 1) == 1;
+                }
+
+                // --- Fifth extension ---
+                if (FX)
+                {
+                    byte ext5 = body[k];
+                    k++;
+
+                    string TAO_EP = (ext5 >> 7 & 1) == 1 ? "TAO Element Populated" : "TAO Element Not Populated";
+                    int TAO = (ext5 >> 2 & 0b1_1111);
+                    string TAO_VAL = "N/A";
+                    // FALTA -- PREGUNTAR AL PROFE COMO QUIERE QUE LO HAGAMOS
+
+                    Console.WriteLine($"  TAO: {TAO_EP} (Approx {TAO_VAL} m offset)");
+                }
             }
-            if (body[k_old] >> 1 == 1)
+            if ((body[k_old] >> 1 & 1) == 1)
             {
                 ushort TNH_raw = (ushort)(body[k + 2] << 8 | body[k + 3]);
                 float TNH = TNH_raw * 360f / (float)Math.Pow(2, 16);
@@ -592,8 +745,106 @@ namespace AsterixParser
                 k += 2;
             }
             // ESTE TAMBIEN ES UN PALAZO INCREIBLE (2.10 MES)
-            if (body[k_old] >> 0 == 1)
+            if ((body[k_old] >> 0 & 1) == 1)
             {
+                Console.WriteLine("MES: Military Extended Squitter");
+
+                byte mesPrimary = body[k];
+                k++;
+
+                // Subfield presence bits
+                bool SUM = (mesPrimary >> 7 & 1) == 1; // Mode 5 Summary
+                bool PNO = (mesPrimary >> 6 & 1) == 1; // Mode 5 PIN / National Origin
+                bool EM1 = (mesPrimary >> 5 & 1) == 1; // Extended Mode 1 Code
+                bool XP  = (mesPrimary >> 4 & 1) == 1; // X Pulse Presence
+                bool FOM = (mesPrimary >> 3 & 1) == 1; // Figure of Merit
+                bool M2  = (mesPrimary >> 2 & 1) == 1; // Mode 2 Code
+                bool FX  = (mesPrimary & 1) == 1;      // Extension
+
+                Console.WriteLine($"  Subfields: SUM={SUM}, PNO={PNO}, EM1={EM1}, XP={XP}, FOM={FOM}, M2={M2}");
+
+                // --- Subfield #1: Mode 5 Summary ---
+                if (SUM)
+                {
+                    byte mode5 = body[k];
+                    k++;
+
+                    string M5  = (mode5 >> 7 & 1) == 1 ? "Mode 5 interrogation" : "No Mode 5 interrogation";
+                    string ID  = (mode5 >> 6 & 1) == 1 ? "Authenticated Mode 5 ID reply" : "No authenticated Mode 5 ID reply";
+                    string DA  = (mode5 >> 5 & 1) == 1 ? "Authenticated Mode 5 Data reply" : "No authenticated Mode 5 Data reply";
+                    string M1  = (mode5 >> 4 & 1) == 1 ? "Mode 1 code from Mode 5" : "No Mode 1 code from Mode 5";
+                    string M2s = (mode5 >> 3 & 1) == 1 ? "Mode 2 code from Mode 5" : "No Mode 2 code from Mode 5";
+                    string M3  = (mode5 >> 2 & 1) == 1 ? "Mode 3 code from Mode 5" : "No Mode 3 code from Mode 5";
+                    string MC  = (mode5 >> 1 & 1) == 1 ? "Flight Level from Mode 5" : "No Flight Level from Mode 5";
+                    string PO  = (mode5 & 1) == 1 ? "Position from Mode 5" : "Position not from Mode 5";
+
+                    Console.WriteLine($"  [SUM] {M5} | {ID} | {DA} | {M1} | {M2s} | {M3} | {MC} | {PO}");
+                }
+
+                // --- Subfield #2: Mode 5 PIN / National Origin ---
+                if (PNO)
+                {
+                    // 4 octets total
+                    int PIN = ((body[k] & 0b0011_1111) << 8) | body[k + 1];
+                    int NO = ((body[k + 3] & 0b0000_0111) << 8) | body[k + 4];
+
+                    Console.WriteLine($"  [PNO] PIN={PIN}, National Origin Code={NO}");
+                    k += 4;
+                }
+
+                // --- Subfield #3: Extended Mode 1 Code in Octal Representation ---
+                if (EM1)
+                {
+                    byte b1 = body[k];
+                    byte b2 = body[k + 1];
+                    k += 2;
+
+                    string V = (b1 >> 7 & 1) == 1 ? "Code not validated" : "Code validated";
+                    string L = (b1 >> 5 & 1) == 1 ? "Smoothed Mode 1 code" : "Mode 1 code as derived";
+
+                    ushort EM1code = (ushort)(((b1 & 0x0F) << 8) | b2);
+                    // FALTA -- AQUI HACER LA LECTURA OCTAL 
+                }
+
+                // --- Subfield #4: X Pulse Presence ---
+                if (XP)
+                {
+                    byte xpByte = body[k];
+                    k++;
+
+                    string XP_PIN = (xpByte >> 5 & 1) == 1 ? "X-pulse from Mode 5 PIN present" : "No X-pulse from Mode 5 PIN";
+                    string X5 = (xpByte >> 4 & 1) == 1 ? "X5 present" : "X5 not present";
+                    string XC = (xpByte >> 3 & 1) == 1 ? "X from Mode C present" : "No Mode C X";
+                    string X3 = (xpByte >> 2 & 1) == 1 ? "X from Mode 3/A present" : "No Mode 3/A X";
+                    string X2 = (xpByte >> 1 & 1) == 1 ? "X from Mode 2 present" : "No Mode 2 X";
+                    string X1 = (xpByte & 1) == 1 ? "X from Mode 1 present" : "No Mode 1 X";
+
+                    Console.WriteLine($"  [XP] {XP_PIN} | {X5} | {XC} | {X3} | {X2} | {X1}");
+                }
+
+                // --- Subfield #5: Figure of Merit ---
+                if (FOM)
+                {
+                    byte fomByte = body[k];
+                    k++;
+
+                    int FOM_VAL = fomByte & 0x1F;
+                    Console.WriteLine($"  [FOM] Figure of Merit={FOM_VAL}");
+                }
+
+                // --- Subfield #6: Mode 2 Code in Octal Representation ---
+                if (M2)
+                {
+                    byte b1 = body[k];
+                    byte b2 = body[k + 1];
+                    k += 2;
+
+                    string V = (b1 >> 7 & 1) == 1 ? "Code not validated" : "Code validated";
+                    string L = (b1 >> 5 & 1) == 1 ? "Smoothed Mode 2 code" : "Mode 2 code as derived";
+
+                    ushort EM1code = (ushort)(((b1 & 0x0F) << 8) | b2);
+                    // FALTA -- AQUI HACER LA LECTURA OCTAL 
+                }
             }
         }
 
