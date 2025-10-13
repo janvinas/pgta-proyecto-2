@@ -663,6 +663,9 @@ namespace AsterixParser
 
                 k += 2;
             }
+
+            // Esto de a continuación sobra, pero me da pena quitarlo
+            /*
             if ((body[k_old] >> 6 & 1) == 1)
             {
                 int SelH_raw = (ushort)(body[k + 1] | (body[k] << 8)) & 0x03FF;
@@ -1025,6 +1028,7 @@ namespace AsterixParser
                     // FALTA -- AQUI HACER LA LECTURA OCTAL 
                 }
             }
+            */
         }
     }
 }
