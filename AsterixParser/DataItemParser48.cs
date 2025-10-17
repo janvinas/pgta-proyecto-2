@@ -435,6 +435,85 @@ namespace AsterixParser
             byte REP = body[k];
             Console.WriteLine("Number of REPs of BDS: " + REP);
 
+            byte BDS = body[k + 8];
+            int BDS1 = (BDS >> 4) & 0b1111;
+            int BDS2 = (BDS) & 0b1111;
+
+            int bits = 0;
+
+            int statusMCP = 0;
+            int MCP = 0;
+            int statusFMS = 0; ;
+            int FMS = 0;
+            int statusBARO = 0;
+            float BARO = 0;
+            int infoMCP = 0;
+            int VNAV = 0;
+            int ALT = 0;
+            int APPR = 0;
+            int statusTarget = 0;
+            string TargetALT = null;
+
+            int statusROLL = 0;
+            int ROLL = 0;
+            int signROLL = 0;
+
+
+            if (BDS2 == 0) 
+            {
+                switch (BDS1)
+                {
+                    case 4:
+                        statusMCP = (body[k + 1] >> 7) & 0b1;
+                        bits = ((body[k + 2] | (body[k + 1] << 8)) >> 3) & 0b111111111111;
+                        MCP = bits * 16;
+
+                        statusFMS = (body[k + 2] >> 2) & 0b1;
+                        bits = ((body[k + 4] | (body[k + 3] << 8) | (body[k + 2] << 16)) >> 6) & 0b111111111111;
+                        FMS = bits * 16;
+
+                        statusBARO = (body[k + 4] >> 5) & 0b1;
+                        bits = ((body[k + 5] | (body[k + 4] << 8)) >> 1) & 0b111111111111;
+                        BARO = 800 + bits * 0.1f;
+
+                        infoMCP = body[k + 6] & 0b1;
+                        VNAV = (body[k + 7] >> 7) & 0b1;
+                        ALT = (body[k + 7] >> 6) & 0b1;
+                        APPR = (body[k + 7] >> 5) & 0b1;
+
+                        statusTarget = (body[k + 7] >> 2) & 0b1;
+
+                        bits = body[k + 7] & 0b11;
+                        switch (bits)
+                        {
+                            case 0:
+                                TargetALT = "Unknown";
+                                break;
+                            case 1:
+                                TargetALT = "Arcraft Altitud";
+                                break;
+                            case 2:
+                                TargetALT = "FCP/MCP Altitud";
+                                break;
+                            case 3:
+                                TargetALT = "FMS Altitud";
+                                break;
+                        }
+
+                        break;
+                    case 5:
+
+                        break;
+                    case 6:
+                        statusMCP = (body[k] >> 7) & 0b1;
+                        bits = (body[k + 1] | (body[k] << 8)) & 0b0111111111111000;
+                        statusMCP = 1;
+                        k += 1;
+                        break;
+                }
+            }
+            else Console.WriteLine("Este si");
+
             k += 1 + 8 * REP;
         }
 
