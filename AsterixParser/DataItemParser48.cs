@@ -428,93 +428,251 @@ namespace AsterixParser
             k += 6; // 6 octets
         }
 
-        public void DataItem10(ref int k, byte[] body)
+        /*public void DataItem10(ref int k, byte[] body)
         {
             Console.WriteLine("(DF-10)");
 
             byte REP = body[k];
             Console.WriteLine("Number of REPs of BDS: " + REP);
-
-            byte BDS = body[k + 8];
-            int BDS1 = (BDS >> 4) & 0b1111;
-            int BDS2 = (BDS) & 0b1111;
-
-            int bits = 0;
-
-            int statusMCP = 0;
-            int MCP = 0;
-            int statusFMS = 0; ;
-            int FMS = 0;
-            int statusBARO = 0;
-            float BARO = 0;
-            int infoMCP = 0;
-            int VNAV = 0;
-            int ALT = 0;
-            int APPR = 0;
-            int statusTarget = 0;
-            string TargetALT = null;
-
-            int statusROLL = 0;
-            int ROLL = 0;
-            int signROLL = 0;
-
-
-            if (BDS2 == 0) 
+            k += 1;
+            int i = 1;
+            while (i < REP)
             {
-                switch (BDS1)
+                byte BDS = body[k + 7];
+                int BDS1 = (BDS >> 4) & 0b1111;
+                int BDS2 = (BDS) & 0b1111;
+
+                int bits = 0;
+
+                if (BDS2 == 0)
                 {
-                    case 4:
-                        statusMCP = (body[k + 1] >> 7) & 0b1;
-                        bits = ((body[k + 2] | (body[k + 1] << 8)) >> 3) & 0b111111111111;
-                        MCP = bits * 16;
+                    switch (BDS1)
+                    {
+                        case 4:
+                            int BDSnum1 = BDS1;
+                            int statusMCP = 0;
+                            int MCP = 0;
+                            int statusFMS = 0; ;
+                            int FMS = 0;
+                            int statusBARO = 0;
+                            float BARO = 0;
+                            int infoMCP = 0;
+                            int VNAV = 0;
+                            int ALT = 0;
+                            int APPR = 0;
+                            int statusTarget = 0;
+                            string TargetALT = null;
 
-                        statusFMS = (body[k + 2] >> 2) & 0b1;
-                        bits = ((body[k + 4] | (body[k + 3] << 8) | (body[k + 2] << 16)) >> 6) & 0b111111111111;
-                        FMS = bits * 16;
+                            statusMCP = (body[k] >> 7) & 0b1;
+                            bits = ((body[k + 1] | (body[k] << 8)) >> 3) & 0b111111111111;
+                            MCP = bits * 16;
 
-                        statusBARO = (body[k + 4] >> 5) & 0b1;
-                        bits = ((body[k + 5] | (body[k + 4] << 8)) >> 1) & 0b111111111111;
-                        BARO = 800 + bits * 0.1f;
+                            statusFMS = (body[k + 1] >> 2) & 0b1;
+                            bits = ((body[k + 3] | (body[k + 2] << 8) | (body[k + 1] << 16)) >> 6) & 0b111111111111;
+                            FMS = bits * 16;
 
-                        infoMCP = body[k + 6] & 0b1;
-                        VNAV = (body[k + 7] >> 7) & 0b1;
-                        ALT = (body[k + 7] >> 6) & 0b1;
-                        APPR = (body[k + 7] >> 5) & 0b1;
+                            statusBARO = (body[k + 3] >> 5) & 0b1;
+                            bits = ((body[k + 4] | (body[k + 3] << 8)) >> 1) & 0b111111111111;
+                            BARO = 800 + bits * 0.1f;
 
-                        statusTarget = (body[k + 7] >> 2) & 0b1;
+                            infoMCP = body[k + 5] & 0b1;
+                            VNAV = (body[k + 6] >> 7) & 0b1;
+                            ALT = (body[k + 6] >> 6) & 0b1;
+                            APPR = (body[k + 6] >> 5) & 0b1;
 
-                        bits = body[k + 7] & 0b11;
-                        switch (bits)
-                        {
-                            case 0:
-                                TargetALT = "Unknown";
-                                break;
-                            case 1:
-                                TargetALT = "Arcraft Altitud";
-                                break;
-                            case 2:
-                                TargetALT = "FCP/MCP Altitud";
-                                break;
-                            case 3:
-                                TargetALT = "FMS Altitud";
-                                break;
-                        }
+                            statusTarget = (body[k + 6] >> 2) & 0b1;
 
-                        break;
-                    case 5:
+                            bits = body[k + 6] & 0b11;
+                            switch (bits)
+                            {
+                                case 0:
+                                    TargetALT = "Unknown";
+                                    break;
+                                case 1:
+                                    TargetALT = "Arcraft Altitud";
+                                    break;
+                                case 2:
+                                    TargetALT = "FCP/MCP Altitud";
+                                    break;
+                                case 3:
+                                    TargetALT = "FMS Altitud";
+                                    break;
+                            }
 
-                        break;
-                    case 6:
-                        statusMCP = (body[k] >> 7) & 0b1;
-                        bits = (body[k + 1] | (body[k] << 8)) & 0b0111111111111000;
-                        statusMCP = 1;
-                        k += 1;
-                        break;
+                            break;
+                        case 5:
+                            int BDSnum2 = BDS1;
+                            int statusROLL = 0;
+                            float ROLL = 0;
+                            int signROLL = 0;
+                            int statusTRUE = 0;
+                            float TRUE = 0;
+                            int signTRUE = 0;
+
+                            statusROLL = (body[k] >> 7) & 0b1;
+                            signROLL = (body[k] >> 6) & 0b1;
+                            bits = (short)((body[k + 1] | (body[k] << 8)) >> 5) & 0b1111111111;
+                            ROLL = bits * 45/256f;
+
+
+                            break;
+                        case 6:
+                            int BDSnum3 = BDS1;
+                            int statusMH = 0;
+                            float MH = 0;
+                            int signMH = 0;
+                            int statusIAS = 0;
+                            float IAS = 0;
+                            
+
+                            statusMH = (body[k] >> 7) & 0b1;
+                            signMH = (body[k] >> 6) & 0b1;
+                            bits = (short)((body[k + 1] | (body[k] << 8)) >> 4) & 0b111111111111;
+                            MH = bits * 90 / 512f;
+
+                            break;
+                    }
                 }
+                i += 1;
+                k += 1;
             }
-            else Console.WriteLine("Este si");
+            k += 1;
+        }*/
 
-            k += 1 + 8 * REP;
+        public void DataItem10(ref int k, byte[] body)
+        {
+            Console.WriteLine("(I048/250 - Mode S MB Data)");
+
+            byte REP = body[k++];
+            Console.WriteLine("Number of MB data blocks: " + REP);
+
+            for (int i = 0; i < REP; i++)
+            {
+                // Copiamos los 7 bytes del mensaje Mode S en un array local para facilitar la lectura
+                byte[] b = new byte[7];
+                Array.Copy(body, k, b, 0, 7);
+
+                byte bdsCode = body[k + 7];
+                int BDS1 = (bdsCode >> 4) & 0x0F;
+                int BDS2 = bdsCode & 0x0F;
+
+                Console.WriteLine($"\nBlock {i + 1}: BDS {BDS1},{BDS2}");
+
+                if (BDS2 == 0)
+                {
+                    switch (BDS1)
+                    {
+                        case 4:
+                            Console.WriteLine("  (BDS 4,0) Selected Altitude / Baro / MCP / FMS");
+
+                            int statusMCP = (b[0] >> 7) & 0x01;
+
+                            int mcpRaw = (((b[0] << 8) | b[1]) >> 3) & 0x0FFF;
+                            int MCP_feet = mcpRaw * 16; 
+
+                            int statusFMS = (b[1] >> 2) & 0x01;
+
+                            int three = (b[1] << 16) | (b[2] << 8) | b[3];
+                            int fmsRaw = (three >> 6) & 0x0FFF;
+                            int FMS_feet = fmsRaw * 16;
+
+                            int statusBARO = (b[3] >> 5) & 0x01;
+                            int baroRaw = (((b[3] << 8) | b[4]) >> 1) & 0x0FFF;
+                            float BARO_hPa = 800.0f + baroRaw * 0.1f;
+
+                            int infoMCP = b[5] & 0x01;
+
+                            int VNAV = (b[6] >> 7) & 0x01;
+                            int ALTflag = (b[6] >> 6) & 0x01;
+                            int APPR = (b[6] >> 5) & 0x01;
+                            int statusTarget = (b[6] >> 2) & 0x01;
+
+                            int targetAltBits = b[6] & 0x03;
+                            string TargetALT;
+                            switch (targetAltBits)
+                            {
+                                case 0: TargetALT = "Unknown"; break;
+                                case 1: TargetALT = "Aircraft Altitude"; break;
+                                case 2: TargetALT = "FCP/MCP Altitude"; break;
+                                case 3: TargetALT = "FMS Altitude"; break;
+                                default: TargetALT = "Reserved"; break;
+                            }
+
+                            Console.WriteLine($"    statusMCP: {statusMCP}, MCP: {MCP_feet} ft");
+                            Console.WriteLine($"    statusFMS: {statusFMS}, FMS: {FMS_feet} ft");
+                            Console.WriteLine($"    statusBARO: {statusBARO}, BARO setting: {BARO_hPa:F1} hPa");
+                            Console.WriteLine($"    infoMCP: {infoMCP}, VNAV:{VNAV}, ALTflag:{ALTflag}, APPR:{APPR}, statusTarget:{statusTarget}");
+                            Console.WriteLine($"    TargetALT source: {TargetALT}");
+                            break;
+                        case 5:
+                            Console.WriteLine("  (BDS 5,0) Roll / True Track");
+
+                            // statusROLL: bit7 of byte0
+                            int statusROLL = (b[0] >> 7) & 0x01;
+                            // signROLL: bit6 of byte0 (1 negative)
+                            int signROLL = (b[0] >> 6) & 0x01;
+
+                            // roll raw (10 bits) - construimos como sugerido:
+                            // bits [5..0] of byte0 (6 bits) + top 4 bits of byte1 => 10 bits
+                            int rollRaw = ((b[0] & 0x3F) << 4) | ((b[1] >> 4) & 0x0F);
+                            // escala: roll = rollRaw * 45 / 256  (según tu código original)
+                            float rollAngle = rollRaw * (45.0f / 256.0f);
+                            if (signROLL == 1) rollAngle = -rollAngle;
+
+                            Console.WriteLine($"    statusROLL: {statusROLL}, sign: {signROLL}, roll: {rollAngle:F2}°");
+                            break;
+                        case 6:
+                            // ----- MH -----
+                            Console.WriteLine("  (BDS 6,0) Magnetic Heading / IAS / MACH / Vertical Rates");
+
+                            int statusMH = (b[0] >> 7) & 0x01;      // estado (validez)
+                            int signMH = (b[0] >> 6) & 0x01;      // signo según la imagen (SIGN=1 => West)
+
+                            int mhRaw = ((b[0] & 0x3F) << 4) | ((b[1] >> 4) & 0x0F);
+                            float MH = mhRaw * (90.0f / 512.0f);
+
+                            if (signMH == 1) MH = 360.0f - MH;
+                            if (MH > 180.0f) MH -= 360.0f;
+
+                            Console.WriteLine($"    statusMH: {statusMH}, sign:{signMH}, Magnetic Heading: {MH:F2}° (raw={mhRaw})");
+
+                            // ----- IAS -----
+                            int statusIAS = (b[1] >> 3) & 0b1;
+                            int iasRaw = (((b[1]<< 8) | b[2]) >> 1) & 0b1111111111; 
+                            float IAS = iasRaw * 1.0f;
+                            Console.WriteLine($"    IAS (raw10): {iasRaw} -> {IAS:F0} kt");
+
+                            // ----- MACH -----
+                            int statusMACH = (b[2]) & 0b1;
+                            int machRaw = (((b[3] << 8) | b[4]) >> 6)& 0b1111111111;
+                            float MACH = machRaw * (2.048f / 512.0f);
+                            Console.WriteLine($"    MACH (raw11): {machRaw} -> {MACH:F3} Mach");
+
+                            // ----- BAROMETRIC ALTITUDE RATE (BARO V/S) -----
+                            int baroVRaw = (b[4]<<8 | b[5]) >> 3 & 0b1111111111;
+                            int statusBAROV = (b[4] >> 5) & 0b1;
+                            int signBARO = (b[4] >> 4) & 0b1;
+
+                            int baroVS = (baroVRaw & (1 << 9)) != 0 ? baroVRaw - (1 << 10) : baroVRaw; 
+                            float BARO = baroVS * 32.0f;
+                            Console.WriteLine($"    Baro V/S (approx raw): {baroVS} -> {BARO:F0} ft/min");
+
+                            // ----- INERTIAL VERTICAL VELOCITY (IVV) -----
+                            int ivvRaw = (((b[5] & 0x03) << 8) | b[6]) & 0x3FF;
+                            int ivvSigned = (ivvRaw & (1 << 9)) != 0 ? ivvRaw - (1 << 10) : ivvRaw;
+                            float IVV = ivvSigned * 32.0f;
+                            Console.WriteLine($"    IVV (approx raw): {ivvSigned} -> {IVV:F0} ft/min");
+
+                            break;
+
+                        default:
+                            Console.WriteLine($"  BDS {BDS1},{BDS2} not implemented.");
+                            break;
+                    }
+                }
+                
+                k += 8;
+            }
         }
 
         public void DataItem11(ref int k, byte[] body) // I048/161 Track Number
