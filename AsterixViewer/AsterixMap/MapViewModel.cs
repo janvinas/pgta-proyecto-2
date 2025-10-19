@@ -5,6 +5,7 @@ using Esri.ArcGISRuntime.UI;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -16,10 +17,7 @@ namespace AsterixViewer.AsterixMap
 {
     public class MapViewModel : INotifyPropertyChanged
     {
-        public ICommand AddPointCommand { get; }
-        public ICommand MovePointCommand { get; }
-
-        private Graphic? _graphic;
+        private readonly DataStore dataStore;
 
         private Map? _map;
         public Map? Map
@@ -44,26 +42,14 @@ namespace AsterixViewer.AsterixMap
         }
         private GraphicsOverlay planeGraphics;
 
-        public MapViewModel()
+        public MapViewModel(DataStore dataStore)
         {
+            this.dataStore = dataStore;
+            dataStore.PropertyChanged += OnDataStoreChanged;
             SetupMap();
             planeGraphics = new GraphicsOverlay();
             GraphicsOverlays = [planeGraphics];
-
-            AddPointCommand = new RelayCommand(() => 
-            {
-                var point = new MapPoint(-118.805, 34.027, SpatialReferences.Wgs84);
-                var symbol = new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Circle, System.Drawing.Color.Red, 10);
-                _graphic = new Graphic(point, symbol);
-
-                // Add to overlay
-                planeGraphics.Graphics.Add(_graphic);
-            });
-
-            MovePointCommand = new RelayCommand(() =>
-            {
-                _graphic.Geometry = new MapPoint(-120.805, 34.027, SpatialReferences.Wgs84);
-            });
+            DisplayFlights();
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;
@@ -72,12 +58,38 @@ namespace AsterixViewer.AsterixMap
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
+        // fired when anything in the data store changes. Here we are interested in the flight list
+        private void OnDataStoreChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(dataStore.Flights))
+            {
+                DisplayFlights();
+            }
+        }
+
         private void SetupMap()
         {
             var map = new Map(BasemapStyle.ArcGISTopographic);
             var mapCenterPoint = new MapPoint(5.840724825400484, 44.645513412977614, SpatialReferences.Wgs84);
             map.InitialViewpoint = new Viewpoint(mapCenterPoint, 30000000);
             Map = map;
+        }
+
+        private void DisplayFlights()
+        {
+            if (dataStore == null) return;
+            planeGraphics.Graphics.Clear();
+            foreach (var item in dataStore.Flights)
+            {
+                var flight = item.Value[0];
+                if (flight.Latitude == null || flight.Longitude == null) continue;
+
+                var point = new MapPoint(flight.Longitude.Value, flight.Latitude.Value, SpatialReferences.Wgs84);
+                var symbol = new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Circle, System.Drawing.Color.Red, 4);
+                var graphic = new Graphic(point, symbol);
+                planeGraphics.Graphics.Add(graphic);
+            }
+
         }
 
     }

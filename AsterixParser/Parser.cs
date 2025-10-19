@@ -1,4 +1,5 @@
-﻿using static System.Runtime.InteropServices.JavaScript.JSType;
+﻿using System.Threading.Tasks.Dataflow;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace AsterixParser
 {
@@ -72,11 +73,18 @@ namespace AsterixParser
             return messages;
         }
 
-        public static async Task<List<AsterixMessage>> ParseFileAsync(byte[] file, IProgress<double>? progress = null, CancellationToken cancellationToken = default)
+        public class ParsingResult(List<AsterixMessage> messages, Dictionary<uint, List<AsterixMessage>> flights)
+        {
+            public List<AsterixMessage> messages = messages;
+            public Dictionary<uint, List<AsterixMessage>> flights = flights;
+        }
+
+        public static async Task<ParsingResult> ParseFileAsync(byte[] file, IProgress<double>? progress = null, CancellationToken cancellationToken = default)
         {
             return await Task.Run(() =>
             {
                 List<AsterixMessage> messages = [];
+                Dictionary<uint, List<AsterixMessage>> flights = [];
 
                 int i = 0;
                 double prog = 0;
@@ -92,33 +100,44 @@ namespace AsterixParser
                     byte[] body = new byte[length - 3];
                     Array.Copy(file, i + 3, body, 0, length - 3);
 
+                    AsterixMessage message = null;
+                    int error = 0;
                     switch (cat)
                     {
                         case 21:
                             {
-                                var message = new AsterixMessage
+                                message = new AsterixMessage
                                 {
                                     Cat = CAT.CAT021
                                 };
                                 var CAT021 = new CAT21(body,message);
-                                var error = CAT021.CAT21Reader(i, length);
-
-                                if (error == 0) messages.Add(message);
+                                error = CAT021.CAT21Reader(i, length);
                                 break;
                             }
                         case 48:
                             {
-                                var message = new AsterixMessage
+                                message = new AsterixMessage
                                 {
                                     Cat = CAT.CAT048
                                 };
                                 var CAT048 = new CAT48(body, message);
-                                var error = CAT048.CAT48Reader(i, length);
-
-                                if (error == 0) messages.Add(message);
+                                error = CAT048.CAT48Reader(i, length);
                                 break;
                             }
                     }
+                    if (error == 0 && message != null) messages.Add(message);
+                    if (message?.Address is uint address)
+                    {
+                        if(flights.TryGetValue(address, out var flight))
+                        {
+                            flight.Add(message);
+                        } else
+                        {
+                            flights.Add(address, [message]);
+                        }
+                    }
+
+
 
                     // report progress:
                     i += length;
@@ -130,7 +149,7 @@ namespace AsterixParser
                     }
                 }
                 progress?.Report(0); // finished
-                return messages;
+                return new ParsingResult(messages, flights);
             });
 
         }

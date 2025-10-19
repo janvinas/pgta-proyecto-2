@@ -1,15 +1,41 @@
 ﻿using AsterixParser;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace AsterixViewer
 {
-    public class DataStore
+    public class DataStore : INotifyPropertyChanged
     {
-        public List<AsterixMessage> messages { get; set; }
-        
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+        protected void OnPropertyChanged([CallerMemberName] string? name = null)
+            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+
+        private List<AsterixMessage> _messages = [];
+        public List<AsterixMessage> Messages
+        {
+            get => _messages;
+            set
+            {
+                _messages = value;
+                OnPropertyChanged();
+            }
+        }
+
+        private Dictionary<uint, List<AsterixMessage>> _flights = [];
+        public Dictionary<uint, List<AsterixMessage>> Flights
+        {
+            get => _flights;
+            set
+            {
+                _flights = value;
+                OnPropertyChanged();
+            }
+        }
     }
 }

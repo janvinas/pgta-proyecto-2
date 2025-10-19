@@ -7,18 +7,22 @@
         xmlns:tabs="clr-namespace:AsterixViewer.Tabs"
         mc:Ignorable="d"
         Title="ASTERIX Decoder" Height="450" Width="800">
+    <Window.DataContext>
+        <local:MainViewModel/>
+    </Window.DataContext>
+    
     <TabControl x:Name="TabControl">
         <TabItem>
             <TabItem.Header>Start</TabItem.Header>
-            <tabs:StartTab FinishedLoadingFile="StartTab_FinishedLoadingFile"></tabs:StartTab>
+            <tabs:StartTab DataContext="{Binding DataStore}" FinishedLoadingFile="StartTab_FinishedLoadingFile"></tabs:StartTab>
         </TabItem>
         <TabItem>
             <TabItem.Header>Table</TabItem.Header>
-            <tabs:TableTab></tabs:TableTab>
+            <tabs:TableTab DataContext="{Binding DataStore}"></tabs:TableTab>
         </TabItem>
         <TabItem>
             <TabItem.Header>Map</TabItem.Header>
-            <tabs:MapTab></tabs:MapTab>
+            <tabs:MapTab DataContext="{Binding MapViewModel}"></tabs:MapTab>
         </TabItem>
     </TabControl>
 </Window>

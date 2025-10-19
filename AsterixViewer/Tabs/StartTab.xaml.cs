@@ -47,7 +47,8 @@ namespace AsterixViewer.Tabs
                 var progress = new Progress<double>(p => ProgressBar.Value = p);
 
                 var result = await Parser.ParseFileAsync(data, progress);
-                ((DataStore) DataContext).messages = result;
+                ((DataStore) DataContext).Messages = result.messages;
+                ((DataStore) DataContext).Flights = result.flights;
 
                 FinishedLoadingFile?.Invoke(this, EventArgs.Empty);
             }

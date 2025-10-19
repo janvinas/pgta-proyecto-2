@@ -22,8 +22,6 @@ namespace AsterixViewer
         public MainWindow()
         {
             InitializeComponent();
-            DataStore dataStore = new DataStore();
-            DataContext = dataStore;
         }
 
         private void StartTab_FinishedLoadingFile(object sender, EventArgs e)

@@ -11,8 +11,8 @@ namespace AsterixViewer.Tabs
 {
     public partial class TableTab : UserControl
     {
-        private DataStore dataStore;
-        private ICollectionView view;
+        private DataStore? dataStore;
+        private ICollectionView? view;
 
         public TableTab()
         {
@@ -23,10 +23,10 @@ namespace AsterixViewer.Tabs
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
             dataStore = DataContext as DataStore;
-            if (dataStore == null || dataStore.messages == null)
+            if (dataStore == null || dataStore.Messages == null)
                 return; // Evita el crash si aún no está inicializado
 
-            view = CollectionViewSource.GetDefaultView(dataStore.messages);
+            view = CollectionViewSource.GetDefaultView(dataStore.Messages);
             if (view != null)
             {
                 view.Filter = FilterMessages;
