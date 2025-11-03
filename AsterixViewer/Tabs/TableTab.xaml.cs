@@ -52,11 +52,11 @@ namespace AsterixViewer.Tabs
             // Si no existe la lista o está vacía => quitar
             if (BlancoPuroFilter?.IsChecked ?? false)
             {
-                if (msg.TargetReportDescriptor == null || msg.TargetReportDescriptor.Count == 0)
+                if (msg.TargetReportDescriptor048 == null || msg.TargetReportDescriptor048.Count == 0)
                     return false;
 
                 // Solo miramos el primer elemento
-                var first = msg.TargetReportDescriptor[0];
+                var first = msg.TargetReportDescriptor048[0];
                 if (string.IsNullOrEmpty(first) ||
                     (first.IndexOf("PSR", StringComparison.OrdinalIgnoreCase) < 0 &&
                      first.IndexOf("SSR", StringComparison.OrdinalIgnoreCase) < 0))
@@ -82,13 +82,13 @@ namespace AsterixViewer.Tabs
                 var item = btn.DataContext;
                 if (item is AsterixMessage message)
                 {
-                    if (message.TargetReportDescriptor == null)
+                    if (message.TargetReportDescriptor048 == null)
                     {
                         MessageBox.Show("No data", "Target Report Descriptor");
                     }
                     else
                     {
-                        MessageBox.Show(string.Join("\n", message.TargetReportDescriptor), "Target Report Descriptor");
+                        MessageBox.Show(string.Join("\n", message.TargetReportDescriptor048), "Target Report Descriptor");
                     }
                 }
             }

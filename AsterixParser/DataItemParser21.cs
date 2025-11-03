@@ -45,9 +45,11 @@ namespace AsterixParser
 
             k += 2;
         }
-        public static void DataItem2(ref int k, byte[] body)
+        public void DataItem2(ref int k, byte[] body)
         {
             Console.WriteLine("(DF-2) Target Report Descriptor");
+
+            List<string> TargetReport = [];
 
             // --- Primary subfield ---
             byte primary = body[k];
@@ -69,6 +71,8 @@ namespace AsterixParser
                 default: ATP_VAL = "Reserved for future use"; break;
             }
 
+            TargetReport.Add(ATP_VAL);
+
             string ARC_VAL;
             switch (ARC)
             {
@@ -78,6 +82,10 @@ namespace AsterixParser
                 case 3: ARC_VAL = "Invalid"; break;
                 default: ARC_VAL = "Invalid"; break;
             }
+
+            TargetReport.Add(ARC_VAL);
+            TargetReport.Add(RC);
+            TargetReport.Add(RAB);
 
             Console.WriteLine($"Address Type: {ATP_VAL}");
             Console.WriteLine($"Altitude Reporting Capability: {ARC_VAL}");
@@ -96,6 +104,12 @@ namespace AsterixParser
                 string TST = (ext1 >> 4 & 1) == 1 ? "Test Target" : "Default";
                 string SAA = (ext1 >> 3 & 1) == 1 ? "Equipment not capable" : "Equipment capable";
 
+                TargetReport.Add(DCR);
+                TargetReport.Add(GBS);
+                TargetReport.Add(SIM);
+                TargetReport.Add(TST);
+                TargetReport.Add(SAA);
+
                 int CL = (ext1 >> 1) & 0b11;
                 string CL_VAL;
                 switch (CL)
@@ -106,6 +120,8 @@ namespace AsterixParser
                     case 3: CL_VAL = "Reserved for future use"; break;
                     default: CL_VAL = "Unknown"; break;
                 }
+
+                TargetReport.Add(CL_VAL);
 
                 Console.WriteLine($"Differential Correction: {DCR}");
                 Console.WriteLine($"Ground Bit Setting: {GBS}");
@@ -128,6 +144,12 @@ namespace AsterixParser
                     string LDPJ = (ext2 >> 2 & 1) == 1 ? "LDPJ detected" : "LDPJ not detected";
                     string RCF = (ext2 >> 1 & 1) == 1 ? "Failed" : "Default";
 
+                    TargetReport.Add(IPC);
+                    TargetReport.Add(NOGO);
+                    TargetReport.Add(CPR);
+                    TargetReport.Add(LDPJ);
+                    TargetReport.Add(RCF);
+
                     Console.WriteLine($"  Independent Position Check: {IPC}");
                     Console.WriteLine($"  No-go Bit Status: {NOGO}");
                     Console.WriteLine($"  Compact Position Reporting: {CPR}");
@@ -145,6 +167,11 @@ namespace AsterixParser
                     }
                 }
             }
+
+            Console.WriteLine("Target Report data: ");
+            foreach (string data in TargetReport) Console.WriteLine("· " + data);
+
+            message.TargetReportDescriptor021 = TargetReport;
         }
 
         public static void DataItem3(ref int k, byte[] body)

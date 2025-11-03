@@ -221,7 +221,7 @@ namespace AsterixParser
             Console.WriteLine("Target Report data: ");
             foreach (string data in TargetReport) Console.WriteLine("· " + data);
 
-            message.TargetReportDescriptor = TargetReport;
+            message.TargetReportDescriptor048 = TargetReport;
 
         }
 
