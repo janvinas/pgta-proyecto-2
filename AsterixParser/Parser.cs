@@ -1,10 +1,17 @@
-﻿using System.Threading.Tasks.Dataflow;
+﻿using AsterixParser.Utils;
+using System.Threading.Tasks.Dataflow;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace AsterixParser
 {
     public class Parser
     {
+        private static readonly GeoUtils geoUtils;
+        static Parser() {
+            geoUtils = new();
+            var radarPosition = new CoordinatesWGS84(41.30070222222222 * GeoUtils.DEGS2RADS, 2.1020581944444445 * GeoUtils.DEGS2RADS, 2.007 + 25.25);
+            geoUtils.setCenterProjection(radarPosition);
+        }
 
         public static List<AsterixMessage> ParseFile(byte[] file)
         {
@@ -17,6 +24,8 @@ namespace AsterixParser
 
             int i = 0;
             int k = 1;
+
+
 
             while (i < file.Length)
             {
@@ -56,7 +65,7 @@ namespace AsterixParser
                             {
                                 Cat = CAT.CAT048
                             };
-                            CAT048 = new CAT48(body, message);
+                            CAT048 = new CAT48(body, message, geoUtils);
                             error = CAT048.CAT48Reader(i, length);
 
                             if (error == 0) messages.Add(message);
@@ -120,13 +129,13 @@ namespace AsterixParser
                                 {
                                     Cat = CAT.CAT048
                                 };
-                                var CAT048 = new CAT48(body, message);
+                                var CAT048 = new CAT48(body, message, geoUtils);
                                 error = CAT048.CAT48Reader(i, length);
                                 break;
                             }
                     }
                     if (error == 0 && message != null) messages.Add(message);
-                    if (message?.Address is uint address)
+                    if (message?.Address is uint address && message?.Latitude != null && message?.Longitude != null)
                     {
                         if(flights.TryGetValue(address, out var flight))
                         {

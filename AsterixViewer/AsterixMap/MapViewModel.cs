@@ -1,5 +1,9 @@
-﻿using Esri.ArcGISRuntime.Geometry;
+﻿using Accord.IO;
+using AsterixParser;
+using Esri.ArcGISRuntime.Geometry;
+using Esri.ArcGISRuntime.Location;
 using Esri.ArcGISRuntime.Mapping;
+using Esri.ArcGISRuntime.Portal;
 using Esri.ArcGISRuntime.Symbology;
 using Esri.ArcGISRuntime.UI;
 using System;
@@ -12,11 +16,15 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Interop;
+using System.Windows.Media.Media3D;
 
 namespace AsterixViewer.AsterixMap
 {
     public class MapViewModel : INotifyPropertyChanged
     {
+        public ICommand ChangeTimeCommand { get; }
+
         private readonly DataStore dataStore;
 
         private Map? _map;
@@ -41,16 +49,28 @@ namespace AsterixViewer.AsterixMap
             }
         }
         private GraphicsOverlay planeGraphics;
+        private readonly Symbol planeSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Circle, System.Drawing.Color.Red, 4);
 
         public MapViewModel(DataStore dataStore)
         {
             this.dataStore = dataStore;
             dataStore.PropertyChanged += OnDataStoreChanged;
+
+            ChangeTimeCommand = new RelayCommand((object? args) =>
+            {
+                if (args is string timeString && int.TryParse(timeString, out int time))
+                {
+                    dataStore.ReplayTime += time;
+                }
+            });
+
             SetupMap();
             planeGraphics = new GraphicsOverlay();
             GraphicsOverlays = [planeGraphics];
             DisplayFlights();
         }
+
+        private SortedDictionary<uint, Graphic> mapPoints = [];
 
         public event PropertyChangedEventHandler? PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string propertyName = "")
@@ -61,8 +81,14 @@ namespace AsterixViewer.AsterixMap
         // fired when anything in the data store changes. Here we are interested in the flight list
         private void OnDataStoreChanged(object? sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(dataStore.Flights))
+            if (e.PropertyName == nameof(DataStore.ReplayTime))
             {
+                DisplayFlights();
+            }
+            if (e.PropertyName == nameof(DataStore.Flights))
+            {
+                mapPoints = [];
+                planeGraphics.Graphics.Clear();
                 DisplayFlights();
             }
         }
@@ -78,18 +104,62 @@ namespace AsterixViewer.AsterixMap
         private void DisplayFlights()
         {
             if (dataStore == null) return;
-            planeGraphics.Graphics.Clear();
             foreach (var item in dataStore.Flights)
             {
-                var flight = item.Value[0];
-                if (flight.Latitude == null || flight.Longitude == null) continue;
+                var msg = FindMessage(item.Value, dataStore.ReplayTime);
+                if (msg == null) continue;
 
-                var point = new MapPoint(flight.Longitude.Value, flight.Latitude.Value, SpatialReferences.Wgs84);
-                var symbol = new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Circle, System.Drawing.Color.Red, 4);
-                var graphic = new Graphic(point, symbol);
-                planeGraphics.Graphics.Add(graphic);
+                var position = new MapPoint(msg.Longitude.Value, msg.Latitude.Value, SpatialReferences.Wgs84);
+
+                if (mapPoints.TryGetValue(item.Key, out var graphic))
+                {
+                    graphic.Geometry = position;
+                    if (msg.Cat == CAT.CAT021)
+                    {
+                        graphic.Symbol = new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Circle, System.Drawing.Color.Chocolate, 4);
+                    }
+                    else
+                    {
+                        graphic.Symbol = new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Circle, System.Drawing.Color.BlueViolet, 4);
+                    }
+                }
+                else
+                {
+                    var g = new Graphic(position, planeSymbol.Clone());
+                    planeGraphics.Graphics.Add(g);
+                    mapPoints[item.Key] = g;
+                }
             }
+        }
 
+        private static AsterixMessage? FindMessage(List<AsterixMessage> messages, double time)
+        {
+            int index = messages.BinarySearch(
+                new AsterixMessage { TimeOfDay = time },
+                Comparer<AsterixMessage>.Create((a, b) => {
+                    if (a.TimeOfDay == null && b.TimeOfDay == null) return 0;
+                    if (a.TimeOfDay == null) return -1;  // treat null as smaller
+                    if (b.TimeOfDay == null) return 1;   // treat null as smaller
+                    return a.TimeOfDay.Value.CompareTo(b.TimeOfDay.Value);
+                })
+            );
+
+            AsterixMessage msg;
+            if (index >= 0)
+            {
+                // exact match
+                msg = messages[index];
+            }
+            else
+            {
+                // get the message immediately before
+                int nextIndex = ~index;
+                int prevIndex = nextIndex - 1;
+                if (prevIndex < 0) return null;
+                msg = messages[prevIndex];
+            }
+            if (msg.Longitude == null || msg.Latitude == null) return null;
+            return msg;
         }
 
     }

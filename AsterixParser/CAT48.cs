@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AsterixParser.Utils;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -8,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace AsterixParser
 {
-    internal class CAT48(byte[] body, AsterixMessage message)
+    internal class CAT48(byte[] body, AsterixMessage message, GeoUtils geoUtils)
     {
         public int CAT48Reader(int i, ushort length) 
         {
@@ -73,12 +74,31 @@ namespace AsterixParser
                 Console.WriteLine($"Siguiente Byte: {k}");
             }
 
+            ComputeCoordinates(message);
+
             Console.WriteLine("Last byte: " + k);
 
             return error;
         }
+        private void ComputeCoordinates(AsterixMessage message)
+        {
+            if (message == null) return;
+            if (message.Distance == null || message.Azimuth == null || message.FlightLevel?.flightLevel == null) return;
 
-        
+            // calculate horizontal distance:
+            var distance_h = Math.Sqrt(
+                Math.Pow(message.Distance.Value * GeoUtils.NM2METERS, 2) - 
+                Math.Pow(message.FlightLevel.flightLevel.Value * GeoUtils.FEET2METERS * 100.0, 2)
+                );
 
+            var radarCartesian = GeoUtils.change_radar_spherical2radar_cartesian(
+                new CoordinatesPolar(distance_h, message.Azimuth.Value * GeoUtils.DEGS2RADS, 0)
+                );
+            var geocentric = geoUtils.change_system_cartesian2geocentric(radarCartesian);
+            var coordinates = geoUtils.change_geocentric2geodesic(geocentric);
+
+            message.Latitude = coordinates.Lat * GeoUtils.RADS2DEGS;
+            message.Longitude = coordinates.Lon * GeoUtils.RADS2DEGS;
+        }
     }
 }
