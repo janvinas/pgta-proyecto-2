@@ -605,34 +605,63 @@ namespace AsterixParser
                             Console.WriteLine($"    TargetALT source: {TargetALT}");
                             break;
                         case 5:
-                            Console.WriteLine("  (BDS 5,0) Roll / True Track");
+                            // ===========================
+                            // BDS 5,0 - Roll / Track / Speeds
+                            // ===========================
+                            Console.WriteLine("  (BDS 5,0) Roll / True Track / Ground Speed / Track Angle Rate / True Airspeed");
 
-                            // statusROLL: bit7 of byte0
-                            int statusROLL = (b[0] >> 7) & 0x01;
-                            // signROLL: bit6 of byte0 (1 negative)
-                            int signROLL = (b[0] >> 6) & 0x01;
+                            // ====== ROLL ANGLE ======
+                            int statusROLL = (b[0] >> 7) & 0x01;      // Bit 0 (MSB)
+                            int signROLL = (b[0] >> 6) & 0x01;        // Bit 1
+                            int raw9 = (((b[0] & 0x3F) << 3) | ((b[1] >> 5) & 0x07));
+                            int rollSigned = raw9;
+                            if (signROLL == 1) rollSigned = raw9 - (1 << 9);
+                            float ROLL = rollSigned * (45.0f / 256.0f);
 
-                            // roll raw (10 bits) - construimos como sugerido:
-                            // bits [5..0] of byte0 (6 bits) + top 4 bits of byte1 => 10 bits
-                            int rollRaw = ((b[0] & 0x3F) << 4) | ((b[1] >> 4) & 0x0F);
-                            // escala: roll = rollRaw * 45 / 256  (según tu código original)
-                            float rollAngle = rollRaw * (45.0f / 256.0f);
-                            if (signROLL == 1) rollAngle = -rollAngle;
+                            Console.WriteLine($"    Roll: status={statusROLL}, sign={signROLL}, raw={raw9}, signed={rollSigned}, val={ROLL:F3}°");
 
-                            Console.WriteLine($"    statusROLL: {statusROLL}, sign: {signROLL}, roll: {rollAngle:F2}°");
+                            // ====== TRUE TRACK ANGLE ======
+                            int statusTTA = (b[1] >> 4) & 0b1;  // Bit 0
+                            int signTTA = (b[1] >> 3) & 0b1;    // Bit 1 (informativo)
+                            int raw10 = (((b[1] << 8) | (b[2])) & 0b11111111110) >> 1;
+                            int ttaSigned = raw10;
+                            if (signTTA == 1) ttaSigned = raw10 - (1 << 10);
+                            float TTA = ttaSigned * (90.0f / 512.0f);
+
+                            Console.WriteLine($"    True Track Angle: status={statusTTA}, raw={raw10}, signed={ttaSigned}, val={TTA:F3}°");
+
+                            // ====== GROUND SPEED ======
+                            int statusGS = b[2] & 0b1;
+                            int gsRaw = ((b[3] << 2) | (b[4] >> 6)) & 0b1111111111;
+                            float GS = gsRaw * (1024.0f / 512.0f); // LSB = 2 kt
+                            Console.WriteLine($"    Ground Speed: status={statusGS}, raw={gsRaw}, val={GS:F0} kt");
+
+                            // ====== TRACK ANGLE RATE ======
+                            int statusTAR = (b[4] >> 5) & 0b1;
+                            int signTAR = (b[4] >> 4) & 0b1;
+                            int tarRaw = ((b[4] & 0b1111) << 5) | ((b[5] >> 3) & 0b111111111);
+                            int tarSigned = tarRaw;
+                            if (signTAR == 1) tarSigned = tarRaw - (1 << 9);
+                            float TAR = tarSigned * (8.0f / 256.0f);
+                            Console.WriteLine($"    Track Angle Rate: status={statusTAR}, sign={signTAR}, raw={tarRaw}, val={TAR:F3} °/s");
+
+                            // ====== TRUE AIRSPEED ======
+                            int statusTAS = (b[5] >> 2) & 0b1;
+                            int tasRaw = (((b[5] & 0b11) << 8) | b[6]) & 0b1111111111;
+                            float TAS = tasRaw * 2.0f; // LSB = 2 kt
+                            Console.WriteLine($"    True Airspeed: status={statusTAS}, raw={tasRaw}, val={TAS:F0} kt");
+
                             break;
                         case 6:
                             // ----- MH -----
                             Console.WriteLine("  (BDS 6,0) Magnetic Heading / IAS / MACH / Vertical Rates");
 
-                            int statusMH = (b[0] >> 7) & 0x01;      // estado (validez)
-                            int signMH = (b[0] >> 6) & 0x01;      // signo según la imagen (SIGN=1 => West)
-
-                            int mhRaw = ((b[0] & 0x3F) << 4) | ((b[1] >> 4) & 0x0F);
-                            float MH = mhRaw * (90.0f / 512.0f);
-
-                            if (signMH == 1) MH = 360.0f - MH;
-                            if (MH > 180.0f) MH -= 360.0f;
+                            int statusMH = (b[0] >> 7) & 0x01;
+                            int signMH = (b[0] >> 6) & 0x01;
+                            int mhRaw = (((b[0] << 8) | b[1]) >> 4 ) & 0b1111111111;
+                            int MHSigned = mhRaw;
+                            if (signMH == 1) MHSigned = mhRaw - (1 << 10);
+                            float MH = MHSigned * (90.0f / 512.0f);
 
                             Console.WriteLine($"    statusMH: {statusMH}, sign:{signMH}, Magnetic Heading: {MH:F2}° (raw={mhRaw})");
 
@@ -649,17 +678,21 @@ namespace AsterixParser
                             Console.WriteLine($"    MACH (raw11): {machRaw} -> {MACH:F3} Mach");
 
                             // ----- BAROMETRIC ALTITUDE RATE (BARO V/S) -----
-                            int baroVRaw = (b[4]<<8 | b[5]) >> 3 & 0b1111111111;
                             int statusBAROV = (b[4] >> 5) & 0b1;
                             int signBARO = (b[4] >> 4) & 0b1;
-
-                            int baroVS = (baroVRaw & (1 << 9)) != 0 ? baroVRaw - (1 << 10) : baroVRaw; 
-                            float BARO = baroVS * 32.0f;
-                            Console.WriteLine($"    Baro V/S (approx raw): {baroVS} -> {BARO:F0} ft/min");
+                            int baroVRaw = (b[4]<<8 | b[5]) >> 3 & 0b1111111111;
+                            int baroSigned = baroVRaw;
+                            if (signBARO == 1) baroSigned = baroVRaw - (1 << 10);
+                            float BARO = baroSigned * 32.0f;
+                            Console.WriteLine($"    Baro V/S (approx raw): {baroSigned} -> {BARO:F0} ft/min");
 
                             // ----- INERTIAL VERTICAL VELOCITY (IVV) -----
-                            int ivvRaw = (((b[5] & 0x03) << 8) | b[6]) & 0x3FF;
-                            int ivvSigned = (ivvRaw & (1 << 9)) != 0 ? ivvRaw - (1 << 10) : ivvRaw;
+                            int statusIVV = (b[5] >> 2) & 0b1;
+                            int signIVV = (b[5] >> 1) & 0b1;
+
+                            int ivvRaw = ((b[5] << 8) | b[6]) & 0b111111111;
+                            int ivvSigned = ivvRaw;
+                            if (signIVV == 1) ivvSigned = ivvRaw - (1 << 9);
                             float IVV = ivvSigned * 32.0f;
                             Console.WriteLine($"    IVV (approx raw): {ivvSigned} -> {IVV:F0} ft/min");
 
