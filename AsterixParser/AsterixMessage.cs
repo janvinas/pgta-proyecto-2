@@ -69,7 +69,8 @@ namespace AsterixParser
         public byte SIC { get; set; } // DI1
         public byte SAC { get; set; } // DI1
         public double? TimeOfDay { get; set; } // DI2 CAT48 y DI12 CAT21
-        public List<string>? TargetReportDescriptor { get; set; } // DI3
+        public List<string>? TargetReportDescriptor048 { get; set; } // DI3 I048/20
+        public List<string>? TargetReportDescriptor021 { get; set; } // DI2 I021/40
         public double? Distance { get; set; } // DI4 rho
         public double? Azimuth { get; set; } // DI4 theta
         public ushort? Mode3A { get; set; } // DI5
