@@ -225,7 +225,7 @@ namespace AsterixParser
 
         }
 
-        public void DataItem4(ref int k, byte[] body) //Creo que no esta acabado
+        public void DataItem4(ref int k, byte[] body)
         {
             Console.WriteLine("(DF-4)");
             ushort rho_raw = (ushort)(body[k + 1] | (body[k] << 8));
@@ -431,19 +431,21 @@ namespace AsterixParser
         public void DataItem10(ref int k, byte[] body)
         {
             Console.WriteLine("(I048/250 - Mode S MB Data)");
-
             byte REP = body[k++];
             Console.WriteLine("Number of MB data blocks: " + REP);
+            string BDSs = null;
+
+            BDS bds = new BDS();
 
             for (int i = 0; i < REP; i++)
             {
-                // Copiamos los 7 bytes del mensaje Mode S en un array local para facilitar la lectura
                 byte[] b = new byte[7];
                 Array.Copy(body, k, b, 0, 7);
 
                 byte bdsCode = body[k + 7];
                 int BDS1 = (bdsCode >> 4) & 0x0F;
                 int BDS2 = bdsCode & 0x0F;
+                string bdsString = $"BDS {BDS1},{BDS2}";
 
                 Console.WriteLine($"\nBlock {i + 1}: BDS {BDS1},{BDS2}");
 
@@ -492,6 +494,25 @@ namespace AsterixParser
                             Console.WriteLine($"    statusBARO: {statusBARO}, BARO setting: {BARO_hPa:F1} hPa");
                             Console.WriteLine($"    infoMCP: {infoMCP}, VNAV:{VNAV}, ALTflag:{ALTflag}, APPR:{APPR}, statusTarget:{statusTarget}");
                             Console.WriteLine($"    TargetALT source: {TargetALT}");
+
+                            if (BDSs == null) BDSs += bdsString;
+                            else BDSs += "\n" + bdsString;
+
+                            bds.statusMCP = statusMCP;
+                            bds.MCP = MCP_feet;
+                            bds.statusFMS = statusFMS;
+                            bds.FMS = FMS_feet;
+                            bds.statusBARO = statusBARO;
+                            bds.BARO = BARO_hPa;
+                            bds.infoMCP = infoMCP;
+                            bds.VNAV = VNAV;
+                            bds.ALTflag = ALTflag;
+                            bds.APPR = APPR;
+                            bds.statusTarget = statusTarget;
+                            bds.TargetALT = TargetALT;
+
+
+
                             break;
                         case 5:
                             // ===========================
@@ -540,6 +561,20 @@ namespace AsterixParser
                             float TAS = tasRaw * 2.0f; // LSB = 2 kt
                             Console.WriteLine($"    True Airspeed: status={statusTAS}, raw={tasRaw}, val={TAS:F0} kt");
 
+                            if (BDSs == null) BDSs += bdsString;
+                            else BDSs += "\n" + bdsString;
+
+                            bds.statusROLL = statusROLL;
+                            bds.ROLL = ROLL;
+                            bds.statusTTA = statusTTA;
+                            bds.TTA = TTA;
+                            bds.statusGS = statusGS;
+                            bds.GS = GS;
+                            bds.statusTAR = statusTAR;
+                            bds.TAR = TAR;
+                            bds.statusTAS = statusTAS;
+                            bds.TAS = TAS;
+
                             break;
                         case 6:
                             // ----- MH -----
@@ -568,12 +603,12 @@ namespace AsterixParser
 
                             // ----- BAROMETRIC ALTITUDE RATE (BARO V/S) -----
                             int statusBAROV = (b[4] >> 5) & 0b1;
-                            int signBARO = (b[4] >> 4) & 0b1;
+                            int signBAROV = (b[4] >> 4) & 0b1;
                             int baroVRaw = (b[4]<<8 | b[5]) >> 3 & 0b1111111111;
                             int baroSigned = baroVRaw;
-                            if (signBARO == 1) baroSigned = baroVRaw - (1 << 10);
-                            float BARO = baroSigned * 32.0f;
-                            Console.WriteLine($"    Baro V/S (approx raw): {baroSigned} -> {BARO:F0} ft/min");
+                            if (signBAROV == 1) baroSigned = baroVRaw - (1 << 10);
+                            float BAROV = baroSigned * 32.0f;
+                            Console.WriteLine($"    Baro V/S (approx raw): {baroSigned} -> {BAROV:F0} ft/min");
 
                             // ----- INERTIAL VERTICAL VELOCITY (IVV) -----
                             int statusIVV = (b[5] >> 2) & 0b1;
@@ -584,6 +619,19 @@ namespace AsterixParser
                             if (signIVV == 1) ivvSigned = ivvRaw - (1 << 9);
                             float IVV = ivvSigned * 32.0f;
                             Console.WriteLine($"    IVV (approx raw): {ivvSigned} -> {IVV:F0} ft/min");
+                            if (BDSs == null) BDSs += bdsString;
+                            else BDSs += "\n" + bdsString;
+
+                            bds.statusMH = statusMH;
+                            bds.MH = MH;
+                            bds.statusIAS = statusIAS;
+                            bds.IAS = IAS;
+                            bds.statusMACH = statusMACH;
+                            bds.MACH = MACH;
+                            bds.statusBAROV = statusBAROV;
+                            bds.BAROV = BAROV;
+                            bds.statusIVV = statusIVV;
+                            bds.IVV = IVV;
 
                             break;
 
@@ -592,9 +640,10 @@ namespace AsterixParser
                             break;
                     }
                 }
-                
                 k += 8;
             }
+            bds.BDSs = BDSs;
+            message.BDS = bds;
         }
 
         public void DataItem11(ref int k, byte[] body) // I048/161 Track Number

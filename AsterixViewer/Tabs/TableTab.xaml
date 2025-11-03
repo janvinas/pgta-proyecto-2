@@ -65,6 +65,42 @@
                 <DataGridTextColumn Header="Track N." Binding="{Binding TrackNum}"/>
                 <DataGridTextColumn Header="Gr. Speed" Binding="{Binding GS, StringFormat={}{0:F2} kt, TargetNullValue=''}"/>
                 <DataGridTextColumn Header="Heading" Binding="{Binding Heading, StringFormat={}{0:F2}°, TargetNullValue=''}"/>
+
+                <DataGridTextColumn Header="BDS" Binding="{Binding BDS.BDSs}"/>
+                <DataGridTextColumn Header="statusMCP" Binding="{Binding BDS.statusMCP}"/>
+                <DataGridTextColumn Header="MCP" Binding="{Binding BDS.MCP}"/>
+                <DataGridTextColumn Header="statusFMS" Binding="{Binding BDS.statusFMS}"/>
+                <DataGridTextColumn Header="FMS" Binding="{Binding BDS.FMS}"/>
+                <DataGridTextColumn Header="statusBARO" Binding="{Binding BDS.statusBARO}"/>
+                <DataGridTextColumn Header="BARO" Binding="{Binding BDS.BARO}"/>
+                <DataGridTextColumn Header="infoMCP" Binding="{Binding BDS.infoMCP}"/>
+                <DataGridTextColumn Header="VNAV" Binding="{Binding BDS.VNAV}"/>
+                <DataGridTextColumn Header="ALTflag" Binding="{Binding BDS.ALTflag}"/>
+                <DataGridTextColumn Header="APPR" Binding="{Binding BDS.APPR}"/>
+                <DataGridTextColumn Header="statusTarget" Binding="{Binding BDS.statusTarget}"/>
+                <DataGridTextColumn Header="TargetALT" Binding="{Binding BDS.TargetALT}"/>
+
+                <DataGridTextColumn Header="statusROLL" Binding="{Binding BDS.statusROLL}"/>
+                <DataGridTextColumn Header="ROLL" Binding="{Binding BDS.ROLL}"/>
+                <DataGridTextColumn Header="statusTTA" Binding="{Binding BDS.statusTTA}"/>
+                <DataGridTextColumn Header="TTA" Binding="{Binding BDS.TTA}"/>
+                <DataGridTextColumn Header="statusGS" Binding="{Binding BDS.statusGS}"/>
+                <DataGridTextColumn Header="GS" Binding="{Binding BDS.GS}"/>
+                <DataGridTextColumn Header="statusTAR" Binding="{Binding BDS.statusTAR}"/>
+                <DataGridTextColumn Header="TAR" Binding="{Binding BDS.TAR}"/>
+                <DataGridTextColumn Header="statusTAS" Binding="{Binding BDS.statusTAS}"/>
+                <DataGridTextColumn Header="TAS" Binding="{Binding BDS.TAS}"/>
+
+                <DataGridTextColumn Header="statusMH" Binding="{Binding BDS.statusMH}"/>
+                <DataGridTextColumn Header="MH" Binding="{Binding BDS.MH}"/>
+                <DataGridTextColumn Header="statusIAS" Binding="{Binding BDS.statusIAS}"/>
+                <DataGridTextColumn Header="IAS" Binding="{Binding BDS.IAS}"/>
+                <DataGridTextColumn Header="statusMACH" Binding="{Binding BDS.statusMACH}"/>
+                <DataGridTextColumn Header="MACH" Binding="{Binding BDS.MACH}"/>
+                <DataGridTextColumn Header="statusBAROV" Binding="{Binding BDS.statusBAROV}"/>
+                <DataGridTextColumn Header="BAROV" Binding="{Binding BDS.BAROV}"/>
+                <DataGridTextColumn Header="statusIVV" Binding="{Binding BDS.statusIVV}"/>
+                <DataGridTextColumn Header="IVV" Binding="{Binding BDS.IVV}"/>
             </DataGrid.Columns>
         </DataGrid>
     </Grid>

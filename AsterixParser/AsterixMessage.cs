@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Numerics;
 using System.Reflection.Metadata;
@@ -56,6 +57,46 @@ namespace AsterixParser
         public int? B1B { get; set; }
     }
 
+    public class BDS 
+    {
+        public string? BDSs { get; set; }
+        public int? statusMCP { get; set; }
+        public int? MCP { get; set; }
+        public int? statusFMS { get; set; }
+        public int? FMS { get; set; }
+        public int? statusBARO { get; set; }
+        public float? BARO { get; set; }
+        public int? infoMCP { get; set; }
+        public int? VNAV { get; set; }
+        public int? ALTflag { get; set; }
+        public int? APPR { get; set; }
+        public int? statusTarget { get; set; }
+        public string? TargetALT { get; set; }
+
+        public float? statusROLL { get; set; }
+        public float? ROLL { get; set; }
+        public float? statusTTA { get; set; }
+        public float? TTA { get; set; }
+        public float? statusGS { get; set; }
+        public float? GS { get; set; }
+        public float? statusTAR { get; set; }
+        public float? TAR { get; set; }
+        public float? statusTAS { get; set; }
+        public float? TAS { get; set; }
+
+        public float? statusMH { get; set; }
+        public float? MH { get; set; }
+        public float? statusIAS { get; set; }
+        public float? IAS { get; set; }
+        public float? statusMACH { get; set; }
+        public float? MACH { get; set; }
+        public float? statusBAROV { get; set; }
+        public float? BAROV { get; set; }
+        public float? statusIVV { get; set; }
+        public float? IVV { get; set; }
+
+    }
+
     public class FlightLevel(float? flightLevel, bool garbledCode, bool codeNotValidated)
     {
         public float? flightLevel = flightLevel;
@@ -85,5 +126,8 @@ namespace AsterixParser
         public double? Latitude { get; set; } //DI7 CAT21
         public double? Longitude { get; set; } //DI7 CAT21
         public float? BPS { get; set; } // DI48 CAT21
+        public BDS? BDS { get; set; } // DI7
+
+
     }
 }
