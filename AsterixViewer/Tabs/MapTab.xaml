@@ -21,9 +21,15 @@
         </esri:MapView>
 
         <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center">
-            <Button Content="backwards one step" Margin="1px"></Button>
+            <Button Command="{Binding ChangeTimeCommand}" CommandParameter="-60" Content="-60s" Margin="1px"></Button>
+            <Button Command="{Binding ChangeTimeCommand}" CommandParameter="-15" Content="-15s" Margin="1px"></Button>
+            <Button Command="{Binding ChangeTimeCommand}" CommandParameter="-5" Content="-5s" Margin="1px"></Button>
+            <Button Command="{Binding ChangeTimeCommand}" CommandParameter="-1" Content="-1s" Margin="1px"></Button>
             <Button Content="play/pause" Margin="1px"></Button>
-            <Button Content="forward one step" Margin="1px"></Button>
+            <Button Command="{Binding ChangeTimeCommand}" CommandParameter="1" Content="+1s" Margin="1px"></Button>
+            <Button Command="{Binding ChangeTimeCommand}" CommandParameter="5" Content="+5s" Margin="1px"></Button>
+            <Button Command="{Binding ChangeTimeCommand}" CommandParameter="15" Content="+15s" Margin="1px"></Button>
+            <Button Command="{Binding ChangeTimeCommand}" CommandParameter="60" Content="+60s" Margin="1px"></Button>
         </StackPanel>
     </Grid>
 </UserControl>

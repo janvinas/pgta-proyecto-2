@@ -299,10 +299,10 @@ namespace AsterixParser
             int lat_i = (body[k] << 24) | (body[k + 1] << 16) | (body[k + 2] << 8) | body[k + 3]; // Composem el integer de latitud
             int lon_i = (body[k + 4] << 24) | (body[k + 5] << 16) | (body[k + 6] << 8) | body[k + 7]; // Composem el integer de longitud
 
-            float lat = lat_i;
-            lat = lat * 180 / (float)(Math.Pow(2, 30));
-            float lon = lon_i;
-            lon = lon * 180 / (float)(Math.Pow(2, 30));
+            double lat = lat_i;
+            lat = lat * 180 / (double)(Math.Pow(2, 30));
+            double lon = lon_i;
+            lon = lon * 180 / (double)(Math.Pow(2, 30));
 
             if (lat >= 0) Console.WriteLine($"Latitude: {lat} degrees North.");
             else Console.WriteLine($"Latitude: {lat} degrees South.");

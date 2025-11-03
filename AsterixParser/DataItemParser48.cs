@@ -230,10 +230,10 @@ namespace AsterixParser
             Console.WriteLine("(DF-4)");
             ushort rho_raw = (ushort)(body[k + 1] | (body[k] << 8));
             ushort theta_raw = (ushort)(body[k + 2] << 8 | body[k + 3]);
-            message.SlantAngle = rho_raw / 256f;
-            message.Azimuth = theta_raw * 360f / (float)Math.Pow(2, 16);
+            message.Distance = rho_raw / 256.0;
+            message.Azimuth = theta_raw * 360.0 / (double)Math.Pow(2, 16);
 
-            Console.WriteLine("Rho: " + message.SlantAngle);
+            Console.WriteLine("Rho: " + message.Distance);
             Console.WriteLine("Theta: " + message.Azimuth);
 
             k += 4;

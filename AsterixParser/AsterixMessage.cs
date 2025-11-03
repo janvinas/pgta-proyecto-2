@@ -70,8 +70,8 @@ namespace AsterixParser
         public byte SAC { get; set; } // DI1
         public double? TimeOfDay { get; set; } // DI2 CAT48 y DI12 CAT21
         public List<string>? TargetReportDescriptor { get; set; } // DI3
-        public float? SlantAngle { get; set; } // DI4 theta
-        public float? Azimuth { get; set; } // DI4 rho
+        public double? Distance { get; set; } // DI4 rho
+        public double? Azimuth { get; set; } // DI4 theta
         public ushort? Mode3A { get; set; } // DI5
         public FlightLevel? FlightLevel { get; set; } // DI6
         public RadarPlotCharacteristics? RadarPlotCharacteristics { get; set; } // DI7
@@ -82,8 +82,8 @@ namespace AsterixParser
         public double? Heading { get; set; } // DI13
         public TrackStatus? TrackStatus { get; set; } // DI14 CAT48
         public I048230? I048230 { get; set; } // DI21 CAT48
-        public float? Latitude { get; set; } //DI7 CAT21
-        public float? Longitude { get; set; } //DI7 CAT21
+        public double? Latitude { get; set; } //DI7 CAT21
+        public double? Longitude { get; set; } //DI7 CAT21
         public float? BPS { get; set; } // DI48 CAT21
     }
 }
