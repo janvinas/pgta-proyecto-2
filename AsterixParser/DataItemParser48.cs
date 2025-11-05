@@ -495,8 +495,14 @@ namespace AsterixParser
                             Console.WriteLine($"    infoMCP: {infoMCP}, VNAV:{VNAV}, ALTflag:{ALTflag}, APPR:{APPR}, statusTarget:{statusTarget}");
                             Console.WriteLine($"    TargetALT source: {TargetALT}");
 
-                            if (BDSs == null) BDSs += bdsString;
-                            else BDSs += "\n" + bdsString;
+                            if (BDSs == null) {
+                                BDSs += bdsString;
+                                bds.BDSsCSV += "4.0";
+                            }
+                            else {
+                                BDSs += "\n" + bdsString;
+                                bds.BDSsCSV += "/4.0";
+                            }
 
                             bds.statusMCP = statusMCP;
                             bds.MCP = MCP_feet;
@@ -561,8 +567,14 @@ namespace AsterixParser
                             float TAS = tasRaw * 2.0f; // LSB = 2 kt
                             Console.WriteLine($"    True Airspeed: status={statusTAS}, raw={tasRaw}, val={TAS:F0} kt");
 
-                            if (BDSs == null) BDSs += bdsString;
-                            else BDSs += "\n" + bdsString;
+                            if (BDSs == null) {
+                                BDSs += bdsString;
+                                bds.BDSsCSV += "5.0";
+                            }
+                            else {
+                                BDSs += "\n" + bdsString;
+                                bds.BDSsCSV += "/5.0";
+                            }
 
                             bds.statusROLL = statusROLL;
                             bds.ROLL = ROLL;
@@ -619,8 +631,15 @@ namespace AsterixParser
                             if (signIVV == 1) ivvSigned = ivvRaw - (1 << 9);
                             float IVV = ivvSigned * 32.0f;
                             Console.WriteLine($"    IVV (approx raw): {ivvSigned} -> {IVV:F0} ft/min");
-                            if (BDSs == null) BDSs += bdsString;
-                            else BDSs += "\n" + bdsString;
+                            if (BDSs == null)
+                            {
+                                BDSs += bdsString;
+                                bds.BDSsCSV += "6.0";
+                            }
+                            else {
+                                BDSs += "\n" + bdsString;
+                                bds.BDSsCSV += "/6.0";
+                            }
 
                             bds.statusMH = statusMH;
                             bds.MH = MH;
@@ -642,7 +661,7 @@ namespace AsterixParser
                 }
                 k += 8;
             }
-            bds.BDSs = BDSs;
+            bds.BDSsTabla = BDSs;
             message.BDS = bds;
         }
 

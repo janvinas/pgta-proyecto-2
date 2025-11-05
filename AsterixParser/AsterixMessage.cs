@@ -59,7 +59,8 @@ namespace AsterixParser
 
     public class BDS 
     {
-        public string? BDSs { get; set; }
+        public string? BDSsTabla { get; set; }
+        public string? BDSsCSV { get; set; }
         public int? statusMCP { get; set; }
         public int? MCP { get; set; }
         public int? statusFMS { get; set; }

@@ -25,7 +25,7 @@
                 <MenuItem x:Name="BlancoPuroFilter" Header="Blanco Puro" IsCheckable="True" IsChecked="False" Click="OnFilterChanged"/>
                 <MenuItem x:Name="TransponderFijoFilter" Header="Transponder Fijo" IsCheckable="True" IsChecked="True" Click="OnFilterChanged"/>
             </MenuItem>
-            <MenuItem Header="Exportar"></MenuItem>
+            <MenuItem Header="Exportar" Click="Exportar_Click"></MenuItem>
         </Menu>
 
         <DataGrid x:Name="DataGrid" Grid.Row="1" IsReadOnly="True" AutoGenerateColumns="False" CanUserAddRows="False">
