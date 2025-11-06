@@ -116,6 +116,7 @@ namespace AsterixParser
         public double? Distance { get; set; } // DI4 rho
         public double? Azimuth { get; set; } // DI4 theta
         public ushort? Mode3A { get; set; } // DI5
+        public string? configMode3A { get; set; }
         public FlightLevel? FlightLevel { get; set; } // DI6
         public RadarPlotCharacteristics? RadarPlotCharacteristics { get; set; } // DI7
         public uint? Address { get; set; } // DI8 CAT48 y DI11 CAT21

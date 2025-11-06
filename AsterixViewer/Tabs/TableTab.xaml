@@ -42,6 +42,7 @@
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
                 <DataGridTextColumn Header="Mode 3/A" Binding="{Binding Mode3A, Converter={StaticResource Mode3AConverter}}"/>
+                <DataGridTextColumn Header="Config Mode 3/A" Binding="{Binding configMode3A}"/>
                 <DataGridTextColumn Header="FL" Binding="{Binding FlightLevel, Converter={StaticResource FLConverter}}"/>
                 <DataGridTextColumn Header="Distance" Binding="{Binding Distance, StringFormat={}{0:F2}°, TargetNullValue=''}"/>
                 <DataGridTextColumn Header="Azimuth" Binding="{Binding Azimuth, StringFormat={}{0:F2}°, TargetNullValue=''}"/>

@@ -243,7 +243,7 @@ namespace AsterixParser
         {
             Console.WriteLine("(DF-5)");
 
-            string[] Config = new string[3];
+            string Config = null;
             string V = null;
             string G = null;
             string L = null;
@@ -265,11 +265,12 @@ namespace AsterixParser
 
             ushort mode3A = (ushort) (raw & 0x0FFF);
             message.Mode3A = mode3A;
-
-            Config = [V,G,L];
+            
+            Config = V + "\n" + G + "\n" + L;
+            message.configMode3A = Config;
 
             Console.WriteLine("Config 3/A: ");
-            foreach (string config in Config) Console.WriteLine("· " + config);
+            Console.WriteLine("· " + Config);
             string octalCode = Convert.ToString(mode3A, 8);
             Console.WriteLine($"Mode-3/A en octal: {octalCode}");
 
