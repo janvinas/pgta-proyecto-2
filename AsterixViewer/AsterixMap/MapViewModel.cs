@@ -1,55 +1,128 @@
-﻿using Accord.IO;
-using AsterixParser;
+﻿using AsterixParser;
 using Esri.ArcGISRuntime.Geometry;
-using Esri.ArcGISRuntime.Location;
 using Esri.ArcGISRuntime.Mapping;
-using Esri.ArcGISRuntime.Portal;
 using Esri.ArcGISRuntime.Symbology;
 using Esri.ArcGISRuntime.UI;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Input;
-using System.Windows.Interop;
-using System.Windows.Media.Media3D;
+using System.Windows.Threading;
 
 namespace AsterixViewer.AsterixMap
 {
     public class MapViewModel : INotifyPropertyChanged
     {
         public ICommand ChangeTimeCommand { get; }
+        public ICommand PlayPauseCommand { get; }
+        public ICommand ChangeSpeedCommand { get; }
 
         private readonly DataStore dataStore;
+        private DispatcherTimer _replayTimer;
+        private bool _isPlaying;
+        private int _replaySpeedMultiplier = 1;
 
         private Map? _map;
         public Map? Map
         {
-            get { return _map; }
-            set
-            {
-                _map = value;
-                OnPropertyChanged();
-            }
+            get => _map;
+            set { _map = value; OnPropertyChanged(); }
         }
 
         private GraphicsOverlayCollection? _graphicsOverlays;
         public GraphicsOverlayCollection? GraphicsOverlays
         {
-            get { return _graphicsOverlays; }
+            get => _graphicsOverlays;
+            set { _graphicsOverlays = value; OnPropertyChanged(); }
+        }
+
+        private GraphicsOverlay planeGraphics;
+        private GraphicsOverlay selectedOverlay;
+        private Graphic? selectedHighlightGraphic;
+
+        private readonly Symbol planeSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Circle, System.Drawing.Color.Red, 4);
+
+        // 🟡 Símbolo de halo amarillo para selección
+        private readonly Symbol highlightSymbol = new CompositeSymbol
+        {
+            Symbols =
+            {
+                new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Circle, System.Drawing.Color.FromArgb(160, 255, 255, 0), 12),
+                new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Circle, System.Drawing.Color.Transparent, 8)
+            }
+        };
+
+        private bool _isInfoPanelVisible;
+        public bool IsInfoPanelVisible
+        {
+            get => _isInfoPanelVisible;
+            set { _isInfoPanelVisible = value; OnPropertyChanged(); }
+        }
+
+        private string _selectedGraphicInfo = string.Empty;
+        public string SelectedGraphicInfo
+        {
+            get => _selectedGraphicInfo;
+            set { _selectedGraphicInfo = value; OnPropertyChanged(); }
+        }
+
+        private Graphic? _selectedGraphic;
+        public Graphic? SelectedGraphic
+        {
+            get => _selectedGraphic;
             set
             {
-                _graphicsOverlays = value;
+                _selectedGraphic = value;
                 OnPropertyChanged();
             }
         }
-        private GraphicsOverlay planeGraphics;
-        private readonly Symbol planeSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Circle, System.Drawing.Color.Red, 4);
+
+        public bool IsPlaying
+        {
+            get => _isPlaying;
+            set
+            {
+                _isPlaying = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(PlayPauseButtonText));
+            }
+        }
+
+        public string PlayPauseButtonText => IsPlaying ? "Pause" : "Play";
+        public string ReplaySpeedText => $"x{_replaySpeedMultiplier}";
+        public string ReplayTimeText => TimeSpan.FromSeconds(dataStore.ReplayTime).ToString(@"hh\:mm\:ss\.fff");
+        // En MapViewModel: añadir estas propiedades (pegarlas cerca de otras propiedades públicas)
+        public double ReplayTime
+        {
+            get => dataStore.ReplayTime;
+            set
+            {
+                // Clamp entre min y max por seguridad
+                var newVal = Math.Max(dataStore.MinReplayTime, Math.Min(dataStore.MaxReplayTime, value));
+                if (Math.Abs(dataStore.ReplayTime - newVal) > 0.0001)
+                {
+                    dataStore.ReplayTime = newVal;
+                    // notificamos que cambió (DataStore también notificará; pero forzamos por si)
+                    OnPropertyChanged(nameof(ReplayTime));
+                    OnPropertyChanged(nameof(ReplayTimeText));
+                }
+            }
+        }
+
+        public double MinReplayTime => dataStore.MinReplayTime;
+        public double MaxReplayTime => dataStore.MaxReplayTime;
+
+        private Dictionary<string, Graphic> mapPoints = new();
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+        protected void OnPropertyChanged([CallerMemberName] string propertyName = "")
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
 
         public MapViewModel(DataStore dataStore)
         {
@@ -61,106 +134,284 @@ namespace AsterixViewer.AsterixMap
                 if (args is string timeString && int.TryParse(timeString, out int time))
                 {
                     dataStore.ReplayTime += time;
+                    OnPropertyChanged(nameof(ReplayTimeText));
                 }
             });
 
+            PlayPauseCommand = new RelayCommand((object? args) =>
+            {
+                IsPlaying = !IsPlaying;
+                if (IsPlaying) _replayTimer.Start();
+                else _replayTimer.Stop();
+            });
+
+            ChangeSpeedCommand = new RelayCommand((object? args) =>
+            {
+                switch (_replaySpeedMultiplier)
+                {
+                    case 1: _replaySpeedMultiplier = 2; break;
+                    case 2: _replaySpeedMultiplier = 4; break;
+                    case 4: _replaySpeedMultiplier = 8; break;
+                    case 8: _replaySpeedMultiplier = 16; break;
+                    case 16: _replaySpeedMultiplier = 32; break;
+                    default: _replaySpeedMultiplier = 1; break;
+                }
+
+                int newIntervalMs = 1000 / _replaySpeedMultiplier;
+                _replayTimer.Interval = TimeSpan.FromMilliseconds(newIntervalMs);
+                OnPropertyChanged(nameof(ReplaySpeedText));
+            });
+
+            _replayTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(1)
+            };
+            _replayTimer.Tick += OnTimerTick;
+
             SetupMap();
+
+            // ✅ Overlays: vuelos + selección
             planeGraphics = new GraphicsOverlay();
-            GraphicsOverlays = [planeGraphics];
+            selectedOverlay = new GraphicsOverlay();
+
+            var overlays = new GraphicsOverlayCollection { planeGraphics, selectedOverlay };
+            GraphicsOverlays = overlays;
+
             DisplayFlights();
         }
 
-        private SortedDictionary<uint, Graphic> mapPoints = [];
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-        protected void OnPropertyChanged([CallerMemberName] string propertyName = "")
+        private void OnTimerTick(object? sender, EventArgs e)
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            // incrementa el dataStore; DataStore notificará y OnDataStoreChanged actualizará la UI
+            dataStore.ReplayTime += 1;
+            // por seguridad forzamos notificación local también:
+            OnPropertyChanged(nameof(ReplayTime));
+            OnPropertyChanged(nameof(ReplayTimeText));
         }
 
-        // fired when anything in the data store changes. Here we are interested in the flight list
+
         private void OnDataStoreChanged(object? sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(DataStore.ReplayTime))
             {
+                // El DataStore cambió el tiempo (timer o slider)
+                OnPropertyChanged(nameof(ReplayTime));
+                OnPropertyChanged(nameof(ReplayTimeText));
+
                 DisplayFlights();
+
+                if (SelectedGraphic != null)
+                    UpdateSelectedGraphicInfo();
             }
-            if (e.PropertyName == nameof(DataStore.Flights))
+            else if (e.PropertyName == nameof(DataStore.MinReplayTime))
             {
-                mapPoints = [];
+                OnPropertyChanged(nameof(MinReplayTime));
+            }
+            else if (e.PropertyName == nameof(DataStore.MaxReplayTime))
+            {
+                OnPropertyChanged(nameof(MaxReplayTime));
+            }
+            else if (e.PropertyName == nameof(DataStore.Flights))
+            {
+                // recargar gráficos
+                mapPoints = new Dictionary<string, Graphic>();
                 planeGraphics.Graphics.Clear();
                 DisplayFlights();
+                // Asegúrate de notificar min/max si Flights cambió
+                OnPropertyChanged(nameof(MinReplayTime));
+                OnPropertyChanged(nameof(MaxReplayTime));
             }
         }
+
 
         private void SetupMap()
         {
             var map = new Map(BasemapStyle.ArcGISTopographic);
-            var mapCenterPoint = new MapPoint(5.840724825400484, 44.645513412977614, SpatialReferences.Wgs84);
-            map.InitialViewpoint = new Viewpoint(mapCenterPoint, 30000000);
+            var mapCenterPoint = new MapPoint(2.0670034, 41.2874084, SpatialReferences.Wgs84);
+            map.InitialViewpoint = new Viewpoint(mapCenterPoint, 300000);
             Map = map;
         }
 
         private void DisplayFlights()
         {
-            if (dataStore == null) return;
+            if (dataStore == null || dataStore.Flights == null) return;
+
+            var visibleKeys = new HashSet<string>();
+
             foreach (var item in dataStore.Flights)
             {
-                var msg = FindMessage(item.Value, dataStore.ReplayTime);
-                if (msg == null) continue;
+                var flightId = item.Key;
+                var messages = item.Value;
 
-                var position = new MapPoint(msg.Longitude.Value, msg.Latitude.Value, SpatialReferences.Wgs84);
-
-                if (mapPoints.TryGetValue(item.Key, out var graphic))
+                // 🟣 Buscar mensaje CAT021
+                var msg021 = FindMessage(messages.Where(m => m.Cat == CAT.CAT021).ToList(), dataStore.ReplayTime);
+                if (msg021 != null && msg021.Latitude.HasValue && msg021.Longitude.HasValue)
                 {
-                    graphic.Geometry = position;
-                    if (msg.Cat == CAT.CAT021)
+                    string key = $"{flightId}_CAT021";
+                    var pos = new MapPoint(msg021.Longitude.Value, msg021.Latitude.Value, SpatialReferences.Wgs84);
+                    visibleKeys.Add(key);
+
+                    if (mapPoints.TryGetValue(key, out var g))
                     {
-                        graphic.Symbol = new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Circle, System.Drawing.Color.Chocolate, 4);
+                        g.Geometry = pos;
                     }
                     else
                     {
-                        graphic.Symbol = new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Circle, System.Drawing.Color.BlueViolet, 4);
+                        var sym = new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Circle, System.Drawing.Color.Chocolate, 5);
+                        var graphic = new Graphic(pos, sym);
+                        graphic.Attributes["Key"] = key;
+                        planeGraphics.Graphics.Add(graphic);
+                        mapPoints[key] = graphic;
                     }
                 }
-                else
+
+                // 🔵 Buscar mensaje de otra categoría (por ejemplo CAT062)
+                var msgOther = FindMessage(messages.Where(m => m.Cat != CAT.CAT021).ToList(), dataStore.ReplayTime);
+                if (msgOther != null && msgOther.Latitude.HasValue && msgOther.Longitude.HasValue)
                 {
-                    var g = new Graphic(position, planeSymbol.Clone());
-                    planeGraphics.Graphics.Add(g);
-                    mapPoints[item.Key] = g;
+                    string key = $"{flightId}_OTHER";
+                    var pos = new MapPoint(msgOther.Longitude.Value, msgOther.Latitude.Value, SpatialReferences.Wgs84);
+                    visibleKeys.Add(key);
+
+                    if (mapPoints.TryGetValue(key, out var g))
+                    {
+                        g.Geometry = pos;
+                    }
+                    else
+                    {
+                        var sym = new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Circle, System.Drawing.Color.BlueViolet, 5);
+                        var graphic = new Graphic(pos, sym);
+                        graphic.Attributes["Key"] = key;
+                        planeGraphics.Graphics.Add(graphic);
+                        mapPoints[key] = graphic;
+                    }
                 }
             }
+
+            // 🧹 Eliminar puntos que ya no deberían estar visibles
+            var toRemove = mapPoints.Keys
+                .Where(k => !visibleKeys.Contains(k))
+                .ToList();
+
+            foreach (var key in toRemove)
+            {
+                if (mapPoints.TryGetValue(key, out var g))
+                {
+                    planeGraphics.Graphics.Remove(g);
+                    mapPoints.Remove(key);
+                }
+            }
+
+            // 🟡 Actualiza el halo del seleccionado si existe
+            if (SelectedGraphic != null && selectedHighlightGraphic != null)
+                selectedHighlightGraphic.Geometry = SelectedGraphic.Geometry;
+        }
+
+        public void ShowGraphicDetails(Graphic graphic)
+        {
+            if (graphic == null)
+            {
+                HideGraphicDetails();
+                return;
+            }
+
+            SelectedGraphic = graphic;
+
+            // Crear o mover highlight
+            if (selectedHighlightGraphic == null)
+            {
+                selectedHighlightGraphic = new Graphic(graphic.Geometry, highlightSymbol);
+                selectedOverlay.Graphics.Add(selectedHighlightGraphic);
+            }
+            else
+            {
+                selectedHighlightGraphic.Geometry = graphic.Geometry;
+            }
+
+            UpdateSelectedGraphicInfo();
+            IsInfoPanelVisible = true;
+        }
+
+        public void HideGraphicDetails()
+        {
+            if (selectedHighlightGraphic != null)
+            {
+                selectedOverlay.Graphics.Remove(selectedHighlightGraphic);
+                selectedHighlightGraphic = null;
+            }
+
+            SelectedGraphic = null;
+            SelectedGraphicInfo = string.Empty;
+            IsInfoPanelVisible = false;
+        }
+
+        private void UpdateSelectedGraphicInfo()
+        {
+            if (SelectedGraphic == null || dataStore == null)
+                return;
+
+            // Identificar vuelo
+            var kvp = dataStore.Flights.FirstOrDefault(f =>
+                f.Value.Any(m =>
+                    Math.Abs(m.Latitude.GetValueOrDefault() - ((MapPoint)SelectedGraphic.Geometry).Y) < 0.0001 &&
+                    Math.Abs(m.Longitude.GetValueOrDefault() - ((MapPoint)SelectedGraphic.Geometry).X) < 0.0001));
+
+            if (kvp.Value == null) return;
+
+            var msg = FindMessage(kvp.Value, dataStore.ReplayTime);
+            if (msg == null) return;
+
+            var sb = new StringBuilder();
+            sb.AppendLine($"Category: {msg.Cat}");
+            sb.AppendLine($"Category: {msg.Identification}");
+            sb.AppendLine($"Time: {TimeSpan.FromSeconds(msg.TimeOfDay ?? 0):hh\\:mm\\:ss\\.fff}");
+            sb.AppendLine($"Lat: {msg.Latitude:F6}");
+            sb.AppendLine($"Lon: {msg.Longitude:F6}");
+            string fl = "N/A";
+            try
+            {
+                if (msg.FlightLevel != null && msg.FlightLevel.flightLevel.HasValue)
+                    fl = msg.FlightLevel.flightLevel.Value.ToString("000");
+            }
+            catch { }
+
+            string speed = msg.GS.HasValue ? msg.GS.Value.ToString("F1") : "N/A";
+            string heading = msg.Heading.HasValue ? msg.Heading.Value.ToString("F1") : "N/A";
+
+            sb.AppendLine($"FL: {fl}");
+            sb.AppendLine($"Speed: {speed} kt");
+            sb.AppendLine($"Heading: {heading} º");
+
+
+            SelectedGraphicInfo = sb.ToString();
         }
 
         private static AsterixMessage? FindMessage(List<AsterixMessage> messages, double time)
         {
             int index = messages.BinarySearch(
                 new AsterixMessage { TimeOfDay = time },
-                Comparer<AsterixMessage>.Create((a, b) => {
+                Comparer<AsterixMessage>.Create((a, b) =>
+                {
                     if (a.TimeOfDay == null && b.TimeOfDay == null) return 0;
-                    if (a.TimeOfDay == null) return -1;  // treat null as smaller
-                    if (b.TimeOfDay == null) return 1;   // treat null as smaller
+                    if (a.TimeOfDay == null) return -1;
+                    if (b.TimeOfDay == null) return 1;
                     return a.TimeOfDay.Value.CompareTo(b.TimeOfDay.Value);
                 })
             );
 
             AsterixMessage msg;
             if (index >= 0)
-            {
-                // exact match
                 msg = messages[index];
-            }
             else
             {
-                // get the message immediately before
                 int nextIndex = ~index;
                 int prevIndex = nextIndex - 1;
                 if (prevIndex < 0) return null;
                 msg = messages[prevIndex];
             }
+
             if (msg.Longitude == null || msg.Latitude == null) return null;
             return msg;
         }
-
     }
 }
