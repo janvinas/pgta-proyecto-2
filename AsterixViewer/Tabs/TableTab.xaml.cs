@@ -143,7 +143,7 @@ namespace AsterixViewer.Tabs
                             writer.WriteLine($"{message.Cat}," +
                                 $"{message.SIC}," +
                                 $"{message.SAC}," +
-                                $"{message.TimeOfDay}," +
+                                $"{TimeSpan.FromSeconds(message.TimeOfDay ?? 0).ToString(@"hh\:mm\:ss\:fff")}," +
                                 $"{(message.Cat == CAT.CAT021
                                         ? (message.TargetReportDescriptor021 != null ? string.Join(";", message.TargetReportDescriptor021).Replace(",", "+") : "")
                                         : (message.TargetReportDescriptor048 != null ? string.Join(";", message.TargetReportDescriptor048).Replace(",", "+") : "")
