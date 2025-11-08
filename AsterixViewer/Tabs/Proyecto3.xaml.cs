@@ -10,18 +10,23 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
 using System.Windows.Shapes;
 
 namespace AsterixViewer.Tabs
 {
     /// <summary>
-    /// Lógica de interacción para Window1.xaml
+    /// Lógica de interacción para UserControl1.xaml
     /// </summary>
-    public partial class Window1 : Window
+    public partial class Proyecto3 : UserControl
     {
-        public Window1()
+        public Proyecto3()
         {
             InitializeComponent();
+        }
+        public void CargarDatos(List<List<string>> datos)
+        {
+            dataGridProyecto3.ItemsSource = datos;
         }
     }
 }

@@ -10,7 +10,7 @@
     <Window.DataContext>
         <local:MainViewModel/>
     </Window.DataContext>
-    
+
     <TabControl x:Name="TabControl">
         <TabItem>
             <TabItem.Header>Start</TabItem.Header>
@@ -23,6 +23,9 @@
         <TabItem>
             <TabItem.Header>Map</TabItem.Header>
             <tabs:MapTab DataContext="{Binding MapViewModel}"></tabs:MapTab>
+        </TabItem>
+        <TabItem>
+            <TabItem.Header>Proyecto3</TabItem.Header>
         </TabItem>
     </TabControl>
 </Window>

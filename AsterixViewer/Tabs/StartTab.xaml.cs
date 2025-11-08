@@ -60,9 +60,51 @@ namespace AsterixViewer.Tabs
             }
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
+        private void Proyecto3_Click(object sender, RoutedEventArgs e)
         {
+            var dialog = new OpenFileDialog
+            {
+                Filter = "Archivos CSV (*.csv)|*.csv|Todos los archivos (*.*)|*.*"
+            };
 
+            if (dialog.ShowDialog() != true)
+                return;
+
+            string path = dialog.FileName;
+
+            List<List<string>> datos = LeerCsvComoLista(path);
+
+            AbrirProyecto3(datos);
+        }
+
+        private List<List<string>> LeerCsvComoLista(string path)
+        {
+            var resultado = new List<List<string>>();
+
+            foreach (string linea in File.ReadLines(path))
+            {
+                if (string.IsNullOrWhiteSpace(linea))
+                    continue;
+
+                // Puedes cambiar ',' por ';' si tu CSV usa punto y coma
+                string[] valores = linea.Split(';');
+                resultado.Add(new List<string>(valores));
+            }
+
+            return resultado;
+        }
+
+        private void AbrirProyecto3(List<List<string>> datos)
+        {
+            // 🔹 Obtenemos la ventana principal
+            var mainWindow = Application.Current.MainWindow as MainWindow;
+
+            if (mainWindow != null)
+            {
+                // Creamos una nueva instancia del tab Proyecto3
+                var proyecto3Tab = new Proyecto3();
+                proyecto3Tab.CargarDatos(datos);
+            }
         }
     }
 }
