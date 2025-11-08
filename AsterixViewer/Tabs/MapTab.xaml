@@ -64,22 +64,23 @@
                     Orientation="Horizontal"
                     HorizontalAlignment="Center"
                     Margin="10">
-            <TextBlock Text="{Binding MinReplayTime, StringFormat='{}{0:F0}s'}"
+            <TextBlock Text="{Binding TimeSliderViewModel.MinReplayTime, StringFormat='{}{0:F0}s'}"
                        Foreground="White"
                        VerticalAlignment="Center"
                        Width="70"
                        TextAlignment="Right"/>
 
-            <Slider Minimum="{Binding MinReplayTime}"
+            <Slider DataContext="{Binding TimeSliderViewModel}"
+                    Minimum="{Binding MinReplayTime}"
                     Maximum="{Binding MaxReplayTime}"
-                    Value="{Binding ReplayTime, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    Value="{Binding ReplayTime, Mode=TwoWay}"
                     TickFrequency="1"
                     IsSnapToTickEnabled="True"
                     Width="600"
                     Margin="10,0"/>
 
 
-            <TextBlock Text="{Binding MaxReplayTime, StringFormat='{}{0:F0}s'}"
+            <TextBlock Text="{Binding TimeSliderViewModel.MaxReplayTime, StringFormat='{}{0:F0}s'}"
                        Foreground="White"
                        VerticalAlignment="Center"
                        Width="70"

@@ -41,5 +41,9 @@ namespace AsterixViewer.Tabs
             ViewModel.HideGraphicDetails();
         }
 
+        private void Slider_DragEnter(object sender, DragEventArgs e)
+        {
+
+        }
     }
 }

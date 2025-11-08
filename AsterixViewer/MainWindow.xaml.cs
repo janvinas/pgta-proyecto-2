@@ -21,7 +21,7 @@ namespace AsterixViewer
 
         public MainWindow()
         {
-            InitializeComponent();
+            InitializeComponent(); 
         }
 
         private void StartTab_FinishedLoadingFile(object sender, EventArgs e)

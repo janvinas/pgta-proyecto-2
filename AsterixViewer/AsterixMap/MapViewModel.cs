@@ -22,6 +22,8 @@ namespace AsterixViewer.AsterixMap
         public ICommand ChangeSpeedCommand { get; }
 
         private readonly DataStore dataStore;
+        public TimeSliderViewModel TimeSliderViewModel { get; }
+        public string ReplayTimeText => TimeSpan.FromSeconds(dataStore.ReplayTime).ToString(@"hh\:mm\:ss\.fff");
         private DispatcherTimer _replayTimer;
         private bool _isPlaying;
         private int _replaySpeedMultiplier = 1;
@@ -80,6 +82,27 @@ namespace AsterixViewer.AsterixMap
                 OnPropertyChanged();
             }
         }
+        private List<AsterixMessage>? _selectedFlight;
+        public List<AsterixMessage>? SelectedFlight
+        {
+            get => _selectedFlight;
+            set
+            {
+                _selectedFlight = value;
+                OnPropertyChanged();
+            }
+        }
+        private CAT? _selectedFlightCat;
+        public CAT? SelectedFlightCat
+        {
+            get => _selectedFlightCat;
+            set
+            {
+                _selectedFlightCat = value;
+                OnPropertyChanged();
+            }
+        }
+
 
         public bool IsPlaying
         {
@@ -94,28 +117,6 @@ namespace AsterixViewer.AsterixMap
 
         public string PlayPauseButtonText => IsPlaying ? "Pause" : "Play";
         public string ReplaySpeedText => $"x{_replaySpeedMultiplier}";
-        public string ReplayTimeText => TimeSpan.FromSeconds(dataStore.ReplayTime).ToString(@"hh\:mm\:ss\.fff");
-        // En MapViewModel: añadir estas propiedades (pegarlas cerca de otras propiedades públicas)
-        public double ReplayTime
-        {
-            get => dataStore.ReplayTime;
-            set
-            {
-                // Clamp entre min y max por seguridad
-                var newVal = Math.Max(dataStore.MinReplayTime, Math.Min(dataStore.MaxReplayTime, value));
-                if (Math.Abs(dataStore.ReplayTime - newVal) > 0.0001)
-                {
-                    dataStore.ReplayTime = newVal;
-                    // notificamos que cambió (DataStore también notificará; pero forzamos por si)
-                    OnPropertyChanged(nameof(ReplayTime));
-                    OnPropertyChanged(nameof(ReplayTimeText));
-                }
-            }
-        }
-
-        public double MinReplayTime => dataStore.MinReplayTime;
-        public double MaxReplayTime => dataStore.MaxReplayTime;
-
         private Dictionary<string, Graphic> mapPoints = new();
 
         public event PropertyChangedEventHandler? PropertyChanged;
@@ -127,6 +128,7 @@ namespace AsterixViewer.AsterixMap
         public MapViewModel(DataStore dataStore)
         {
             this.dataStore = dataStore;
+            TimeSliderViewModel = new TimeSliderViewModel(dataStore);
             dataStore.PropertyChanged += OnDataStoreChanged;
 
             ChangeTimeCommand = new RelayCommand((object? args) =>
@@ -185,7 +187,7 @@ namespace AsterixViewer.AsterixMap
             // incrementa el dataStore; DataStore notificará y OnDataStoreChanged actualizará la UI
             dataStore.ReplayTime += 1;
             // por seguridad forzamos notificación local también:
-            OnPropertyChanged(nameof(ReplayTime));
+            TimeSliderViewModel.OnPropertyChanged(nameof(TimeSliderViewModel.ReplayTime));
             OnPropertyChanged(nameof(ReplayTimeText));
         }
 
@@ -194,22 +196,11 @@ namespace AsterixViewer.AsterixMap
         {
             if (e.PropertyName == nameof(DataStore.ReplayTime))
             {
-                // El DataStore cambió el tiempo (timer o slider)
-                OnPropertyChanged(nameof(ReplayTime));
                 OnPropertyChanged(nameof(ReplayTimeText));
-
                 DisplayFlights();
 
                 if (SelectedGraphic != null)
                     UpdateSelectedGraphicInfo();
-            }
-            else if (e.PropertyName == nameof(DataStore.MinReplayTime))
-            {
-                OnPropertyChanged(nameof(MinReplayTime));
-            }
-            else if (e.PropertyName == nameof(DataStore.MaxReplayTime))
-            {
-                OnPropertyChanged(nameof(MaxReplayTime));
             }
             else if (e.PropertyName == nameof(DataStore.Flights))
             {
@@ -217,9 +208,6 @@ namespace AsterixViewer.AsterixMap
                 mapPoints = new Dictionary<string, Graphic>();
                 planeGraphics.Graphics.Clear();
                 DisplayFlights();
-                // Asegúrate de notificar min/max si Flights cambió
-                OnPropertyChanged(nameof(MinReplayTime));
-                OnPropertyChanged(nameof(MaxReplayTime));
             }
         }
 
@@ -245,7 +233,7 @@ namespace AsterixViewer.AsterixMap
 
                 // 🟣 Buscar mensaje CAT021
                 var msg021 = FindMessage(messages.Where(m => m.Cat == CAT.CAT021).ToList(), dataStore.ReplayTime);
-                if (msg021 != null && msg021.Latitude.HasValue && msg021.Longitude.HasValue)
+                if (msg021 != null && msg021.Latitude.HasValue && msg021.Longitude.HasValue && dataStore.ReplayTime - msg021.TimeOfDay < 10)
                 {
                     string key = $"{flightId}_CAT021";
                     var pos = new MapPoint(msg021.Longitude.Value, msg021.Latitude.Value, SpatialReferences.Wgs84);
@@ -265,9 +253,9 @@ namespace AsterixViewer.AsterixMap
                     }
                 }
 
-                // 🔵 Buscar mensaje de otra categoría (por ejemplo CAT062)
+                // 🔵 Buscar mensaje de otra categoría (por ejemplo CAT048)
                 var msgOther = FindMessage(messages.Where(m => m.Cat != CAT.CAT021).ToList(), dataStore.ReplayTime);
-                if (msgOther != null && msgOther.Latitude.HasValue && msgOther.Longitude.HasValue)
+                if (msgOther != null && msgOther.Latitude.HasValue && msgOther.Longitude.HasValue && dataStore.ReplayTime - msgOther.TimeOfDay < 10)
                 {
                     string key = $"{flightId}_OTHER";
                     var pos = new MapPoint(msgOther.Longitude.Value, msgOther.Latitude.Value, SpatialReferences.Wgs84);
@@ -316,6 +304,17 @@ namespace AsterixViewer.AsterixMap
             }
 
             SelectedGraphic = graphic;
+            var targetPoint = (MapPoint)SelectedGraphic.Geometry;
+
+            var match = dataStore.Flights
+                .SelectMany(f => f.Value.Select(m => new { Flight = f.Key, Match = m }))
+                .FirstOrDefault(x =>
+                    Math.Abs(x.Match.Latitude.GetValueOrDefault() - targetPoint.Y) < 0.0001 &&
+                    Math.Abs(x.Match.Longitude.GetValueOrDefault() - targetPoint.X) < 0.0001);
+
+            if (match == null) return;
+            SelectedFlight = dataStore.Flights[match.Flight];
+            SelectedFlightCat = match.Match.Cat;
 
             // Crear o mover highlight
             if (selectedHighlightGraphic == null)
@@ -341,24 +340,20 @@ namespace AsterixViewer.AsterixMap
             }
 
             SelectedGraphic = null;
+            SelectedFlight = null;
+            SelectedFlightCat = null;
             SelectedGraphicInfo = string.Empty;
             IsInfoPanelVisible = false;
         }
 
         private void UpdateSelectedGraphicInfo()
         {
-            if (SelectedGraphic == null || dataStore == null)
+            if (SelectedGraphic == null || SelectedFlight == null || SelectedFlightCat == null || dataStore == null)
                 return;
 
             // Identificar vuelo
-            var kvp = dataStore.Flights.FirstOrDefault(f =>
-                f.Value.Any(m =>
-                    Math.Abs(m.Latitude.GetValueOrDefault() - ((MapPoint)SelectedGraphic.Geometry).Y) < 0.0001 &&
-                    Math.Abs(m.Longitude.GetValueOrDefault() - ((MapPoint)SelectedGraphic.Geometry).X) < 0.0001));
 
-            if (kvp.Value == null) return;
-
-            var msg = FindMessage(kvp.Value, dataStore.ReplayTime);
+            var msg = FindMessage(SelectedFlight.Where(m => m.Cat == SelectedFlightCat).ToList(), dataStore.ReplayTime);
             if (msg == null) return;
 
             var sb = new StringBuilder();
