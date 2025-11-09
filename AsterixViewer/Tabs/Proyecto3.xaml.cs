@@ -154,7 +154,7 @@ namespace AsterixViewer.Tabs
                                 {
                                     elementos[l] = listaPV[i][rutasacta][k + l];
                                 }
-                                puntos2.Add((string)(elementos.ToArray()));
+                                puntos2.Add(new string([.. elementos]));
                             }
                         }
 
