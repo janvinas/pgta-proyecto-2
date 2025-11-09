@@ -20,6 +20,7 @@ namespace AsterixViewer.AsterixMap
         public ICommand ChangeTimeCommand { get; }
         public ICommand PlayPauseCommand { get; }
         public ICommand ChangeSpeedCommand { get; }
+        public ICommand HideDetailsCommand { get; }
 
         private readonly DataStore dataStore;
         public TimeSliderViewModel TimeSliderViewModel { get; }
@@ -139,6 +140,11 @@ namespace AsterixViewer.AsterixMap
                     OnPropertyChanged(nameof(ReplayTimeText));
                 }
             });
+            // Comando para cerrar el panel de detalles (llama al método existente)
+            HideDetailsCommand = new RelayCommand((object? _) =>
+            {
+                HideGraphicDetails();
+            });
 
             PlayPauseCommand = new RelayCommand((object? args) =>
             {
@@ -170,9 +176,20 @@ namespace AsterixViewer.AsterixMap
             };
             _replayTimer.Tick += OnTimerTick;
 
+            ShowMoreInfoCommand = new RelayCommand((_) =>
+            {
+                IsMoreInfoVisible = true;
+            });
+
+            HideMoreInfoCommand = new RelayCommand((_) =>
+            {
+                IsMoreInfoVisible = false;
+            });
+
+
+
             SetupMap();
 
-            // ✅ Overlays: vuelos + selección
             planeGraphics = new GraphicsOverlay();
             selectedOverlay = new GraphicsOverlay();
 
@@ -180,6 +197,21 @@ namespace AsterixViewer.AsterixMap
             GraphicsOverlays = overlays;
 
             DisplayFlights();
+        }
+        private bool _isMoreInfoVisible;
+        public bool IsMoreInfoVisible
+        {
+            get => _isMoreInfoVisible;
+            set { _isMoreInfoVisible = value; OnPropertyChanged(); }
+        }
+
+        public ICommand ShowMoreInfoCommand { get; }
+        public ICommand HideMoreInfoCommand { get; }
+        private string _extendedGraphicInfo = string.Empty;
+        public string ExtendedGraphicInfo
+        {
+            get => _extendedGraphicInfo;
+            set { _extendedGraphicInfo = value; OnPropertyChanged(); }
         }
 
         private void OnTimerTick(object? sender, EventArgs e)
@@ -231,7 +263,6 @@ namespace AsterixViewer.AsterixMap
                 var flightId = item.Key;
                 var messages = item.Value;
 
-                // 🟣 Buscar mensaje CAT021
                 var msg021 = FindMessage(messages.Where(m => m.Cat == CAT.CAT021).ToList(), dataStore.ReplayTime);
                 if (msg021 != null && msg021.Latitude.HasValue && msg021.Longitude.HasValue && dataStore.ReplayTime - msg021.TimeOfDay < 10)
                 {
@@ -276,7 +307,6 @@ namespace AsterixViewer.AsterixMap
                 }
             }
 
-            // 🧹 Eliminar puntos que ya no deberían estar visibles
             var toRemove = mapPoints.Keys
                 .Where(k => !visibleKeys.Contains(k))
                 .ToList();
@@ -290,7 +320,6 @@ namespace AsterixViewer.AsterixMap
                 }
             }
 
-            // 🟡 Actualiza el halo del seleccionado si existe
             if (SelectedGraphic != null && selectedHighlightGraphic != null)
                 selectedHighlightGraphic.Geometry = SelectedGraphic.Geometry;
         }
@@ -379,6 +408,20 @@ namespace AsterixViewer.AsterixMap
 
 
             SelectedGraphicInfo = sb.ToString();
+            if (msg.Cat == CAT.CAT048)
+            {
+                var sbExt = new StringBuilder();
+                sbExt.AppendLine($"🔎 Información extendida del vuelo {msg.Identification}");
+                sbExt.AppendLine("------------------------------------------");
+                sbExt.AppendLine($"Category: {msg.Cat}");
+                sbExt.AppendLine($"Asterix SAC/SIC: {msg.SAC}/{msg.SIC}");
+                sbExt.AppendLine($"Mode 3/A: {msg.Mode3A?.ToString() ?? "N/A"}");
+                sbExt.AppendLine($"{msg.BDS.BDSsTabla ?? "N/A"}");
+                sbExt.AppendLine($"Baro: {msg.BDS.BARO.ToString() ?? "N/A"}");
+                sbExt.AppendLine($"IAS: {msg.BDS.IAS.ToString() ?? "N/A"}");
+
+                ExtendedGraphicInfo = sbExt.ToString();
+            }
         }
 
         private static AsterixMessage? FindMessage(List<AsterixMessage> messages, double time)

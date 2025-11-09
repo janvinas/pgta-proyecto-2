@@ -26,6 +26,7 @@
         </TabItem>
         <TabItem>
             <TabItem.Header>Proyecto3</TabItem.Header>
+            <tabs:Proyecto3></tabs:Proyecto3>
         </TabItem>
     </TabControl>
 </Window>
