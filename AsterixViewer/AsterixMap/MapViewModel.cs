@@ -373,6 +373,7 @@ namespace AsterixViewer.AsterixMap
             SelectedFlightCat = null;
             SelectedGraphicInfo = string.Empty;
             IsInfoPanelVisible = false;
+            IsMoreInfoVisible = false;
         }
 
         private void UpdateSelectedGraphicInfo()
