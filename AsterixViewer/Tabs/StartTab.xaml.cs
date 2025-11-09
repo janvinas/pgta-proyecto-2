@@ -86,7 +86,6 @@ namespace AsterixViewer.Tabs
                 if (string.IsNullOrWhiteSpace(linea))
                     continue;
 
-                // Puedes cambiar ',' por ';' si tu CSV usa punto y coma
                 string[] valores = linea.Split(';');
                 resultado.Add(new List<string>(valores));
             }
@@ -96,12 +95,10 @@ namespace AsterixViewer.Tabs
 
         private void AbrirProyecto3(List<List<string>> datos)
         {
-            // 🔹 Obtenemos la ventana principal
             var mainWindow = Application.Current.MainWindow as MainWindow;
 
             if (mainWindow != null)
             {
-                // Creamos una nueva instancia del tab Proyecto3
                 var proyecto3Tab = new Proyecto3();
                 proyecto3Tab.CargarDatos(datos);
             }
