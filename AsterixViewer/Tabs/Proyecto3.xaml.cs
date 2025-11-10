@@ -16,6 +16,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace AsterixViewer.Tabs
 {
@@ -24,12 +25,15 @@ namespace AsterixViewer.Tabs
     /// </summary>
     public partial class Proyecto3 : UserControl
     {
+        List<List<string>> datosAsterix = new List<List<string>>();     // Listado de msg Asterix en formato filas de variables
+        List<List<string>> listaPV = new List<List<string>>();          // Listado de planes de Vuelo
+        List<string> asterixCSV_Header = new List<string>();            // Header del CSV de msg Asterix leido
+
         public Proyecto3()
         {
             InitializeComponent();
         }
-        List<List<string>> datosAsterix = new List<List<string>>();
-        List<List<string>> listaPV = new List<List<string>>();
+
         private void DatosAsterix_Click(object sender, RoutedEventArgs e)
         {
             var dialog = new OpenFileDialog
@@ -42,8 +46,7 @@ namespace AsterixViewer.Tabs
 
             string path = dialog.FileName;
 
-            List<List<string>> datos = LeerCsvComoLista(path);
-            datosAsterix = datos;
+            datosAsterix = LeerCsvComoLista(path);
 
         }
 
@@ -56,7 +59,7 @@ namespace AsterixViewer.Tabs
                 if (string.IsNullOrWhiteSpace(linea))
                     continue;
 
-                string[] valores = linea.Split(';');
+                string[] valores = linea.Split(';');            // Cambiar símbolo de separación de columnas !!!!!!!!!
                 resultado.Add(new List<string>(valores));
             }
 
@@ -128,7 +131,11 @@ namespace AsterixViewer.Tabs
 
             for (int i = 1;i < listaPV.Count -1;i++) // Solo dejamos las de 24L y 06R
             {
-                if (listaPV[i][pistadesp] != "LEBL-24L" || listaPV[i][pistadesp] != "LEBL-06R") listaPV.RemoveAt(i);
+                if (listaPV[i][pistadesp] != "LEBL-24L" && listaPV[i][pistadesp] != "LEBL-06R")
+                {
+                    listaPV.RemoveAt(i);
+                    i--;
+                }
             }
 
             for (int i = 1; i < listaPV.Count -1; i++)
@@ -140,6 +147,8 @@ namespace AsterixViewer.Tabs
                     bool encontrado2 = false;
                     int j = 0;
                     int m = 0;
+
+                    // ------------ QUE HACER CON NITBA ------------
                     var puntosdeseados = new HashSet<string> { "OLOXO" , "NATPI" , "MOPAS" , "GRAUS" , "LOBAR" , "MAMUK" , "REBUL" , "VIBOK" , "DUQQI" , "DUNES" , "LARPA" , "LOTOS" , "SENIA" , "DALIN" , "AGENA" , "DIPES"};
                     while (!encontrado1)
                     {
@@ -241,7 +250,6 @@ namespace AsterixViewer.Tabs
                             break;
                         }
                     }
-                        
                 }
             }
             MessageBox.Show("Planes de vuelo acondicionados");
@@ -289,5 +297,110 @@ namespace AsterixViewer.Tabs
             }
             MessageBox.Show($"Se han eliminado {rmv} filas");
         }
+
+        public void CalculoPosicionesEstereográficas()
+        {
+            
+        }
+
+        private void GuardarMSG_Asterix_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var saveFileDialog = new SaveFileDialog
+                {
+                    Title = "Guardar CSV de mensajes ASTERIX Actualizados",
+                    Filter = "Archivos CSV (*.csv)|*.csv",
+                    FileName = "Asterix_Updated.csv",
+                    DefaultExt = ".csv"
+                };
+
+                if (saveFileDialog.ShowDialog() == true)
+                {
+                    var filePath = saveFileDialog.FileName;
+
+                    // ✍️ Escribir el archivo (CSV con extensión XLSX)
+                    using (var writer = new StreamWriter(filePath, false, Encoding.UTF8))
+                    {
+                        foreach (var fila in datosAsterix)
+                        {
+                            writer.WriteLine(string.Join(",", fila));
+                        }
+                    }
+
+                    // ✅ Confirmar al usuario
+                    MessageBox.Show(
+                        $"Archivo exportado correctamente:\n{filePath}",
+                        "Exportación completada",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information
+                    );
+                }
+                else
+                {
+                    MessageBox.Show("Exportación cancelada por el usuario.");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Error al guardar el archivo:\n{ex.Message}",
+                    "Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
+            }
+        }
+
+
+        private void GuardarMSG_PV_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var saveFileDialog = new SaveFileDialog
+                {
+                    Title = "Guardar CSV de Planes de Vuelo Actualizados",
+                    Filter = "Archivos CSV (*.xlsx)|*.csv",
+                    FileName = "PV_Updated.csv",
+                    DefaultExt = ".csv"
+                };
+
+                if (saveFileDialog.ShowDialog() == true)
+                {
+                    var filePath = saveFileDialog.FileName;
+
+                    // ✍️ Escribir el archivo (CSV con extensión XLSX)
+                    using (var writer = new StreamWriter(filePath, false, Encoding.UTF8))
+                    {
+                        foreach (var fila in listaPV)
+                        {
+                            writer.WriteLine(string.Join(",", fila));
+                        }
+                    }
+
+                    // ✅ Confirmar al usuario
+                    MessageBox.Show(
+                        $"Archivo exportado correctamente:\n{filePath}",
+                        "Exportación completada",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information
+                    );
+                }
+                else
+                {
+                    MessageBox.Show("Exportación cancelada por el usuario.");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Error al guardar el archivo:\n{ex.Message}",
+                    "Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
+            }
+        }
+
     }
 }
