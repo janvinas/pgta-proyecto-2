@@ -327,56 +327,65 @@ namespace AsterixParser
                 {
                     case 1: // Subfield 1 SRL
                         double srl = body[k];
-                        srl = srl * 360 / Math.Pow(2,13); // SRL in degrees
-                        ch.SRL = srl;
+                        srl = srl * 360 / (8192); // SRL in degrees
+                        Console.WriteLine($"Range Covered (SRL): {srl} degrees.");
                         k++;
                         break;
                     case 2: // Subfield 2 SRR
-                        ch.SSR = body[k]; // Number of Received Replies for (M)SSR
+                        int srr = body[k]; // Number of Received Replies for (M)SSR
+                        Console.WriteLine($"Number of Received Replies for (M)SSR: {srr}.");
                         k++;
                         break;
                     case 3: // Subfield 3 SAM
                         sbyte sam = (sbyte)body[k]; // Amplitude of M(SSR) Reply in dBm
-                        ch.SAM = sam;
+                        Console.WriteLine($"Amplitude of M(SSR) Reply in dBm: {sam} dBm.");
                         k++;
                         break;
                     case 4: // Subfield 4 PRL
-                        double prl = body[k] * 360 / Math.Pow(2,13); // PRL in degrees
-                        ch.PRL = prl;
+                        double prl = body[k];
+                        prl = prl * 360 / (8192); // PRL in degrees
+                        Console.WriteLine($"Range Covered (PRL): {prl} degrees.");
                         k++;
                         break;
                     case 5: // Subfield 5 PAM
                         sbyte pam = (sbyte)body[k]; // Amplitude of PSR Reply in dBm
-                        ch.PAM = pam;
+                        Console.WriteLine($"Amplitude of PSR Reply in dBm: {pam} dBm.");
                         k++;
                         break;
                     case 6: // Subfield 6 RPD
                         sbyte rpd_byte = (sbyte)body[k];
-                        ch.RPD = rpd_byte / 256d; // Difference in Range Betweeen PSR and SSR (PSR-SSR) in NM
+                        double rpd_1 = rpd_byte;
+                        double rpd = rpd_1 / 256; // Difference in Range Betweeen PSR and SSR (PSR-SSR) in NM
+                        Console.WriteLine($"Difference in Range Betweeen PSR and SSR (PSR-SSR): {rpd} NM.");
                         k++;
                         break;
                     case 7: // Subfield 7 APD
-                        sbyte apd_byte = (sbyte) body[k];
-                        ch.APD = apd_byte * 360 / Math.Pow(2, 14); // Difference in azimuth between PSR and SSR plot in degrees
+                        sbyte apd_byte = (sbyte)body[k];
+                        double apd = apd_byte;
+                        apd = apd * 360 / Math.Pow(2, 14); // Difference in azimuth between PSR and SSR plot in degrees
+                        Console.WriteLine($"Difference in azimuth between PSR and SSR plot: {apd} degrees.");
                         k++;
                         break;
                     case 8: // Subfield 8 SCO
-                        ch.SCO = body[k];
+                        Console.WriteLine($"Score: {body[k]}");
                         k++;
                         break;
                     case 9: // Subfield 9 SCR
-                        ushort scr_combined = (ushort)((body[k] << 8) | body[k+1]);
-                        ch.SCR = scr_combined * 0.1; // Signal / Clutter Radio
+                        ushort scr_combined = (ushort)((body[k] << 8) | body[k + 1]);
+                        double scr = scr_combined * 0.1; // Signal / Clutter Radio
+                        Console.WriteLine($"Signal / Clutter Radio: {scr} dB.");
                         k += 2;
                         break;
                     case 10: // Subfield 10 RW
                         ushort rw_combined = (ushort)((body[k] << 8) | body[k + 1]);
-                        ch.RW = rw_combined / 256d; // Range Width in NM
+                        double rw = rw_combined / 256; // Range Width in NM
+                        Console.WriteLine($"Range Width: {rw} NM.");
                         k += 2;
                         break;
                     case 11: // Subfield 11 AR
                         ushort ar_combined = (ushort)((body[k] << 8) | body[k + 1]);
-                        ch.AR = ar_combined / 256d; // Ambiguous Range in NM
+                        double ar = ar_combined / 256; // Ambiguous Range in NM
+                        Console.WriteLine($"Ambiguous Range: {ar} NM.");
                         k += 2;
                         break;
                 }
