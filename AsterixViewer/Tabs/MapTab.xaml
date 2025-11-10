@@ -104,7 +104,7 @@
                     <TextBlock Text="{Binding SelectedGraphicInfo}" 
                        TextWrapping="Wrap"
                        FontSize="14"
-                       Margin="10,0,10,10" />
+                       Margin="10,0,10,10"/>
                 </ScrollViewer>
 
                 <StackPanel Orientation="Horizontal"

@@ -44,6 +44,7 @@
                 <DataGridTextColumn Header="Mode 3/A" Binding="{Binding Mode3A, Converter={StaticResource Mode3AConverter}}"/>
                 <DataGridTextColumn Header="Config Mode 3/A" Binding="{Binding configMode3A}"/>
                 <DataGridTextColumn Header="FL" Binding="{Binding FlightLevel, Converter={StaticResource FLConverter}}"/>
+                <DataGridTextColumn Header="QNH Correction" Binding="{Binding QNHcorrection, StringFormat={}{0:F2}}"/>
                 <DataGridTextColumn Header="Distance" Binding="{Binding Distance, StringFormat={}{0:F2}°, TargetNullValue=''}"/>
                 <DataGridTextColumn Header="Azimuth" Binding="{Binding Azimuth, StringFormat={}{0:F2}°, TargetNullValue=''}"/>
                 <DataGridTextColumn Header="Longitude" Binding="{Binding Longitude, StringFormat={}{0:F3}°, TargetNullValue=''}"/>
@@ -67,7 +68,7 @@
                 <DataGridTextColumn Header="Gr. Speed" Binding="{Binding GS, StringFormat={}{0:F2} kt, TargetNullValue=''}"/>
                 <DataGridTextColumn Header="Heading" Binding="{Binding Heading, StringFormat={}{0:F2}°, TargetNullValue=''}"/>
 
-                <DataGridTextColumn Header="BDS" Binding="{Binding BDS.BDSs}"/>
+                <DataGridTextColumn Header="BDS" Binding="{Binding BDS.BDSsTabla}"/>
                 <DataGridTextColumn Header="statusMCP" Binding="{Binding BDS.statusMCP}"/>
                 <DataGridTextColumn Header="MCP" Binding="{Binding BDS.MCP}"/>
                 <DataGridTextColumn Header="statusFMS" Binding="{Binding BDS.statusFMS}"/>
