@@ -12,7 +12,6 @@
         </Grid.ColumnDefinitions>
         <StackPanel Grid.Column="0">
             <Button Content="Load File" Click="OpenFile_click"></Button>
-            <Button Content="Proyecto3" Click="Proyecto3_Click"></Button>
             <Button Content="Button3"></Button>
             <ProgressBar x:Name="ProgressBar" Height="10" Minimum="0" Maximum="1"/>
         </StackPanel>

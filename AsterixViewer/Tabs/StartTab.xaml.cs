@@ -59,49 +59,5 @@ namespace AsterixViewer.Tabs
             {
             }
         }
-
-        private void Proyecto3_Click(object sender, RoutedEventArgs e)
-        {
-            var dialog = new OpenFileDialog
-            {
-                Filter = "Archivos CSV (*.csv)|*.csv|Todos los archivos (*.*)|*.*"
-            };
-
-            if (dialog.ShowDialog() != true)
-                return;
-
-            string path = dialog.FileName;
-
-            List<List<string>> datos = LeerCsvComoLista(path);
-
-            AbrirProyecto3(datos);
-        }
-
-        private List<List<string>> LeerCsvComoLista(string path)
-        {
-            var resultado = new List<List<string>>();
-
-            foreach (string linea in File.ReadLines(path))
-            {
-                if (string.IsNullOrWhiteSpace(linea))
-                    continue;
-
-                string[] valores = linea.Split(';');
-                resultado.Add(new List<string>(valores));
-            }
-
-            return resultado;
-        }
-
-        private void AbrirProyecto3(List<List<string>> datos)
-        {
-            var mainWindow = Application.Current.MainWindow as MainWindow;
-
-            if (mainWindow != null)
-            {
-                var proyecto3Tab = new Proyecto3();
-                proyecto3Tab.CargarDatos(datos);
-            }
-        }
     }
 }

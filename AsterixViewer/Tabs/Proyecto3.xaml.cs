@@ -28,14 +28,43 @@ namespace AsterixViewer.Tabs
         {
             InitializeComponent();
         }
-        public void CargarDatos(List<List<string>> datos)
+        List<List<string>> datosAsterix = new List<List<string>>();
+        List<List<string>> listaPV = new List<List<string>>();
+        private void DatosAsterix_Click(object sender, RoutedEventArgs e)
         {
+            var dialog = new OpenFileDialog
+            {
+                Filter = "Archivos CSV (*.csv)|*.csv|Todos los archivos (*.*)|*.*"
+            };
 
+            if (dialog.ShowDialog() != true)
+                return;
+
+            string path = dialog.FileName;
+
+            List<List<string>> datos = LeerCsvComoLista(path);
+            datosAsterix = datos;
+
+        }
+
+        private List<List<string>> LeerCsvComoLista(string path)
+        {
+            var resultado = new List<List<string>>();
+
+            foreach (string linea in File.ReadLines(path))
+            {
+                if (string.IsNullOrWhiteSpace(linea))
+                    continue;
+
+                string[] valores = linea.Split(';');
+                resultado.Add(new List<string>(valores));
+            }
+
+            return resultado;
         }
 
         public void Planvuelo_click(object sender, RoutedEventArgs e)
         {
-            List<List<string>> datosPV = new List<List<string>>();
 
             var dialog = new Microsoft.Win32.OpenFileDialog
             {
@@ -47,8 +76,9 @@ namespace AsterixViewer.Tabs
 
             string rutaExcel = dialog.FileName;
 
-            datosPV = LeerExcelComoLista(rutaExcel);
-            datosPV = AcondicionarPV(datosPV);
+            listaPV = LeerExcelComoLista(rutaExcel);
+            AcondicionarPV();
+            FiltroDeparturesLEBL();
         }
 
         public static List<List<string>> LeerExcelComoLista(string rutaExcel)
@@ -84,7 +114,7 @@ namespace AsterixViewer.Tabs
             return datos;
         }
 
-        public static List<List<string>> AcondicionarPV(List<List<string>> listaPV)
+        public void AcondicionarPV()
         {
             int pistadesp = -1;
             int procdesp = -1;
@@ -106,18 +136,20 @@ namespace AsterixViewer.Tabs
                 if (listaPV[i][procdesp] == "-")
                 {
                     var puntos = listaPV[i][rutasacta].Split(' ');
-                    bool encontrado = false;
+                    bool encontrado1 = false;
+                    bool encontrado2 = false;
                     int j = 0;
+                    int m = 0;
                     var puntosdeseados = new HashSet<string> { "OLOXO" , "NATPI" , "MOPAS" , "GRAUS" , "LOBAR" , "MAMUK" , "REBUL" , "VIBOK" , "DUQQI" , "DUNES" , "LARPA" , "LOTOS" , "SENIA" , "DALIN" , "AGENA" , "DIPES"};
-                    while (!encontrado)
+                    while (!encontrado1)
                     {
-                        if (puntos[puntos.Length-j-1].Any(a => puntosdeseados.Contains(a.ToString())))
+                        if (puntosdeseados.Contains(puntos[puntos.Length - j - 1]))
                         {
                             if (listaPV[i][pistadesp] == "LEBL-24L")
                             {
                                 listaPV[i][procdesp] = ($"{puntos[puntos.Length - j - 1]}1C");
                             }
-                            else if (listaPV[i][procdesp] == "LEBL-06R")
+                            else if (listaPV[i][pistadesp] == "LEBL-06R")
                             {
                                 if (puntos[puntos.Length - j - 1] == "OLOXO") listaPV[i][procdesp] = ($"{puntos[puntos.Length - j - 1]}1R");
                                 else if (puntos[puntos.Length - j - 1] == "NATPI") listaPV[i][procdesp] = ($"{puntos[puntos.Length - j - 1]}2R");
@@ -137,10 +169,18 @@ namespace AsterixViewer.Tabs
                                 else if (puntos[puntos.Length - j - 1] == "DIPES") listaPV[i][procdesp] = ($"{puntos[puntos.Length - j - 1]}1R");
                             }
 
-                            encontrado = true; 
-                            j++;
+                            encontrado1 = true;
+                            break;
                         }
-
+                        j++;
+                        if (j == puntos.Length)
+                        {
+                            encontrado1 = true;
+                            break;
+                        }
+                    }
+                    while (!encontrado2)
+                    {
                         List<string> puntos2 = new List<string>();
 
                         int k = 0;
@@ -152,49 +192,102 @@ namespace AsterixViewer.Tabs
                                 int l = 0;
                                 while (listaPV[i][rutasacta][k + l] != ')')
                                 {
-                                    elementos[l] = listaPV[i][rutasacta][k + l];
+                                    if (listaPV[i][rutasacta][k + l] != '(') elementos.Add(listaPV[i][rutasacta][k + l]);
+                                    l++;
                                 }
                                 puntos2.Add(new string([.. elementos]));
+                                elementos.Clear();
                             }
+                            k++;
                         }
-
-                        if (puntos[puntos2.Count - j - 1].Any(a => puntosdeseados.Contains(a.ToString())))
+                        if (puntos2.Count == 0)
                         {
-
+                            encontrado2 = true;
+                            break;
+                        }
+                        if (puntosdeseados.Contains(puntos2[puntos2.Count - m - 1]))
+                        {
                             if (listaPV[i][pistadesp] == "LEBL-24L")
                             {
-                                listaPV[i][procdesp] = ($"{puntos2[puntos2.Count - j - 1]}1C");
+                                listaPV[i][procdesp] = ($"{puntos2[puntos2.Count - m - 1]}1C");
                             }
-                            else if (listaPV[i][procdesp] == "LEBL-06R")
+                            else if (listaPV[i][pistadesp] == "LEBL-06R")
                             {
-                                if (puntos2[puntos2.Count - j - 1] == "OLOXO") listaPV[i][procdesp] = ($"{puntos2[puntos2.Count - j - 1]}1R");
-                                else if (puntos2[puntos2.Count - j - 1] == "NATPI") listaPV[i][procdesp] = ($"{puntos2[puntos2.Count - j - 1]}2R");
-                                else if (puntos2[puntos2.Count - j - 1] == "MOPAS") listaPV[i][procdesp] = ($"{puntos2[puntos2.Count - j - 1]}3R");
-                                else if (puntos2[puntos2.Count - j - 1] == "GRAUS") listaPV[i][procdesp] = ($"{puntos2[puntos2.Count - j - 1]}3R");
-                                else if (puntos2[puntos2.Count - j - 1] == "LOBAR") listaPV[i][procdesp] = ($"{puntos2[puntos2.Count - j - 1]}4R");
-                                else if (puntos2[puntos2.Count - j - 1] == "MAMUK") listaPV[i][procdesp] = ($"{puntos2[puntos2.Count - j - 1]}I1R");
-                                else if (puntos2[puntos2.Count - j - 1] == "REBUL") listaPV[i][procdesp] = ($"{puntos2[puntos2.Count - j - 1]}1R");
-                                else if (puntos2[puntos2.Count - j - 1] == "VIBOK") listaPV[i][procdesp] = ($"{puntos2[puntos2.Count - j - 1]}1R");
-                                else if (puntos2[puntos2.Count - j - 1] == "DUQQI") listaPV[i][procdesp] = ($"{puntos2[puntos2.Count - j - 1]}1R");
-                                else if (puntos2[puntos2.Count - j - 1] == "DUNES") listaPV[i][procdesp] = ($"{puntos2[puntos2.Count - j - 1]}4R");
-                                else if (puntos2[puntos2.Count - j - 1] == "LARPA") listaPV[i][procdesp] = ($"{puntos2[puntos2.Count - j - 1]}4R");
-                                else if (puntos2[puntos2.Count - j - 1] == "LOTOS") listaPV[i][procdesp] = ($"{puntos2[puntos2.Count - j - 1]}3R");
-                                else if (puntos2[puntos2.Count - j - 1] == "SENIA") listaPV[i][procdesp] = ($"{puntos2[puntos2.Count - j - 1]}5R");
-                                else if (puntos2[puntos2.Count - j - 1] == "DALIN") listaPV[i][procdesp] = ($"{puntos2[puntos2.Count - j - 1]}4R");
-                                else if (puntos2[puntos2.Count - j - 1] == "AGENA") listaPV[i][procdesp] = ($"{puntos2[puntos2.Count - j - 1]}4R");
-                                else if (puntos2[puntos2.Count - j - 1] == "DIPES") listaPV[i][procdesp] = ($"{puntos2[puntos2.Count - j - 1]}1R");
+                                if (puntos2[puntos2.Count - m - 1] == "OLOXO") listaPV[i][procdesp] = ($"{puntos2[puntos2.Count - m - 1]}1R");
+                                else if (puntos2[puntos2.Count - m - 1] == "NATPI") listaPV[i][procdesp] = ($"{puntos2[puntos2.Count - m - 1]}2R");
+                                else if (puntos2[puntos2.Count - m - 1] == "MOPAS") listaPV[i][procdesp] = ($"{puntos2[puntos2.Count - m - 1]}3R");
+                                else if (puntos2[puntos2.Count - m - 1] == "GRAUS") listaPV[i][procdesp] = ($"{puntos2[puntos2.Count - m - 1]}3R");
+                                else if (puntos2[puntos2.Count - m - 1] == "LOBAR") listaPV[i][procdesp] = ($"{puntos2[puntos2.Count - m - 1]}4R");
+                                else if (puntos2[puntos2.Count - m - 1] == "MAMUK") listaPV[i][procdesp] = ($"{puntos2[puntos2.Count - m - 1]}I1R");
+                                else if (puntos2[puntos2.Count - m - 1] == "REBUL") listaPV[i][procdesp] = ($"{puntos2[puntos2.Count - m - 1]}1R");
+                                else if (puntos2[puntos2.Count - m - 1] == "VIBOK") listaPV[i][procdesp] = ($"{puntos2[puntos2.Count - m - 1]}1R");
+                                else if (puntos2[puntos2.Count - m - 1] == "DUQQI") listaPV[i][procdesp] = ($"{puntos2[puntos2.Count - m - 1]}1R");
+                                else if (puntos2[puntos2.Count - m - 1] == "DUNES") listaPV[i][procdesp] = ($"{puntos2[puntos2.Count - m - 1]}4R");
+                                else if (puntos2[puntos2.Count - m - 1] == "LARPA") listaPV[i][procdesp] = ($"{puntos2[puntos2.Count - m - 1]}4R");
+                                else if (puntos2[puntos2.Count - m - 1] == "LOTOS") listaPV[i][procdesp] = ($"{puntos2[puntos2.Count - m - 1]}3R");
+                                else if (puntos2[puntos2.Count - m - 1] == "SENIA") listaPV[i][procdesp] = ($"{puntos2[puntos2.Count - m - 1]}5R");
+                                else if (puntos2[puntos2.Count - m - 1] == "DALIN") listaPV[i][procdesp] = ($"{puntos2[puntos2.Count - m - 1]}4R");
+                                else if (puntos2[puntos2.Count - m - 1] == "AGENA") listaPV[i][procdesp] = ($"{puntos2[puntos2.Count - m - 1]}4R");
+                                else if (puntos2[puntos2.Count - m - 1] == "DIPES") listaPV[i][procdesp] = ($"{puntos2[puntos2.Count - m - 1]}1R");
                             }
 
-                            encontrado = true;
-                            j++;
-
+                            encontrado2 = true;
+                            break;
+                        }
+                        m++;
+                        if (m == puntos2.Count)
+                        {
+                            encontrado2 = true;
+                            break;
                         }
                     }
                         
                 }
             }
-            Console.WriteLine(listaPV);
-            return listaPV;
+            MessageBox.Show("Planes de vuelo acondicionados");
+        }
+
+        public void FiltroDeparturesLEBL()
+        {
+            int ti = -1;
+            int indicative = -1;
+            int rmv = 0;
+            for (int i = 0; i < datosAsterix[0].Count; i++)
+            {
+                if (datosAsterix[0][i] == "TI")
+                {
+                    ti = i;
+                    break;
+                }
+            }
+
+            for (int i = 0;i < listaPV[0].Count; i++)
+            {
+                if (listaPV[0][i] == "Indicativo")
+                {
+                    indicative = i;
+                    break;
+                }
+            }
+
+            for (int i = 0; i < datosAsterix.Count; i++)
+            {
+                bool pertenece = false;
+                for (int j = 0; j < listaPV.Count; j++)
+                {
+                    if (datosAsterix[i][ti] == listaPV[j][indicative])
+                    {
+                        pertenece = true;
+                        break;
+                    }
+                }
+                if (!pertenece)
+                {
+                    datosAsterix.RemoveAt(i);
+                    rmv++;
+                }
+            }
+            MessageBox.Show($"Se han eliminado {rmv} filas");
         }
     }
 }

@@ -13,7 +13,8 @@
             <ColumnDefinition Width="Auto"></ColumnDefinition>
         </Grid.ColumnDefinitions>
         <StackPanel Grid.Column="0">
-            <Button Content="Cargar Plan de Vuelo" Click="Planvuelo_click"></Button>
+            <Button Content="Cargar Datos Asterix" Click="DatosAsterix_Click"></Button>
+            <Button Content="Cargar Planes de Vuelo" Click="Planvuelo_click"></Button>
         </StackPanel>
     </Grid>
 </UserControl>
