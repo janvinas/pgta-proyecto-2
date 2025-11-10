@@ -396,7 +396,7 @@ namespace AsterixViewer.AsterixMap
             try
             {
                 if (msg.FlightLevel != null && msg.FlightLevel.flightLevel.HasValue)
-                    fl = msg.FlightLevel.flightLevel.Value.ToString("000");
+                    fl = (string) new FLConverter().Convert(msg.FlightLevel, typeof(String), new object(), System.Globalization.CultureInfo.InvariantCulture);
             }
             catch { }
 

@@ -83,7 +83,7 @@ namespace AsterixViewer
         }
     }
 
-    internal class FLConverter : IValueConverter
+    public class FLConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
@@ -92,7 +92,15 @@ namespace AsterixViewer
                 if (fl.garbledCode) return "Garbled Code";
                 if (fl.codeNotValidated) return "Code Not Validated";
                 if (fl.flightLevel is null) return "Unknown Error";
-                return fl.flightLevel.ToString();
+                if (fl.flightLevel < 60)
+                {
+                    return (fl.flightLevel.Value*100).ToString("000", CultureInfo.InvariantCulture)+" ft";
+                }
+                else
+                {
+                    int flInt = (int)fl.flightLevel.Value;
+                    return "FL" + flInt.ToString();
+                }
             }
             return "";
         }

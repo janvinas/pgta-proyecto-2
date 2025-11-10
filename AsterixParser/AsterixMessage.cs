@@ -130,7 +130,7 @@ namespace AsterixParser
         public double? Longitude { get; set; } //DI7 CAT21
         public float? BPS { get; set; } // DI48 CAT21
         public BDS? BDS { get; set; } // DI7
-
+        public double? QNHcorrection { get; set; }
 
     }
 }
