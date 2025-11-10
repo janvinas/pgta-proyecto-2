@@ -124,119 +124,125 @@ namespace AsterixViewer.Tabs
                     {
                         // Encabezado CSV
                         writer.WriteLine(
-                            "Cat,SIC,SAC,TimeOfDay,TargetReportDescriptor,Distance,Azimuth,Mode3A," +
-                            "FL FlightLevel,FL GarbledCode,FL CodeNotValidated," +
-                            "RPC SRL,RPC SSR,RPC SAM,RPC PRL,RPC PAM,RPC RPD,RPC APD,RPC SCO,RPC SCR,RPC RW,RPC AR," +
-                            "Address,Identification,TrackNum,GS,Heading," +
-                            "TS CNF,TS RAD,TS DOU,TS MAH,TS CDM,TS TRE,TS GHO,TS SUP,TS TCC," +
-                            "I048230 COM,I048230 STAT,I048230 SI,I048230 MSSC,I048230 ARC,I048230 AIC,I048230 B1A,I048230 B1B," +
-                            "Latitude,Longitude,BPS," +
-                            "BDS BDSs,BDS statusMCP,BDS MCP,BDS statusFMS,BDS FMS,BDS statusBARO,BDS BARO,BDS infoMCP,BDS VNAV,BDS ALTflag," +
-                            "BDS APPR,BDS statusTarget,BDS TargetALT,BDS statusROLL,BDS ROLL,BDS statusTTA,BDS TTA,BDS statusGS,BDS GS," +
-                            "BDS statusTAR,BDS TAR,BDS statusTAS,BDS TAS,BDS statusMH,BDS MH,BDS statusIAS,BDS IAS,BDS statusMACH,BDS MACH," +
-                            "BDS statusBAROV,BDS BAROV,BDS statusIVV,BDS IVV"
+                            "Cat;SIC;SAC;TimeOfDay;" +  // Initial info
+                            "FL/Altitude;LAT;LON;" +    // LLA COORDS
+                            "TargetReportDescriptor;Distance;Azimuth;Mode3A;" +
+                            "FL GarbledCode;FL CodeNotValidated;" +
+                            "RPC SRL;RPC SSR;RPC SAM;RPC PRL;RPC PAM;RPC RPD;RPC APD;RPC SCO;RPC SCR;RPC RW;RPC AR;" +
+                            "Address;Identification;TrackNum;GS;Heading;" +
+                            "TS CNF;TS RAD;TS DOU;TS MAH;TS CDM;TS TRE;TS GHO;TS SUP;TS TCC;" +
+                            "I048230 COM;I048230 STAT;I048230 SI;I048230 MSSC;I048230 ARC;I048230 AIC;I048230 B1A;I048230 B1B;" +
+                            "BPS;" +
+                            "BDS BDSs;BDS statusMCP;BDS MCP;BDS statusFMS;BDS FMS;BDS statusBARO;BDS BARO;BDS infoMCP;BDS VNAV;BDS ALTflag;" +
+                            "BDS APPR;BDS statusTarget;BDS TargetALT;BDS statusROLL;BDS ROLL;BDS statusTTA;BDS TTA;BDS statusGS;BDS GS;" +
+                            "BDS statusTAR;BDS TAR;BDS statusTAS;BDS TAS;BDS statusMH;BDS MH;BDS statusIAS;BDS IAS;BDS statusMACH;BDS MACH;" +
+                            "BDS statusBAROV;BDS BAROV;BDS statusIVV;BDS IVV"
                         );
 
                         // 5️⃣ Escribir cada fila (aquí solo de ejemplo)
                         foreach (AsterixMessage message in messages)
                         {
-                            writer.WriteLine($"{message.Cat}," +
-                                $"{message.SIC}," +
-                                $"{message.SAC}," +
-                                $"{TimeSpan.FromSeconds(message.TimeOfDay ?? 0).ToString(@"hh\:mm\:ss\:fff")}," +
-                                $"{(message.Cat == CAT.CAT021
-                                        ? (message.TargetReportDescriptor021 != null ? string.Join(";", message.TargetReportDescriptor021).Replace(",", "+") : "")
-                                        : (message.TargetReportDescriptor048 != null ? string.Join(";", message.TargetReportDescriptor048).Replace(",", "+") : "")
-                                )}," +
-                                $"{message.Distance}," +
-                                $"{message.Azimuth}," +
-                                $"{message.Mode3A}," +
+                            writer.WriteLine($"{message.Cat};" +
+                                $"{message.SIC};" +
+                                $"{message.SAC};" +
+                                $"{TimeSpan.FromSeconds(message.TimeOfDay ?? 0).ToString(@"hh\:mm\:ss\:fff")};" +
 
-                                // FlightLevel
-                                $"{message.FlightLevel?.flightLevel}," +
-                                $"{message.FlightLevel?.garbledCode}," +
-                                $"{message.FlightLevel?.codeNotValidated}," +
+                                // LLA COORDINATES positions: [4;5;6]=[LAT;LON;Alt]
+                                $"{message.Latitude};" +
+                                $"{message.Longitude};" +
+                                $"{message.FlightLevel?.flightLevel};" +
+
+                                // Report, Distance, Azimuth and Mode3A
+                                $"{(message.Cat == CAT.CAT021
+                                        ? (message.TargetReportDescriptor021 != null ? string.Join(",", message.TargetReportDescriptor021): "")
+                                        : (message.TargetReportDescriptor048 != null ? string.Join(",", message.TargetReportDescriptor048): "")
+                                )};" +
+                                $"{message.Distance};" +
+                                $"{message.Azimuth};" +
+                                $"{message.Mode3A};" +
+
+                                // FlightLevel other info
+                                $"{message.FlightLevel?.garbledCode};" +
+                                $"{message.FlightLevel?.codeNotValidated};" +
 
                                 // RadarPlotCharacteristics
-                                $"{message.RadarPlotCharacteristics?.SRL}," +
-                                $"{message.RadarPlotCharacteristics?.SSR}," +
-                                $"{message.RadarPlotCharacteristics?.SAM}," +
-                                $"{message.RadarPlotCharacteristics?.PRL}," +
-                                $"{message.RadarPlotCharacteristics?.PAM}," +
-                                $"{message.RadarPlotCharacteristics?.RPD}," +
-                                $"{message.RadarPlotCharacteristics?.APD}," +
-                                $"{message.RadarPlotCharacteristics?.SCO}," +
-                                $"{message.RadarPlotCharacteristics?.SCR}," +
-                                $"{message.RadarPlotCharacteristics?.RW}," +
-                                $"{message.RadarPlotCharacteristics?.AR}," +
+                                $"{message.RadarPlotCharacteristics?.SRL};" +
+                                $"{message.RadarPlotCharacteristics?.SSR};" +
+                                $"{message.RadarPlotCharacteristics?.SAM};" +
+                                $"{message.RadarPlotCharacteristics?.PRL};" +
+                                $"{message.RadarPlotCharacteristics?.PAM};" +
+                                $"{message.RadarPlotCharacteristics?.RPD};" +
+                                $"{message.RadarPlotCharacteristics?.APD};" +
+                                $"{message.RadarPlotCharacteristics?.SCO};" +
+                                $"{message.RadarPlotCharacteristics?.SCR};" +
+                                $"{message.RadarPlotCharacteristics?.RW};" +
+                                $"{message.RadarPlotCharacteristics?.AR};" +
 
                                 // Campos principales
-                                $"{message.Address}," +
-                                $"{message.Identification}," +
-                                $"{message.TrackNum}," +
-                                $"{message.GS}," +
-                                $"{message.Heading}," +
+                                $"{message.Address};" +
+                                $"{message.Identification};" +
+                                $"{message.TrackNum};" +
+                                $"{message.GS};" +
+                                $"{message.Heading};" +
 
                                 // TrackStatus
-                                $"{message.TrackStatus?.CNF}," +
-                                $"{message.TrackStatus?.RAD}," +
-                                $"{message.TrackStatus?.DOU}," +
-                                $"{message.TrackStatus?.MAH}," +
-                                $"{message.TrackStatus?.CDM}," +
-                                $"{message.TrackStatus?.TRE}," +
-                                $"{message.TrackStatus?.GHO}," +
-                                $"{message.TrackStatus?.SUP}," +
-                                $"{message.TrackStatus?.TCC}," +
+                                $"{message.TrackStatus?.CNF};" +
+                                $"{message.TrackStatus?.RAD};" +
+                                $"{message.TrackStatus?.DOU};" +
+                                $"{message.TrackStatus?.MAH};" +
+                                $"{message.TrackStatus?.CDM};" +
+                                $"{message.TrackStatus?.TRE};" +
+                                $"{message.TrackStatus?.GHO};" +
+                                $"{message.TrackStatus?.SUP};" +
+                                $"{message.TrackStatus?.TCC};" +
 
                                 // I048230
-                                $"{(message.I048230?.COM ?? "").Replace(",", "+")}," +
-                                $"{(message.I048230?.STAT ?? "").Replace(", ", " + ")}," +
-                                $"{message.I048230?.SI}," +
-                                $"{message.I048230?.MSSC}," +
-                                $"{message.I048230?.ARC}," +
-                                $"{message.I048230?.AIC}," +
-                                $"{message.I048230?.B1A}," +
-                                $"{message.I048230?.B1B}," +
+                                $"{message.I048230?.COM ?? ""};" +
+                                $"{message.I048230?.STAT ?? ""};" +
+                                $"{message.I048230?.SI};" +
+                                $"{message.I048230?.MSSC};" +
+                                $"{message.I048230?.ARC};" +
+                                $"{message.I048230?.AIC};" +
+                                $"{message.I048230?.B1A};" +
+                                $"{message.I048230?.B1B};" +
 
-                                // Coordenadas y velocidad
-                                $"{message.Latitude}," +
-                                $"{message.Longitude}," +
-                                $"{message.BPS}," +
+                                // Velocidad
+                                $"{message.BPS};" +
 
                                 // BDS
-                                $"{message.BDS?.BDSsCSV}," +
-                                $"{message.BDS?.statusMCP}," +
-                                $"{message.BDS?.MCP}," +
-                                $"{message.BDS?.statusFMS}," +
-                                $"{message.BDS?.FMS}," +
-                                $"{message.BDS?.statusBARO}," +
-                                $"{message.BDS?.BARO}," +
-                                $"{message.BDS?.infoMCP}," +
-                                $"{message.BDS?.VNAV}," +
-                                $"{message.BDS?.ALTflag}," +
-                                $"{message.BDS?.APPR}," +
-                                $"{message.BDS?.statusTarget}," +
-                                $"{message.BDS?.TargetALT}," +
-                                $"{message.BDS?.statusROLL}," +
-                                $"{message.BDS?.ROLL}," +
-                                $"{message.BDS?.statusTTA}," +
-                                $"{message.BDS?.TTA}," +
-                                $"{message.BDS?.statusGS}," +
-                                $"{message.BDS?.GS}," +
-                                $"{message.BDS?.statusTAR}," +
-                                $"{message.BDS?.TAR}," +
-                                $"{message.BDS?.statusTAS}," +
-                                $"{message.BDS?.TAS}," +
-                                $"{message.BDS?.statusMH}," +
-                                $"{message.BDS?.MH}," +
-                                $"{message.BDS?.statusIAS}," +
-                                $"{message.BDS?.IAS}," +
-                                $"{message.BDS?.statusMACH}," +
-                                $"{message.BDS?.MACH}," +
-                                $"{message.BDS?.statusBAROV}," +
-                                $"{message.BDS?.BAROV}," +
-                                $"{message.BDS?.statusIVV}," +
-                                $"{message.BDS?.IVV},"
+                                $"{message.BDS?.BDSsCSV};" +
+                                $"{message.BDS?.statusMCP};" +
+                                $"{message.BDS?.MCP};" +
+                                $"{message.BDS?.statusFMS};" +
+                                $"{message.BDS?.FMS};" +
+                                $"{message.BDS?.statusBARO};" +
+                                $"{message.BDS?.BARO};" +
+                                $"{message.BDS?.infoMCP};" +
+                                $"{message.BDS?.VNAV};" +
+                                $"{message.BDS?.ALTflag};" +
+                                $"{message.BDS?.APPR};" +
+                                $"{message.BDS?.statusTarget};" +
+                                $"{message.BDS?.TargetALT};" +
+                                $"{message.BDS?.statusROLL};" +
+                                $"{message.BDS?.ROLL};" +
+                                $"{message.BDS?.statusTTA};" +
+                                $"{message.BDS?.TTA};" +
+                                $"{message.BDS?.statusGS};" +
+                                $"{message.BDS?.GS};" +
+                                $"{message.BDS?.statusTAR};" +
+                                $"{message.BDS?.TAR};" +
+                                $"{message.BDS?.statusTAS};" +
+                                $"{message.BDS?.TAS};" +
+                                $"{message.BDS?.statusMH};" +
+                                $"{message.BDS?.MH};" +
+                                $"{message.BDS?.statusIAS};" +
+                                $"{message.BDS?.IAS};" +
+                                $"{message.BDS?.statusMACH};" +
+                                $"{message.BDS?.MACH};" +
+                                $"{message.BDS?.statusBAROV};" +
+                                $"{message.BDS?.BAROV};" +
+                                $"{message.BDS?.statusIVV};" +
+                                $"{message.BDS?.IVV};"
                             );
                         }
                     }

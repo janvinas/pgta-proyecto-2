@@ -1,9 +1,13 @@
-﻿using ExcelDataReader;
+﻿using AsterixParser;
+using AsterixParser.Utils;
+using ExcelDataReader;
+using ExcelDataReader.Log;
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.Intrinsics.X86;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -12,13 +16,12 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using static System.Runtime.InteropServices.JavaScript.JSType;
-using AsterixParser;
-using AsterixParser.Utils;
 
 namespace AsterixViewer.Tabs
 {
@@ -29,7 +32,16 @@ namespace AsterixViewer.Tabs
     {
         List<List<string>> datosAsterix = new List<List<string>>();     // Listado de msg Asterix en formato filas de variables
         List<List<string>> listaPV = new List<List<string>>();          // Listado de planes de Vuelo
-        List<string> asterixCSV_Header = new List<string>();            // Header del CSV de msg Asterix leido
+
+
+        public class Vuelo
+        {
+            public string codigoVuelo { get; set; }
+            public List<List<string>> mensajesVuelo { get; set; } = new List<List<string>>();
+        }
+
+        // Luego puedes tener un listado de vuelos:
+        List<Vuelo> vuelosOrdenados = new List<Vuelo>();
 
         public Proyecto3()
         {
@@ -52,22 +64,6 @@ namespace AsterixViewer.Tabs
 
         }
 
-        private List<List<string>> LeerCsvComoLista(string path)
-        {
-            var resultado = new List<List<string>>();
-
-            foreach (string linea in File.ReadLines(path))
-            {
-                if (string.IsNullOrWhiteSpace(linea))
-                    continue;
-
-                string[] valores = linea.Split(';');            // Cambiar símbolo de separación de columnas !!!!!!!!!
-                resultado.Add(new List<string>(valores));
-            }
-
-            return resultado;
-        }
-
         public void Planvuelo_click(object sender, RoutedEventArgs e)
         {
 
@@ -84,6 +80,54 @@ namespace AsterixViewer.Tabs
             listaPV = LeerExcelComoLista(rutaExcel);
             AcondicionarPV();
             FiltroDeparturesLEBL();
+        }
+
+        private void CalcularDistancia_Click(object sender, RoutedEventArgs e)
+        {
+            GeoUtils geo = new GeoUtils();
+            CoordinatesWGS84 centro_tma = GeoUtils.LatLonStringBoth2Radians("41:06:56.5600N 01:41:33.0100E", 6368942.808);
+            GeoUtils tma = new GeoUtils(Math.Sqrt(geo.E2), geo.A, centro_tma);
+            int lat = -1;
+            int lon = -1;
+            int hm = -1;
+            double rt = 6356752.3142;
+
+            for (int i = 0; i < datosAsterix[0].Count; i++)
+            {
+                if (datosAsterix[0][i] == "LAT") lat = i;
+                if (datosAsterix[0][i] == "LON") lon = i;
+                if (datosAsterix[0][i] == "H(m)") hm = i;
+            }
+            for (int i = 0; i < datosAsterix.Count; i++)
+            {
+                CoordinatesUVH coords_stereographic = ObtenerCoordsEstereograficas(datosAsterix[i]);
+            }
+        }
+
+        private void PruebasDEBUG_Click(object sender, RoutedEventArgs e)
+        {
+            ClasificarDistintosVuelos();
+            OrdenarVuelos();
+
+        }
+
+        // -------------------------------- FUNCIONES UTILIZADAS EN EL CODIGO ---------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------------------------------------------- 
+
+        private List<List<string>> LeerCsvComoLista(string path)
+        {
+            var resultado = new List<List<string>>();
+
+            foreach (string linea in File.ReadLines(path))
+            {
+                if (string.IsNullOrWhiteSpace(linea))
+                    continue;
+
+                string[] valores = linea.Split(';');            // Cambiar símbolo de separación de columnas !!!!!!!!!
+                resultado.Add(new List<string>(valores));
+            }
+
+            return resultado;
         }
 
         public static List<List<string>> LeerExcelComoLista(string rutaExcel)
@@ -300,10 +344,92 @@ namespace AsterixViewer.Tabs
             MessageBox.Show($"Se han eliminado {rmv} filas");
         }
 
-        public void CalculoPosicionesEstereográficas()
+        /// <summary>
+        /// Función que devuelve las coordenadas Estereográficas de un mensaje Asterix CAT48 que contenga - LAT, LON y ALT -
+        /// </summary>
+        /// <param name="msg"> Mensaje Asterix del cual extrae las coordenadas Estereográficas </param>
+        /// <returns></returns>
+        private CoordinatesUVH ObtenerCoordsEstereograficas(List<string> msg)
         {
-            
+            CoordinatesUVH coordsUVH = new CoordinatesUVH();
+
+            // Adaptar valores segun fichero que estamos leyendo
+            int LATcol = 4;     // Posición de columna en que se encuentra la variable LAT
+            int LONcol = 5;     // Posición de columna en que se encuentra la variable LON
+            int ALTcol = 6;     // Posición de columna en que se encuentra la variable Alt
+
+            // Se definen las variables
+            GeoUtils geo = new GeoUtils();
+            CoordinatesWGS84 centro_tma = GeoUtils.LatLonStringBoth2Radians("41:06:56.5600N 01:41:33.0100E", 6368942.808);
+            GeoUtils tma = new GeoUtils(Math.Sqrt(geo.E2), geo.A, centro_tma);
+            double rt = 6356752.3142;
+
+            CoordinatesWGS84 coords_geodesic = new CoordinatesWGS84(msg[LATcol], msg[LONcol], Convert.ToDouble(msg[ALTcol]) + rt);
+            CoordinatesXYZ coords_geocentric = tma.change_geodesic2geocentric(coords_geodesic);
+            CoordinatesXYZ coords_system_cartesian = tma.change_geocentric2system_cartesian(coords_geocentric);
+
+            return tma.change_system_cartesian2stereographic(coords_system_cartesian);
         }
+
+        private void ClasificarDistintosVuelos()
+        {
+            List<string> TI_usados = new List<string>();
+            string TI;
+
+            int TIcol = 13;     // Posición de columna en que se encuentra la variable TA
+            
+            for (int i = 0; i < datosAsterix.Count(); i++)
+            {
+                if (!TI_usados.Contains(datosAsterix[i][TIcol]))
+                {
+                    TI = datosAsterix[i][TIcol];
+
+                    Vuelo vuelo = new Vuelo();
+                    vuelo.codigoVuelo = TI;
+
+                    foreach (List<string> msg in datosAsterix) if (msg[TIcol] == TI) vuelo.mensajesVuelo.Add(msg);
+
+                    vuelosOrdenados.Add(vuelo);
+                    TI_usados.Add(datosAsterix[i][TIcol]);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Función que ordena los vuelos por hora de despegue (para luego comprobar distancias entre despegues de manera fácil)
+        /// </summary>
+        private void OrdenarVuelos()
+        {
+            int ATOTcol = 10;   // Posición de columna en que se encuentra la variable ATOT
+            int TIcol = 1;      // Posición de columna en que se encuentra la variable TA
+
+            List<List<string>> listaPVaux = listaPV;
+            listaPVaux.RemoveAt(0);
+            listaPVaux = listaPVaux.OrderBy(fila => TimeSpan.Parse(fila[ATOTcol].Insert(fila[ATOTcol].LastIndexOf(':'), ".").Remove(fila[ATOTcol].LastIndexOf(':'), 1)).TotalSeconds).ToList();
+
+            List<Vuelo> vuelosOrdenadosAux = new List<Vuelo>();
+            List<string> TA_usados = new List<string>();
+
+            foreach (List<string> msg in listaPVaux)
+            {
+                if (!TA_usados.Contains(msg[TIcol]))
+                {
+                    for (int i = 0; i < vuelosOrdenados.Count; i++)
+                    {
+                        if (vuelosOrdenados[i].codigoVuelo == msg[TIcol])
+                        {
+                            vuelosOrdenadosAux.Add(vuelosOrdenados[i]);
+                            TA_usados.Add(msg[TIcol]);
+                            break;
+                        }
+                    }
+                }
+            }
+            vuelosOrdenados = vuelosOrdenadosAux;
+        }
+
+        // -------------------------------- FUNCIONES PARA EXPORTAR DATOS EN FORMATO CSV ----------------------------------------------------------------
+        // ----------------------------------------------------------------------------------------------------------------------------------------------
 
         private void GuardarMSG_Asterix_Click(object sender, RoutedEventArgs e)
         {
@@ -326,7 +452,7 @@ namespace AsterixViewer.Tabs
                     {
                         foreach (var fila in datosAsterix)
                         {
-                            writer.WriteLine(string.Join(",", fila));
+                            writer.WriteLine(string.Join(";", fila));
                         }
                     }
 
@@ -353,7 +479,6 @@ namespace AsterixViewer.Tabs
                 );
             }
         }
-
 
         private void GuardarMSG_PV_Click(object sender, RoutedEventArgs e)
         {
@@ -376,7 +501,7 @@ namespace AsterixViewer.Tabs
                     {
                         foreach (var fila in listaPV)
                         {
-                            writer.WriteLine(string.Join(",", fila));
+                            writer.WriteLine(string.Join(";", fila));
                         }
                     }
 
@@ -403,31 +528,5 @@ namespace AsterixViewer.Tabs
                 );
             }
         }
-
-        private void CalcularDistancia_Click(object sender, RoutedEventArgs e)
-        {
-            GeoUtils geo = new GeoUtils();
-            CoordinatesWGS84 centro_tma = GeoUtils.LatLonStringBoth2Radians("41:06:56.5600N 01:41:33.0100E", 6368942.808);
-            GeoUtils tma = new GeoUtils(Math.Sqrt(geo.E2), geo.A, centro_tma);
-            int lat = -1;
-            int lon = -1;
-            int hm = -1;
-            double rt = 6356752.3142;
-
-            for (int i = 0; i < datosAsterix[0].Count; i++)
-            {
-                if (datosAsterix[0][i] == "LAT") lat = i;
-                if (datosAsterix[0][i] == "LON") lat = i;
-                if (datosAsterix[0][i] == "H(m)") lat = i;
-            }
-            for (int i = 0; i < datosAsterix.Count; i++)
-            {
-                CoordinatesWGS84 coords_geodesic = new CoordinatesWGS84(datosAsterix[i][lat], datosAsterix[i][lon], Convert.ToDouble(datosAsterix[i][hm]) + rt);
-                CoordinatesXYZ coords_geocentric = tma.change_geodesic2geocentric(coords_geodesic);
-                CoordinatesXYZ coords_system_cartesian = tma.change_geocentric2system_cartesian(coords_geocentric);
-                CoordinatesUVH coords_stereographic = tma.change_system_cartesian2stereographic(coords_system_cartesian);
-            }
-        }
-
     }
 }
