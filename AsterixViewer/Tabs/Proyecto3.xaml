@@ -17,6 +17,7 @@
             <Button Content="Cargar Planes de Vuelo" Click="Planvuelo_click"></Button>
             <Button Content="Guardar MSG Actualizados" Click="GuardarMSG_Asterix_Click"/>
             <Button Content="Guardar PV Actualizados" Click="GuardarMSG_PV_Click"/>
+            <Button Content="Calcular distancia entre despegues" Click="CalcularDistancia_Click"/>
         </StackPanel>
     </Grid>
 </UserControl>

@@ -17,6 +17,8 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using AsterixParser;
+using AsterixParser.Utils;
 
 namespace AsterixViewer.Tabs
 {
@@ -399,6 +401,31 @@ namespace AsterixViewer.Tabs
                     MessageBoxButton.OK,
                     MessageBoxImage.Error
                 );
+            }
+        }
+
+        private void CalcularDistancia_Click(object sender, RoutedEventArgs e)
+        {
+            GeoUtils geo = new GeoUtils();
+            CoordinatesWGS84 centro_tma = GeoUtils.LatLonStringBoth2Radians("41:06:56.5600N 01:41:33.0100E", 6368942.808);
+            GeoUtils tma = new GeoUtils(Math.Sqrt(geo.E2), geo.A, centro_tma);
+            int lat = -1;
+            int lon = -1;
+            int hm = -1;
+            double rt = 6356752.3142;
+
+            for (int i = 0; i < datosAsterix[0].Count; i++)
+            {
+                if (datosAsterix[0][i] == "LAT") lat = i;
+                if (datosAsterix[0][i] == "LON") lat = i;
+                if (datosAsterix[0][i] == "H(m)") lat = i;
+            }
+            for (int i = 0; i < datosAsterix.Count; i++)
+            {
+                CoordinatesWGS84 coords_geodesic = new CoordinatesWGS84(datosAsterix[i][lat], datosAsterix[i][lon], Convert.ToDouble(datosAsterix[i][hm]) + rt);
+                CoordinatesXYZ coords_geocentric = tma.change_geodesic2geocentric(coords_geodesic);
+                CoordinatesXYZ coords_system_cartesian = tma.change_geocentric2system_cartesian(coords_geocentric);
+                CoordinatesUVH coords_stereographic = tma.change_system_cartesian2stereographic(coords_system_cartesian);
             }
         }
 
