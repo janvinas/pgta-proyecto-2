@@ -42,7 +42,7 @@ namespace AsterixViewer.Tabs
             if (obj is not AsterixMessage msg)
                 return false;
 
-            // Filtrado por categoría
+            // --- FILTROS EXISTENTES ---
             if (msg.Cat == CAT.CAT021 && !(Cat021Filter?.IsChecked ?? true))
                 return false;
             if (msg.Cat == CAT.CAT048 && !(Cat048Filter?.IsChecked ?? true))
@@ -50,14 +50,11 @@ namespace AsterixViewer.Tabs
             if (msg.Mode3A == 4095 && !(TransponderFijoFilter?.IsChecked ?? true))
                 return false;
 
-            // --- NUEVO: comprobar TargetReportDescriptor (lista de strings) ---
-            // Si no existe la lista o está vacía => quitar
             if (BlancoPuroFilter?.IsChecked ?? false)
             {
                 if (msg.TargetReportDescriptor048 == null || msg.TargetReportDescriptor048.Count == 0)
                     return false;
 
-                // Solo miramos el primer elemento
                 var first = msg.TargetReportDescriptor048[0];
                 if (string.IsNullOrEmpty(first) ||
                     (first.IndexOf("PSR", StringComparison.OrdinalIgnoreCase) < 0 &&
@@ -67,15 +64,45 @@ namespace AsterixViewer.Tabs
                 }
             }
 
+            // --- Filtro de coordenadas ---
+            if (!string.IsNullOrWhiteSpace(LatMinBox.Text) &&
+                !string.IsNullOrWhiteSpace(LatMaxBox.Text) &&
+                !string.IsNullOrWhiteSpace(LonMinBox.Text) &&
+                !string.IsNullOrWhiteSpace(LonMaxBox.Text) &&
+                double.TryParse(LatMinBox.Text, out double latMin) &&
+                double.TryParse(LatMaxBox.Text, out double latMax) &&
+                double.TryParse(LonMinBox.Text, out double lonMin) &&
+                double.TryParse(LonMaxBox.Text, out double lonMax))
+            {
+                if (msg.Latitude.HasValue && msg.Longitude.HasValue)
+                {
+                    if (msg.Latitude < latMin || msg.Latitude > latMax ||
+                        msg.Longitude < lonMin || msg.Longitude > lonMax)
+                        return false;
+                }
+            }
+
+
 
             return true;
         }
 
+        private void OnClearCoordFilter(object sender, RoutedEventArgs e)
+        {
+            LatMinBox.Text = "";
+            LatMaxBox.Text = "";
+            LonMinBox.Text = "";
+            LonMaxBox.Text = "";
+            DataGrid.Items.Filter = FilterMessages;
+        }
+
+
         private void OnFilterChanged(object sender, RoutedEventArgs e)
         {
-            // Refrescar la vista cuando cambie un filtro
-            view?.Refresh();
+            if (DataGrid.ItemsSource is ICollectionView view)
+                view.Refresh();
         }
+
 
         private void OnTRDClick(object sender, RoutedEventArgs e)
         {
