@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace AsterixParser
 {
-    internal class CAT48(byte[] body, AsterixMessage message, GeoUtils geoUtils)
+    internal class CAT48(byte[] body, AsterixMessage message)
     {
         public int CAT48Reader(int i, ushort length) 
         {
@@ -80,21 +80,25 @@ namespace AsterixParser
 
             return error;
         }
-        private void ComputeCoordinates(AsterixMessage message)
+
+        private static readonly GeoUtils geoUtils = new();
+        private static readonly CoordinatesWGS84 radar = new(41.30070222222222 * GeoUtils.DEGS2RADS, 2.1020581944444445 * GeoUtils.DEGS2RADS, 2.007 + 25.25);
+        private static void ComputeCoordinates(AsterixMessage message)
         {
             if (message == null) return;
             if (message.Distance == null || message.Azimuth == null || message.FlightLevel?.flightLevel == null) return;
 
-            // calculate horizontal distance:
-            var distance_h = Math.Sqrt(
-                Math.Pow(message.Distance.Value * GeoUtils.NM2METERS, 2) - 
-                Math.Pow(message.FlightLevel.flightLevel.Value * GeoUtils.FEET2METERS * 100.0, 2)
+            double elevation = GeoUtils.CalculateElevation(
+                radar,
+                geoUtils.CalculateEarthRadius(radar),
+                message.Distance.Value * GeoUtils.NM2METERS,
+                message.FlightLevel.flightLevel.Value * 100 * GeoUtils.FEET2METERS
                 );
 
-            var radarCartesian = GeoUtils.change_radar_spherical2radar_cartesian(
-                new CoordinatesPolar(distance_h, message.Azimuth.Value * GeoUtils.DEGS2RADS, 0)
-                );
-            var geocentric = geoUtils.change_system_cartesian2geocentric(radarCartesian);
+            var radarSpherical = new CoordinatesPolar(message.Distance.Value * GeoUtils.NM2METERS, message.Azimuth.Value * GeoUtils.DEGS2RADS, elevation);
+            var radarCartesian = GeoUtils.change_radar_spherical2radar_cartesian(radarSpherical);
+
+            var geocentric = geoUtils.change_radar_cartesian2geocentric(radar, radarCartesian);
             var coordinates = geoUtils.change_geocentric2geodesic(geocentric);
 
             message.Latitude = coordinates.Lat * GeoUtils.RADS2DEGS;

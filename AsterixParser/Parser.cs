@@ -6,12 +6,6 @@ namespace AsterixParser
 {
     public class Parser
     {
-        private static readonly GeoUtils geoUtils;
-        static Parser() {
-            geoUtils = new();
-            var radarPosition = new CoordinatesWGS84(41.30070222222222 * GeoUtils.DEGS2RADS, 2.1020581944444445 * GeoUtils.DEGS2RADS, 2.007 + 25.25);
-            geoUtils.setCenterProjection(radarPosition);
-        }
 
         public static List<AsterixMessage> ParseFile(byte[] file)
         {
@@ -65,7 +59,7 @@ namespace AsterixParser
                             {
                                 Cat = CAT.CAT048
                             };
-                            CAT048 = new CAT48(body, message, geoUtils);
+                            CAT048 = new CAT48(body, message);
                             error = CAT048.CAT48Reader(i, length);
 
                             if (error == 0) messages.Add(message);
@@ -129,7 +123,7 @@ namespace AsterixParser
                                 {
                                     Cat = CAT.CAT048
                                 };
-                                var CAT048 = new CAT48(body, message, geoUtils);
+                                var CAT048 = new CAT48(body, message);
                                 error = CAT048.CAT48Reader(i, length);
                                 break;
                             }
