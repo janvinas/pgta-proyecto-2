@@ -154,7 +154,7 @@ namespace AsterixViewer.Tabs
                         // Encabezado CSV
                         writer.WriteLine(
                             "Cat;SIC;SAC;TimeOfDay;" +  // Initial info
-                            "FL/Altitude;LAT;LON;" +    // LLA COORDS
+                            "LAT;LON;FL/Altitude;" +    // LLA COORDS
                             "TargetReportDescriptor;Distance;Azimuth;Mode3A;" +
                             "FL GarbledCode;FL CodeNotValidated;" +
                             "RPC SRL;RPC SSR;RPC SAM;RPC PRL;RPC PAM;RPC RPD;RPC APD;RPC SCO;RPC SCR;RPC RW;RPC AR;" +

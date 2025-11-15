@@ -32,16 +32,27 @@ namespace AsterixViewer.Tabs
     {
         List<List<string>> datosAsterix = new List<List<string>>();     // Listado de msg Asterix en formato filas de variables
         List<List<string>> listaPV = new List<List<string>>();          // Listado de planes de Vuelo
-
-
-        public class Vuelo
+        
+        public class Vuelo                                              // Clase Vuelo, cada despegue es una instancia, contiene el codigo del avion y la lista de mensajes Asterix que le corresponden
         {
             public string codigoVuelo { get; set; }
             public List<List<string>> mensajesVuelo { get; set; } = new List<List<string>>();
         }
 
-        // Luego puedes tener un listado de vuelos:
-        List<Vuelo> vuelosOrdenados = new List<Vuelo>();
+        List<Vuelo> vuelosOrdenados = new List<Vuelo>();                // Lista de todos los vuelos ya ordenados y filtrados
+
+        // Clase que incluye el vuelo1 (precursor) y vuelo2 (posterior) y el listado de distancias en cada actualización radar
+        public class DistanciasDespeguesConsecutivos                    
+        {
+            public Vuelo vuelo1 { get; set; }
+            public Vuelo vuelo2 { get; set; }
+            public List<string> listaDistancias { get; set; } = new List<string>();
+            public List<string> listaTiemposVuelo1 { get; set; } = new List<string>();
+            public List<string> listaTiemposVuelo2 { get; set; } = new List<string>();
+        }
+
+        // Lista de conjuntos de distancias de despegues consecutivos
+        List<DistanciasDespeguesConsecutivos> listaConjuntosDistanciasDespeguesConsecutivos = new List<DistanciasDespeguesConsecutivos>();       
 
         public Proyecto3()
         {
@@ -80,51 +91,51 @@ namespace AsterixViewer.Tabs
             listaPV = LeerExcelComoLista(rutaExcel);
             AcondicionarPV();
             FiltroDeparturesLEBL();
-        }
-
-        private void CalcularDistancia_Click(object sender, RoutedEventArgs e)
-        {
-            GeoUtils geo = new GeoUtils();
-            CoordinatesWGS84 centro_tma = GeoUtils.LatLonStringBoth2Radians("41:06:56.5600N 01:41:33.0100E", 6368942.808);
-            GeoUtils tma = new GeoUtils(Math.Sqrt(geo.E2), geo.A, centro_tma);
-            int lat = -1;
-            int lon = -1;
-            int hm = -1;
-            double rt = 6356752.3142;
-
-            for (int i = 0; i < datosAsterix[0].Count; i++)
-            {
-                if (datosAsterix[0][i] == "LAT") lat = i;
-                if (datosAsterix[0][i] == "LON") lon = i;
-                if (datosAsterix[0][i] == "H(m)") hm = i;
-            }
-            for (int i = 0; i < datosAsterix.Count; i++)
-            {
-                CoordinatesUVH coords_stereographic = ObtenerCoordsEstereograficas(datosAsterix[i]);
-            }
+            CalcularDistanciasDespeguesConsecutivos();
         }
 
         private void PruebasDEBUG_Click(object sender, RoutedEventArgs e)
         {
+            // Calcula posiciones Esterograficas de todos los mensajes Asterix y añade las columnas X e Y a cada mensaje
+            CalcularPosicionesEstereograficas();
+
+            // Clasifica los distintos Vuelos segun su identificador TI
             ClasificarDistintosVuelos();
+
+            // Ordena los vuelos segun el ATOT en listaPV, compara segun identificador de vuelo TI
             OrdenarVuelos();
 
+            // Calcula todas las distancias entre despegues consecutivos, crea clases DistanciasDespeguesConsecutivos
+            // y rellena la lista listaConjuntosDistanciasDespeguesConsecutivos (ver definicion)
+            CalcularDistanciasDespeguesConsecutivos();
         }
 
-        // -------------------------------- FUNCIONES UTILIZADAS EN EL CODIGO ---------------------------------------------------------------------------
+        // -------------------------------- LECTORES DE ARCHIVOS DE PARAMETROS DE INPUT -----------------------------------------------------------------
         // ---------------------------------------------------------------------------------------------------------------------------------------------- 
 
         private List<List<string>> LeerCsvComoLista(string path)
         {
             var resultado = new List<List<string>>();
 
-            foreach (string linea in File.ReadLines(path))
+            try
             {
-                if (string.IsNullOrWhiteSpace(linea))
-                    continue;
+                foreach (string linea in File.ReadLines(path))
+                {
+                    if (string.IsNullOrWhiteSpace(linea))
+                        continue;
 
-                string[] valores = linea.Split(';');            // Cambiar símbolo de separación de columnas !!!!!!!!!
-                resultado.Add(new List<string>(valores));
+                    string[] valores = linea.Split(';'); // Cambiar símbolo de separación si hace falta
+                    resultado.Add(new List<string>(valores));
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Error al leer el archivo:\n{ex.Message}",
+                    "Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
             }
 
             return resultado;
@@ -163,6 +174,8 @@ namespace AsterixViewer.Tabs
             return datos;
         }
 
+        // -------------------------------- FUNCIONES UTILIZADAS EN EL CODIGO ---------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------------------------------------------- 
         public void AcondicionarPV()
         {
             int pistadesp = -1;
@@ -339,9 +352,25 @@ namespace AsterixViewer.Tabs
                 {
                     datosAsterix.RemoveAt(i);
                     rmv++;
+                    i--;
                 }
             }
             MessageBox.Show($"Se han eliminado {rmv} filas");
+        }
+
+        private void CalcularPosicionesEstereograficas()
+        {
+            GeoUtils geo = new GeoUtils();
+            CoordinatesWGS84 centro_tma = GeoUtils.LatLonStringBoth2Radians("41:06:56.5600N 01:41:33.0100E", 6368942.808);
+            GeoUtils tma = new GeoUtils(Math.Sqrt(geo.E2), geo.A, centro_tma);
+            double rt = 6356752.3142;
+
+            for (int i = 0; i < datosAsterix.Count; i++)
+            {
+                CoordinatesUVH coords_stereographic = ObtenerCoordsEstereograficas(datosAsterix[i]);
+                datosAsterix[i].Add(coords_stereographic.U.ToString());
+                datosAsterix[i].Add(coords_stereographic.V.ToString());
+            }
         }
 
         /// <summary>
@@ -354,9 +383,9 @@ namespace AsterixViewer.Tabs
             CoordinatesUVH coordsUVH = new CoordinatesUVH();
 
             // Adaptar valores segun fichero que estamos leyendo
-            int LATcol = 4;     // Posición de columna en que se encuentra la variable LAT
-            int LONcol = 5;     // Posición de columna en que se encuentra la variable LON
-            int ALTcol = 6;     // Posición de columna en que se encuentra la variable Alt
+            int LATcol = 4;     // Posición de columna en que se encuentra la variable LAT[º]
+            int LONcol = 5;     // Posición de columna en que se encuentra la variable LON[º]
+            int ALTcol = 6;     // Posición de columna en que se encuentra la variable Alt[m]
 
             // Se definen las variables
             GeoUtils geo = new GeoUtils();
@@ -376,7 +405,7 @@ namespace AsterixViewer.Tabs
             List<string> TI_usados = new List<string>();
             string TI;
 
-            int TIcol = 13;     // Posición de columna en que se encuentra la variable TA
+            int TIcol = 13;     // Posición de columna en que se encuentra la variable TI en csv datosAsterix
             
             for (int i = 0; i < datosAsterix.Count(); i++)
             {
@@ -400,8 +429,8 @@ namespace AsterixViewer.Tabs
         /// </summary>
         private void OrdenarVuelos()
         {
-            int ATOTcol = 10;   // Posición de columna en que se encuentra la variable ATOT
-            int TIcol = 1;      // Posición de columna en que se encuentra la variable TA
+            int ATOTcol = 10;   // Posición de columna en que se encuentra la variable ATOT en excel PlanesVuelo
+            int TIcol = 1;      // Posición de columna en que se encuentra la variable TI en excel PlanesVuelo
 
             List<List<string>> listaPVaux = listaPV;
             listaPVaux.RemoveAt(0);
@@ -426,6 +455,72 @@ namespace AsterixViewer.Tabs
                 }
             }
             vuelosOrdenados = vuelosOrdenadosAux;
+        }
+
+        private double CalcularDistanciaEntrePuntos(Point punto1, Point punto2)
+        {
+            double dx = punto2.X - punto1.X;
+            double dy = punto2.Y - punto1.Y;
+
+            double distancia = Math.Sqrt(dx * dx + dy * dy);
+
+            return distancia;
+        }
+
+        private void CalcularDistanciasDespeguesConsecutivos()
+        {
+            int TIcol = 13;     // Posición de columna en que se encuentra la variable TI en csv datosAsterix
+            int TIMEcol = 3;
+            int Xcol = datosAsterix[1].Count - 2;
+            int Ycol = datosAsterix[1].Count - 1;
+
+            int tiempo_ms_vuelo1;
+            int tiempo_ms_vuelo2;
+
+            for (int i = 0; i < vuelosOrdenados.Count - 1; i++)
+            {
+                Vuelo vuelo1 = vuelosOrdenados[i];
+                Vuelo vuelo2 = vuelosOrdenados[i + 1];
+
+                DistanciasDespeguesConsecutivos distanciasDespeguesConsecutivos = new DistanciasDespeguesConsecutivos();
+                distanciasDespeguesConsecutivos.vuelo1 = vuelo1;
+                distanciasDespeguesConsecutivos.vuelo2 = vuelo2;
+
+                int numberOfIteratedMSGvuelo1 = 0;
+                for (int j = 0; j < datosAsterix.Count - 1; j++)
+                {
+                    if (datosAsterix[j][TIcol] == vuelo1.codigoVuelo)
+                    {
+                        numberOfIteratedMSGvuelo1++;
+                        tiempo_ms_vuelo1 = int.Parse(datosAsterix[j][TIMEcol].Split(':')[1]) * 60000 + int.Parse(datosAsterix[j][TIMEcol].Split(':')[2]) * 1000 + int.Parse(datosAsterix[j][TIMEcol].Split(':')[3]);
+
+                        // Iterar sobre los siguientes N vuelos para encontrar la detección simultanea del vuelo2 (N = 5 arbitrario)
+                        for (int j2 = j + 1; j2 < Math.Min(j + 5, datosAsterix.Count); j2++)   
+                        {
+                            if (datosAsterix[j2][TIcol] == vuelo2.codigoVuelo)
+                            {
+                                tiempo_ms_vuelo2 = int.Parse(datosAsterix[j2][TIMEcol].Split(':')[1]) * 60000 + int.Parse(datosAsterix[j2][TIMEcol].Split(':')[2]) * 1000 + int.Parse(datosAsterix[j2][TIMEcol].Split(':')[3]);
+
+                                if (Math.Abs(tiempo_ms_vuelo2 - tiempo_ms_vuelo1) < 3000)
+                                {
+                                    Point posVuelo1 = new Point(Convert.ToDouble(datosAsterix[j][Xcol]), Convert.ToDouble(datosAsterix[j][Ycol]));
+                                    Point posVuelo2 = new Point(Convert.ToDouble(datosAsterix[j2][Xcol]), Convert.ToDouble(datosAsterix[j2][Ycol]));
+                                    double distance = CalcularDistanciaEntrePuntos(posVuelo1, posVuelo2);
+
+                                    distanciasDespeguesConsecutivos.listaDistancias.Add(distance.ToString());
+                                    distanciasDespeguesConsecutivos.listaTiemposVuelo1.Add(datosAsterix[j][3]);
+                                    distanciasDespeguesConsecutivos.listaTiemposVuelo2.Add(datosAsterix[j2][3]);
+                                }
+                                break;
+                            }
+                        }
+                    }
+
+                    if (numberOfIteratedMSGvuelo1 >= vuelo1.mensajesVuelo.Count) break;
+                }
+
+                listaConjuntosDistanciasDespeguesConsecutivos.Add(distanciasDespeguesConsecutivos);
+            }
         }
 
         // -------------------------------- FUNCIONES PARA EXPORTAR DATOS EN FORMATO CSV ----------------------------------------------------------------
@@ -502,6 +597,59 @@ namespace AsterixViewer.Tabs
                         foreach (var fila in listaPV)
                         {
                             writer.WriteLine(string.Join(";", fila));
+                        }
+                    }
+
+                    // ✅ Confirmar al usuario
+                    MessageBox.Show(
+                        $"Archivo exportado correctamente:\n{filePath}",
+                        "Exportación completada",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information
+                    );
+                }
+                else
+                {
+                    MessageBox.Show("Exportación cancelada por el usuario.");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Error al guardar el archivo:\n{ex.Message}",
+                    "Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
+            }
+        }
+
+        private void GuardarDistDESPConsecutivos_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var saveFileDialog = new SaveFileDialog
+                {
+                    Title = "Guardar CSV de Distancias Vuelos Consecutivos",
+                    Filter = "Archivos CSV (*.xlsx)|*.csv",
+                    FileName = "Consecutive Distances.csv",
+                    DefaultExt = ".csv"
+                };
+
+                if (saveFileDialog.ShowDialog() == true)
+                {
+                    var filePath = saveFileDialog.FileName;
+
+                    // ✍️ Escribir el archivo (CSV con extensión XLSX)
+                    using (var writer = new StreamWriter(filePath, false, Encoding.UTF8))
+                    {
+                        foreach (var conjunto in listaConjuntosDistanciasDespeguesConsecutivos)
+                        {
+                            writer.WriteLine("Vuelos: " + conjunto.vuelo1.codigoVuelo + ";" + conjunto.vuelo2.codigoVuelo);
+                            writer.WriteLine("Distancias: ;" + string.Join(";", conjunto.listaDistancias));
+                            writer.WriteLine("Tiempos detección vuelo1: ;" + string.Join(";", conjunto.listaTiemposVuelo1));
+                            writer.WriteLine("Tiempos detección vuelo2: ;" + string.Join(";", conjunto.listaTiemposVuelo2));
+                            writer.WriteLine();
                         }
                     }
 

@@ -10,15 +10,15 @@
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="200"></ColumnDefinition>
-            <ColumnDefinition Width="Auto"></ColumnDefinition>
+            <ColumnDefinition Width="Auto" MinWidth="0"></ColumnDefinition>
         </Grid.ColumnDefinitions>
         <StackPanel Grid.Column="0">
             <Button Content="Cargar Datos Asterix" Click="DatosAsterix_Click"></Button>
             <Button Content="Cargar Planes de Vuelo" Click="Planvuelo_click"></Button>
             <Button Content="Guardar MSG Actualizados" Click="GuardarMSG_Asterix_Click"/>
             <Button Content="Guardar PV Actualizados" Click="GuardarMSG_PV_Click"/>
-            <Button Content="Calcular distancia entre despegues" Click="CalcularDistancia_Click"/>
             <Button Content="PruebasDEBUG" Click="PruebasDEBUG_Click"/>
+            <Button Content="Guardar CSV Distancias Despegues Consecutivos" Click="GuardarDistDESPConsecutivos_Click"/>
         </StackPanel>
     </Grid>
 </UserControl>
