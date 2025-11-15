@@ -49,6 +49,8 @@ namespace AsterixViewer.Tabs
                 return false;
             if (msg.Mode3A == 4095 && !(TransponderFijoFilter?.IsChecked ?? true))
                 return false;
+            if (msg.targetReportDescriptor021?.GBS == "Set" && !(EliminarSuelo?.IsChecked ?? true))
+                return false;
 
             if (BlancoPuroFilter?.IsChecked ?? false)
             {

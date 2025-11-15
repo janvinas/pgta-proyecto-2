@@ -264,7 +264,7 @@ namespace AsterixViewer.AsterixMap
                 var messages = item.Value;
 
                 var msg021 = FindMessage(messages.Where(m => m.Cat == CAT.CAT021).ToList(), dataStore.ReplayTime);
-                if (msg021 != null && msg021.Latitude.HasValue && msg021.Longitude.HasValue && dataStore.ReplayTime - msg021.TimeOfDay < 10)
+                if (msg021 != null && msg021.Latitude.HasValue && msg021.Longitude.HasValue && msg021.targetReportDescriptor021?.GBS != "Set" && dataStore.ReplayTime - msg021.TimeOfDay < 10)
                 {
                     string key = $"{flightId}_CAT021";
                     var pos = new MapPoint(msg021.Longitude.Value, msg021.Latitude.Value, SpatialReferences.Wgs84);
@@ -284,7 +284,6 @@ namespace AsterixViewer.AsterixMap
                     }
                 }
 
-                // 🔵 Buscar mensaje de otra categoría (por ejemplo CAT048)
                 var msgOther = FindMessage(messages.Where(m => m.Cat != CAT.CAT021).ToList(), dataStore.ReplayTime);
                 if (msgOther != null && msgOther.Latitude.HasValue && msgOther.Longitude.HasValue && dataStore.ReplayTime - msgOther.TimeOfDay < 10)
                 {

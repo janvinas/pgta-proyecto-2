@@ -48,7 +48,7 @@ namespace AsterixParser
         public void DataItem2(ref int k, byte[] body)
         {
             Console.WriteLine("(DF-2) Target Report Descriptor");
-
+            TargetReportDescriptor021 targetReportDescriptor021 = new TargetReportDescriptor021();
             List<string> TargetReport = [];
 
             // --- Primary subfield ---
@@ -60,7 +60,7 @@ namespace AsterixParser
             string RC = (primary >> 2 & 1) == 1 ? "Range Check passed, CPR validation pending" : "Default"; // Range Check
             string RAB = (primary >> 1 & 1) == 1 ? "Report from field monitor (fixed transponder)" : "Report from target transponder"; // Report Type
             bool FX = (primary & 1) == 1;
-
+            
             string ATP_VAL;
             switch (ATP)
             {
@@ -72,6 +72,7 @@ namespace AsterixParser
             }
 
             TargetReport.Add(ATP_VAL);
+            targetReportDescriptor021.ATP_VAL = ATP_VAL;
 
             string ARC_VAL;
             switch (ARC)
@@ -84,8 +85,11 @@ namespace AsterixParser
             }
 
             TargetReport.Add(ARC_VAL);
+            targetReportDescriptor021.ARC_VAL = ARC_VAL;
             TargetReport.Add(RC);
+            targetReportDescriptor021.RC = RC;
             TargetReport.Add(RAB);
+            targetReportDescriptor021.RAB = RAB;
 
             Console.WriteLine($"Address Type: {ATP_VAL}");
             Console.WriteLine($"Altitude Reporting Capability: {ARC_VAL}");
@@ -105,10 +109,16 @@ namespace AsterixParser
                 string SAA = (ext1 >> 3 & 1) == 1 ? "Equipment not capable" : "Equipment capable";
 
                 TargetReport.Add(DCR);
+                targetReportDescriptor021.DCR = DCR;
                 TargetReport.Add(GBS);
+                targetReportDescriptor021.GBS = GBS;
                 TargetReport.Add(SIM);
+                targetReportDescriptor021.SIM = SIM;
                 TargetReport.Add(TST);
+                targetReportDescriptor021.TST = TST;
                 TargetReport.Add(SAA);
+                targetReportDescriptor021.SAA = SAA;
+
 
                 int CL = (ext1 >> 1) & 0b11;
                 string CL_VAL;
@@ -122,6 +132,7 @@ namespace AsterixParser
                 }
 
                 TargetReport.Add(CL_VAL);
+                targetReportDescriptor021.CL_VAL = CL_VAL;
 
                 Console.WriteLine($"Differential Correction: {DCR}");
                 Console.WriteLine($"Ground Bit Setting: {GBS}");
@@ -145,10 +156,15 @@ namespace AsterixParser
                     string RCF = (ext2 >> 1 & 1) == 1 ? "Failed" : "Default";
 
                     TargetReport.Add(IPC);
+                    targetReportDescriptor021.ICP = IPC;
                     TargetReport.Add(NOGO);
+                    targetReportDescriptor021.NOGO = NOGO;
                     TargetReport.Add(CPR);
+                    targetReportDescriptor021.CPR = CPR;
                     TargetReport.Add(LDPJ);
+                    targetReportDescriptor021.LDPJ = LDPJ;
                     TargetReport.Add(RCF);
+                    targetReportDescriptor021.RCF = RCF;
 
                     Console.WriteLine($"  Independent Position Check: {IPC}");
                     Console.WriteLine($"  No-go Bit Status: {NOGO}");

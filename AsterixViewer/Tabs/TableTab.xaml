@@ -25,6 +25,7 @@
                 <MenuItem x:Name="Cat048Filter" Header="CAT048" IsCheckable="True" IsChecked="True" Click="OnFilterChanged"/>
                 <MenuItem x:Name="BlancoPuroFilter" Header="Blanco Puro" IsCheckable="True" IsChecked="False" Click="OnFilterChanged"/>
                 <MenuItem x:Name="TransponderFijoFilter" Header="Transponder Fijo" IsCheckable="True" IsChecked="True" Click="OnFilterChanged"/>
+                <MenuItem x:Name="EliminarSuelo" Header="Eliminar 'On Ground'" IsCheckable="True" IsChecked="False" Click="OnFilterChanged"/>
             </MenuItem>
             <MenuItem Header="Exportar" Click="Exportar_Click"/>
         </Menu>

@@ -104,7 +104,27 @@ namespace AsterixParser
         public Boolean garbledCode = garbledCode;
         public Boolean codeNotValidated = codeNotValidated;
     }
+    public class TargetReportDescriptor021
+    {
+        public string RC { get; set; }
+        public string RAB { get; set; }
+        public string ATP_VAL { get; set; }
+        public string ARC_VAL { get;set; }
 
+        public string DCR { get; set;}
+        public string GBS { get; set;}
+        public string SIM { get; set;}
+        public string TST { get; set;}
+        public string SAA { get; set;}
+        public string CL_VAL { get; set;}
+
+        public string ICP { get; set;}
+        public string NOGO { get; set; }
+        public string CPR { get; set;}
+        public string LDPJ { get; set;}
+        public string RCF { get; set;}
+
+    }
     public class AsterixMessage
     {
         public CAT Cat { get; set; }
@@ -113,6 +133,7 @@ namespace AsterixParser
         public double? TimeOfDay { get; set; } // DI2 CAT48 y DI12 CAT21
         public List<string>? TargetReportDescriptor048 { get; set; } // DI3 I048/20
         public List<string>? TargetReportDescriptor021 { get; set; } // DI2 I021/40
+        public TargetReportDescriptor021? targetReportDescriptor021 { get; set; }
         public double? Distance { get; set; } // DI4 rho
         public double? Azimuth { get; set; } // DI4 theta
         public ushort? Mode3A { get; set; } // DI5
