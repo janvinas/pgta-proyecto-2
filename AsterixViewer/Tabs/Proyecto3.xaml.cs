@@ -91,6 +91,16 @@ namespace AsterixViewer.Tabs
             }
         }
 
+        public class ClasificacionAeronavesLoA
+        {
+            public List<string> HP = new List<string>();
+            public List<string> NR = new List<string>();
+            public List<string> NRplus = new List<string>();
+            public List<string> NRminus = new List<string>();
+            public List<string> LP = new List<string>();
+        }
+        ClasificacionAeronavesLoA clasificacionAeronavesLoA = new ClasificacionAeronavesLoA();
+
         public Proyecto3()
         {
             InitializeComponent();
@@ -129,6 +139,12 @@ namespace AsterixViewer.Tabs
             AcondicionarPV();
             FiltroDeparturesLEBL();
             CalcularDistanciasDespeguesConsecutivos();
+        }
+
+        private void ClasificacionAeronaves_Click(object sender, RoutedEventArgs e)
+        {
+            // Lee archivo excel de clasificación aeronaves
+            LeerClasificacionAeronaves();
         }
 
         private void PruebasDEBUG_Click(object sender, RoutedEventArgs e)
@@ -209,6 +225,76 @@ namespace AsterixViewer.Tabs
             }
 
             return datos;
+        }
+
+        private void LeerClasificacionAeronaves()
+        {
+            try
+            {
+                var dialog = new Microsoft.Win32.OpenFileDialog
+                {
+                    Filter = "Archivos Excel (*.xlsx;*.xls)|*.xlsx;*.xls|Todos los archivos (*.*)|*.*"
+                };
+
+                if (dialog.ShowDialog() != true)
+                    return;
+
+                string rutaExcel = dialog.FileName;
+
+                // ExcelDataReader necesita este registro para archivos .xlsx
+                System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
+
+                var datos = new List<List<string>>();
+
+                using (var stream = File.Open(rutaExcel, FileMode.Open, FileAccess.Read))
+                using (var reader = ExcelReaderFactory.CreateReader(stream))
+                {
+                    // Leer el contenido como DataSet
+                    var dataSet = reader.AsDataSet();
+
+                    // Tomamos la primera hoja
+                    var tabla = dataSet.Tables[0];
+
+                    for (int i = 0; i < tabla.Rows.Count; i++)
+                    {
+                        var fila = tabla.Rows[i];
+
+                        // Si todas las columnas de interés están vacías, paramos
+                        if (fila[0] == DBNull.Value && fila[1] == DBNull.Value &&
+                            fila[2] == DBNull.Value && fila[3] == DBNull.Value &&
+                            fila[4] == DBNull.Value)
+                            break;
+
+                        // Añadimos solo si hay datos, evitando string vacío
+                        string valor;
+
+                        valor = fila[0]?.ToString();
+                        if (!string.IsNullOrWhiteSpace(valor)) clasificacionAeronavesLoA.HP.Add(valor);
+
+                        valor = fila[1]?.ToString();
+                        if (!string.IsNullOrWhiteSpace(valor)) clasificacionAeronavesLoA.NR.Add(valor);
+
+                        valor = fila[2]?.ToString();
+                        if (!string.IsNullOrWhiteSpace(valor)) clasificacionAeronavesLoA.NRplus.Add(valor);
+
+                        valor = fila[3]?.ToString();
+                        if (!string.IsNullOrWhiteSpace(valor)) clasificacionAeronavesLoA.NRminus.Add(valor);
+
+                        valor = fila[4]?.ToString();
+                        if (!string.IsNullOrWhiteSpace(valor)) clasificacionAeronavesLoA.LP.Add(valor);
+                    }
+                }
+            }
+
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Error al leer el archivo:\n{ex.Message}",
+                    "Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
+            }
         }
 
         // -------------------------------- FUNCIONES UTILIZADAS EN EL CODIGO ---------------------------------------------------------------------------

@@ -15,6 +15,7 @@
         <StackPanel Grid.Column="0">
             <Button Content="Cargar Datos Asterix" Click="DatosAsterix_Click"></Button>
             <Button Content="Cargar Planes de Vuelo" Click="Planvuelo_click"></Button>
+            <Button Content="Cargar Clasificacion Aeronaves" Click="ClasificacionAeronaves_Click"/>
             <Button Content="Guardar MSG Actualizados" Click="GuardarMSG_Asterix_Click"/>
             <Button Content="Guardar PV Actualizados" Click="GuardarMSG_PV_Click"/>
             <Button Content="PruebasDEBUG" Click="PruebasDEBUG_Click"/>
