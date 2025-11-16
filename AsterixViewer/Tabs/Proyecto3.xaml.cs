@@ -44,6 +44,9 @@ namespace AsterixViewer.Tabs
             public string horaPV { get; set; }
             public string estela { get; set; }
             public string pistadesp {  get; set; }
+            public string tipo_aeronave { get; set; }
+            public string sid { get; set; }
+            public string motorizacion { get; set; }
             public List<List<string>> mensajesVuelo { get; set; } = new List<List<string>>();
         }
 
@@ -550,6 +553,8 @@ namespace AsterixViewer.Tabs
                         { 
                             vuelo.estela = listaPV[j][7];
                             vuelo.pistadesp = listaPV[j][11];
+                            vuelo.tipo_aeronave = listaPV[j][6];
+                            vuelo.sid = listaPV[j][9];
                         }
                         
                     }
@@ -834,15 +839,15 @@ namespace AsterixViewer.Tabs
                         writer2.WriteLine("Pareja de callsigns;Hora de activación PV;ToD zona TWR / Distancia zona TWR;ToD mínima distancia zona TMA / Mínima distancia zona TMA;Inc. Radar TMA/TWR;Inc Estela TMA/TWR;Inc LoA, Min distancia según LoA, Misma SID/Distinta SID, Clasif. Estela y Motor de la pareja, SIDs pareja, Modelo Aeronaves;Runway DEP");
                         foreach (var conjunto in listaConjuntosDistanciasDespeguesConsecutivos)
                         {
-                            SeparacionesLoA LoA = new SeparacionesLoA();
                             int minimadistanciaTMA = 1;
+                            AñadirMotorizacion();
                             for (int i = 1; i < conjunto.listaDistancias.Count; i++)
                             {
                                 if (Convert.ToDouble(conjunto.listaDistancias[i]) < Convert.ToDouble(conjunto.listaDistancias[i - 1])) minimadistanciaTMA = i;
                             }
                             try
                             {
-                                writer2.WriteLine(conjunto.vuelo1.codigoVuelo + "//" + conjunto.vuelo2.codigoVuelo + ";" + conjunto.vuelo1.horaPV + ";" + conjunto.listaTiemposVuelo1[0] + "/" + conjunto.listaDistancias[0] + ";" + conjunto.listaTiemposVuelo1[minimadistanciaTMA] + "/" + conjunto.listaDistancias[minimadistanciaTMA] + ";" + IncumplimientoRadar(conjunto.listaDistancias[minimadistanciaTMA]) + "/" + IncumplimientoRadar(conjunto.listaDistancias[0]) + ";" + IncumplimientoEstela(conjunto, conjunto.listaDistancias[minimadistanciaTMA]) + "/" + IncumplimientoEstela(conjunto, conjunto.listaDistancias[0]) + ";" + ";" + conjunto.vuelo1.pistadesp);
+                                writer2.WriteLine(conjunto.vuelo1.codigoVuelo + "//" + conjunto.vuelo2.codigoVuelo + ";" + conjunto.vuelo2.horaPV + ";" + conjunto.listaTiemposVuelo1[0] + "/" + conjunto.listaDistancias[0] + ";" + conjunto.listaTiemposVuelo1[minimadistanciaTMA] + "/" + conjunto.listaDistancias[minimadistanciaTMA] + ";" + IncumplimientoRadar(conjunto.listaDistancias[minimadistanciaTMA]) + "/" + IncumplimientoRadar(conjunto.listaDistancias[0]) + ";" + IncumplimientoEstela(conjunto, conjunto.listaDistancias[minimadistanciaTMA]) + "/" + IncumplimientoEstela(conjunto, conjunto.listaDistancias[0]) + ";" + IncumplimientoLoA(conjunto, conjunto.listaDistancias[0]) + ";" + conjunto.vuelo2.pistadesp);
                             }
                             catch
                             {
@@ -909,6 +914,56 @@ namespace AsterixViewer.Tabs
                 else return "False";
             }
             else return "N/A";
+        }
+
+        private void AñadirMotorizacion()
+        {
+            for (int i = 0; i < vuelosOrdenados.Count; i++) {
+                if (clasificacionAeronavesLoA.HP.Contains(vuelosOrdenados[i].tipo_aeronave)) vuelosOrdenados[i].motorizacion = "HP";
+                else if (clasificacionAeronavesLoA.NR.Contains(vuelosOrdenados[i].tipo_aeronave)) vuelosOrdenados[i].motorizacion = "NR";
+                else if (clasificacionAeronavesLoA.LP.Contains(vuelosOrdenados[i].tipo_aeronave)) vuelosOrdenados[i].motorizacion = "LP";
+                else if (clasificacionAeronavesLoA.NRminus.Contains(vuelosOrdenados[i].tipo_aeronave)) vuelosOrdenados[i].motorizacion = "NR-";
+                else if (clasificacionAeronavesLoA.NRplus.Contains(vuelosOrdenados[i].tipo_aeronave)) vuelosOrdenados[i].motorizacion = "NR+";
+                else vuelosOrdenados[i].motorizacion = "R";
+            }
+        }
+
+        private bool IncumplimientoLoA(DistanciasDespeguesConsecutivos conjunto, string distancia)
+        {
+            SeparacionesLoA LoA = new SeparacionesLoA();
+            List<string> g1 = new List<string>(["OLOXO", "NATPI", "MOPAS", "GRAUS", "LOBAR", "MAMUK", "REBUL", "VIBOK", "DUQQI"]);
+            List<string> g2 = new List<string>(["DUNES", "LARPA", "LOTOS", "SENIA"]);
+            List<string> g3 = new List<string>(["DALIN", "AGENA", "DIPES"]);
+            string misma = "distinta";
+
+            string sid1 = conjunto.vuelo1.sid[..^2];
+            string sid2 = conjunto.vuelo2.sid[..^2];
+
+            if (g1.Contains(sid1))
+            {
+                if (g1.Contains(sid2)) misma = "misma";
+                else if (g2.Contains(sid2)) misma = "distinta";
+                else if (g3.Contains(sid2)) misma = "distinta";
+                else misma = "misma";
+            }
+            else if (g2.Contains(sid1))
+            {
+                if (g2.Contains(sid2)) misma = "misma";
+                else if (g1.Contains(sid2)) misma = "distinta";
+                else if (g3.Contains(sid2)) misma = "distinta";
+                else misma = "misma";
+            }
+            else if (g3.Contains(sid1))
+            {
+                if (g3.Contains(sid2)) misma = "misma";
+                else if (g1.Contains(sid2)) misma = "distinta";
+                else if (g2.Contains(sid2)) misma = "distinta";
+                else misma = "misma";
+            }
+            else misma = "misma";
+
+            if (Convert.ToDouble(distancia) < LoA.ObtenerValor(conjunto.vuelo1.motorizacion, conjunto.vuelo2.motorizacion, misma)) return true;
+            else return false;
         }
     }
 }
