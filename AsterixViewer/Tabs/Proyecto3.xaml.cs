@@ -30,6 +30,9 @@ namespace AsterixViewer.Tabs
     /// </summary>
     public partial class Proyecto3 : UserControl
     {
+        // -------------------------------- DEFINICIÓN DE VARIABLES GLOBALES ----------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------------------------------------------- 
+
         List<List<string>> datosAsterix = new List<List<string>>();     // Listado de msg Asterix en formato filas de variables
         List<List<string>> listaPV = new List<List<string>>();          // Listado de planes de Vuelo
         
@@ -52,7 +55,41 @@ namespace AsterixViewer.Tabs
         }
 
         // Lista de conjuntos de distancias de despegues consecutivos
-        List<DistanciasDespeguesConsecutivos> listaConjuntosDistanciasDespeguesConsecutivos = new List<DistanciasDespeguesConsecutivos>();       
+        List<DistanciasDespeguesConsecutivos> listaConjuntosDistanciasDespeguesConsecutivos = new List<DistanciasDespeguesConsecutivos>();
+
+        // Tabla que devuelve la minima separación entre dos vuelos según LoA
+        public static class SeparacionesLoA
+        {
+            // Declaración válida fuera de métodos
+            private static readonly Dictionary<(string, string, string), int> LoA = new Dictionary<(string, string, string), int>
+            {
+                { ("HP", "HP", "misma"),    5 },  { ("HP", "R", "misma"),    5 },  { ("HP", "LP", "misma"),    5 },  { ("HP", "NR+", "misma"),    3 },  { ("HP", "NR-", "misma"),    3 },  { ("HP", "NR", "misma"),    3 },
+                { ("HP", "HP", "distinta"), 3 },  { ("HP", "R", "distinta"), 3 },  { ("HP", "LP", "distinta"), 3 },  { ("HP", "NR+", "distinta"), 3 },  { ("HP", "NR-", "distinta"), 3 },  { ("HP", "NR", "distinta"), 3 },
+
+                { ("R", "HP", "misma"),    7 },   { ("R", "R", "misma"),    5 },   { ("R", "LP", "misma"),    5 },   { ("R", "NR+", "misma"),    3 },   { ("R", "NR-", "misma"),    3 },   { ("R", "NR", "misma"),    3 },
+                { ("R", "HP", "distinta"), 5 },   { ("R", "R", "distinta"), 3 },   { ("R", "LP", "distinta"), 3 },   { ("R", "NR+", "distinta"), 3 },   { ("R", "NR-", "distinta"), 3 },   { ("R", "NR", "distinta"), 3 },
+
+                { ("LP", "HP", "misma"),    8 },  { ("LP", "R", "misma"),    6 },  { ("LP", "LP", "misma"),    5 },  { ("LP", "NR+", "misma"),    3 },  { ("LP", "NR-", "misma"),    3 },  { ("LP", "NR", "misma"),    3 },
+                { ("LP", "HP", "distinta"), 6 },  { ("LP", "R", "distinta"), 4 },  { ("LP", "LP", "distinta"), 3 },  { ("LP", "NR+", "distinta"), 3 },  { ("LP", "NR-", "distinta"), 3 },  { ("LP", "NR", "distinta"), 3 },
+
+                { ("NR+", "HP", "misma"),   11 }, { ("NR+", "R", "misma"),    9 }, { ("NR+", "LP", "misma"),    9 }, { ("NR+", "NR+", "misma"),    5 }, { ("NR+", "NR-", "misma"),    3 }, { ("NR+", "NR", "misma"),    3 },
+                { ("NR+", "HP", "distinta"), 8 }, { ("NR+", "R", "distinta"), 6 }, { ("NR+", "LP", "distinta"), 6 }, { ("NR+", "NR+", "distinta"), 3 }, { ("NR+", "NR-", "distinta"), 3 }, { ("NR+", "NR", "distinta"), 3 },
+
+                { ("NR-", "HP", "misma"),    9 }, { ("NR-", "R", "misma"),    9 }, { ("NR-", "LP", "misma"),    9 }, { ("NR-", "NR+", "misma"),    9 }, { ("NR-", "NR-", "misma"),    5 }, { ("NR-", "NR", "misma"),    3 },
+                { ("NR-", "HP", "distinta"), 9 }, { ("NR-", "R", "distinta"), 9 }, { ("NR-", "LP", "distinta"), 9 }, { ("NR-", "NR+", "distinta"), 6 }, { ("NR-", "NR-", "distinta"), 3 }, { ("NR-", "NR", "distinta"), 3 },
+
+                { ("NR", "HP", "misma"),    9 },  { ("NR", "R", "misma"),    9 },  { ("NR", "LP", "misma"),    9 },  { ("NR", "NR+", "misma"),    9 },  { ("NR", "NR-", "misma"),    9 },  { ("NR", "NR", "misma"),    5 },
+                { ("NR", "HP", "distinta"), 9 },  { ("NR", "R", "distinta"), 9 },  { ("NR", "LP", "distinta"), 9 },  { ("NR", "NR+", "distinta"), 9 },  { ("NR", "NR-", "distinta"), 9 },  { ("NR", "NR", "distinta"), 3 }
+            };
+
+            public static int ObtenerValor(string perf1, string perf2, string sid)
+            {
+                int separacion_NM = LoA[(perf1, perf2, sid)];
+                int separacion_m = separacion_NM * 1852;
+
+                return separacion_m;
+            }
+        }
 
         public Proyecto3()
         {
