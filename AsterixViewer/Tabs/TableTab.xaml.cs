@@ -31,11 +31,14 @@ namespace AsterixViewer.Tabs
             view = CollectionViewSource.GetDefaultView(dataStore.Messages);
             if (view != null)
             {
-                view.Filter = FilterMessages;
+                dataStore.GlobalFilter = FilterMessages;
+                view.Filter = dataStore.GlobalFilter;
                 DataGrid.ItemsSource = view;
             }
         }
 
+
+        // EN: TableTab.xaml.cs
 
         private bool FilterMessages(object obj)
         {
@@ -44,18 +47,28 @@ namespace AsterixViewer.Tabs
 
             // --- FILTROS EXISTENTES ---
             if (msg.Cat == CAT.CAT021 && !(Cat021Filter?.IsChecked ?? true))
+            {
                 return false;
+            }
             if (msg.Cat == CAT.CAT048 && !(Cat048Filter?.IsChecked ?? true))
+            {
                 return false;
+            }
             if (msg.Mode3A == 4095 && !(TransponderFijoFilter?.IsChecked ?? true))
+            {
                 return false;
+            }
             if (msg.targetReportDescriptor021?.GBS == "Set" && !(EliminarSuelo?.IsChecked ?? true))
+            {
                 return false;
+            }
 
             if (BlancoPuroFilter?.IsChecked ?? false)
             {
                 if (msg.TargetReportDescriptor048 == null || msg.TargetReportDescriptor048.Count == 0)
+                {
                     return false;
+                }
 
                 var first = msg.TargetReportDescriptor048[0];
                 if (string.IsNullOrEmpty(first) ||
@@ -80,11 +93,11 @@ namespace AsterixViewer.Tabs
                 {
                     if (msg.Latitude < latMin || msg.Latitude > latMax ||
                         msg.Longitude < lonMin || msg.Longitude > lonMax)
+                    {
                         return false;
+                    }
                 }
             }
-
-
 
             return true;
         }
@@ -96,14 +109,21 @@ namespace AsterixViewer.Tabs
             LonMinBox.Text = "";
             LonMaxBox.Text = "";
             DataGrid.Items.Filter = FilterMessages;
+            if (view != null)
+            {
+                view.Refresh();
+            }
         }
 
 
         private void OnFilterChanged(object sender, RoutedEventArgs e)
         {
-            if (DataGrid.ItemsSource is ICollectionView view)
+            if (view != null)
+            {
                 view.Refresh();
+            }
         }
+
 
 
         private void OnTRDClick(object sender, RoutedEventArgs e)

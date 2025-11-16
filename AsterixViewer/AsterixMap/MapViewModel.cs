@@ -241,6 +241,10 @@ namespace AsterixViewer.AsterixMap
                 planeGraphics.Graphics.Clear();
                 DisplayFlights();
             }
+            else if (e.PropertyName == "FiltersRefreshed") // "FiltersRefreshed" es un ejemplo
+            {
+                DisplayFlights(); // Llama a DisplayFlights para aplicar el filtro
+            }
         }
 
 
@@ -252,9 +256,15 @@ namespace AsterixViewer.AsterixMap
             Map = map;
         }
 
+        // EN: MapViewModel.cs
+
         private void DisplayFlights()
         {
             if (dataStore == null || dataStore.Flights == null) return;
+
+            // --- MODIFICACIÓN 1: Obtener el filtro global ---
+            // Este predicado es el mismo que usa la tabla (el método FilterMessages).
+            var globalFilter = dataStore.GlobalFilter;
 
             var visibleKeys = new HashSet<string>();
 
@@ -264,46 +274,65 @@ namespace AsterixViewer.AsterixMap
                 var messages = item.Value;
 
                 var msg021 = FindMessage(messages.Where(m => m.Cat == CAT.CAT021).ToList(), dataStore.ReplayTime);
-                if (msg021 != null && msg021.Latitude.HasValue && msg021.Longitude.HasValue && msg021.targetReportDescriptor021?.GBS != "Set" && dataStore.ReplayTime - msg021.TimeOfDay < 10)
-                {
-                    string key = $"{flightId}_CAT021";
-                    var pos = new MapPoint(msg021.Longitude.Value, msg021.Latitude.Value, SpatialReferences.Wgs84);
-                    visibleKeys.Add(key);
 
-                    if (mapPoints.TryGetValue(key, out var g))
+                // --- MODIFICACIÓN 2.A: Aplicar el filtro a msg021 ---
+                // Comprobamos si el mensaje existe Y (si el filtro no es nulo O si pasa el filtro)
+                if (msg021 != null && (globalFilter == null || globalFilter(msg021)))
+                {
+                    // El mensaje es válido Y ha pasado el filtro.
+                    // Ahora solo comprobamos la antigüedad y si tiene coordenadas.
+                    // Nota: La comprobación 'GBS != "Set"' se elimina de aquí porque
+                    // ya está incluida en el 'globalFilter' (es el filtro 'EliminarSuelo').
+                    if (msg021.Latitude.HasValue && msg021.Longitude.HasValue && dataStore.ReplayTime - msg021.TimeOfDay < 10)
                     {
-                        g.Geometry = pos;
-                    }
-                    else
-                    {
-                        var sym = new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Circle, System.Drawing.Color.Chocolate, 5);
-                        var graphic = new Graphic(pos, sym);
-                        graphic.Attributes["Key"] = key;
-                        planeGraphics.Graphics.Add(graphic);
-                        mapPoints[key] = graphic;
+                        string key = $"{flightId}_CAT021";
+                        var pos = new MapPoint(msg021.Longitude.Value, msg021.Latitude.Value, SpatialReferences.Wgs84);
+                        visibleKeys.Add(key);
+
+                        if (mapPoints.TryGetValue(key, out var g))
+                        {
+                            g.Geometry = pos;
+                        }
+                        else
+                        {
+                            var sym = new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Circle, System.Drawing.Color.Chocolate, 5);
+                            var graphic = new Graphic(pos, sym);
+                            graphic.Attributes["Key"] = key;
+                            planeGraphics.Graphics.Add(graphic);
+                            mapPoints[key] = graphic;
+                        }
                     }
                 }
+                // --- FIN MODIFICACIÓN 2.A ---
 
                 var msgOther = FindMessage(messages.Where(m => m.Cat != CAT.CAT021).ToList(), dataStore.ReplayTime);
-                if (msgOther != null && msgOther.Latitude.HasValue && msgOther.Longitude.HasValue && dataStore.ReplayTime - msgOther.TimeOfDay < 10)
-                {
-                    string key = $"{flightId}_OTHER";
-                    var pos = new MapPoint(msgOther.Longitude.Value, msgOther.Latitude.Value, SpatialReferences.Wgs84);
-                    visibleKeys.Add(key);
 
-                    if (mapPoints.TryGetValue(key, out var g))
+                // --- MODIFICACIÓN 2.B: Aplicar el filtro a msgOther ---
+                // Hacemos la misma comprobación para los otros tipos de mensajes
+                if (msgOther != null && (globalFilter == null || globalFilter(msgOther)))
+                {
+                    // Pasa el filtro, ahora comprobar antigüedad y coordenadas
+                    if (msgOther.Latitude.HasValue && msgOther.Longitude.HasValue && dataStore.ReplayTime - msgOther.TimeOfDay < 10)
                     {
-                        g.Geometry = pos;
-                    }
-                    else
-                    {
-                        var sym = new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Circle, System.Drawing.Color.BlueViolet, 5);
-                        var graphic = new Graphic(pos, sym);
-                        graphic.Attributes["Key"] = key;
-                        planeGraphics.Graphics.Add(graphic);
-                        mapPoints[key] = graphic;
+                        string key = $"{flightId}_OTHER";
+                        var pos = new MapPoint(msgOther.Longitude.Value, msgOther.Latitude.Value, SpatialReferences.Wgs84);
+                        visibleKeys.Add(key);
+
+                        if (mapPoints.TryGetValue(key, out var g))
+                        {
+                            g.Geometry = pos;
+                        }
+                        else
+                        {
+                            var sym = new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Circle, System.Drawing.Color.BlueViolet, 5);
+                            var graphic = new Graphic(pos, sym);
+                            graphic.Attributes["Key"] = key;
+                            planeGraphics.Graphics.Add(graphic);
+                            mapPoints[key] = graphic;
+                        }
                     }
                 }
+                // --- FIN MODIFICACIÓN 2.B ---
             }
 
             var toRemove = mapPoints.Keys
@@ -387,7 +416,7 @@ namespace AsterixViewer.AsterixMap
 
             var sb = new StringBuilder();
             sb.AppendLine($"Category: {msg.Cat}");
-            sb.AppendLine($"Category: {msg.Identification}");
+            sb.AppendLine($"Identification: {msg.Identification}");
             sb.AppendLine($"Time: {TimeSpan.FromSeconds(msg.TimeOfDay ?? 0):hh\\:mm\\:ss\\.fff}");
             sb.AppendLine($"Lat: {msg.Latitude:F6}");
             sb.AppendLine($"Lon: {msg.Longitude:F6}");

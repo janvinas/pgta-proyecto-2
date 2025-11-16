@@ -4,11 +4,25 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Windows.Data;
 
 namespace AsterixViewer
 {
     public class DataStore : INotifyPropertyChanged
     {
+        public ICollectionView FilteredMessages { get; private set; }
+        public Predicate<object> GlobalFilter { get; set; }
+        public void RefreshFilters()
+        {
+            if (FilteredMessages != null)
+                FilteredMessages.Refresh();
+        }
+
+        public void InitializeFiltering()
+        {
+            FilteredMessages = CollectionViewSource.GetDefaultView(Messages);
+        }
+
         public event PropertyChangedEventHandler? PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string? name = null)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
