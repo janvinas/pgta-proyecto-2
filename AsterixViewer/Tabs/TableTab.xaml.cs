@@ -1,13 +1,16 @@
 ﻿using AsterixParser;
+using AsterixParser.Utils;
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using Microsoft.Win32;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace AsterixViewer.Tabs
 {
@@ -79,15 +82,17 @@ namespace AsterixViewer.Tabs
                 }
             }
 
+            var c = CultureInfo.GetCultureInfo("es-ES");
+
             // --- Filtro de coordenadas ---
             if (!string.IsNullOrWhiteSpace(LatMinBox.Text) &&
                 !string.IsNullOrWhiteSpace(LatMaxBox.Text) &&
                 !string.IsNullOrWhiteSpace(LonMinBox.Text) &&
                 !string.IsNullOrWhiteSpace(LonMaxBox.Text) &&
-                double.TryParse(LatMinBox.Text, out double latMin) &&
-                double.TryParse(LatMaxBox.Text, out double latMax) &&
-                double.TryParse(LonMinBox.Text, out double lonMin) &&
-                double.TryParse(LonMaxBox.Text, out double lonMax))
+                double.TryParse(LatMinBox.Text, NumberStyles.Any, c, out double latMin) &&
+                double.TryParse(LatMaxBox.Text, NumberStyles.Any, c, out double latMax) &&
+                double.TryParse(LonMinBox.Text, NumberStyles.Any, c, out double lonMin) &&
+                double.TryParse(LonMaxBox.Text, NumberStyles.Any, c, out double lonMax))
             {
                 if (msg.Latitude.HasValue && msg.Longitude.HasValue)
                 {
@@ -321,6 +326,80 @@ namespace AsterixViewer.Tabs
 
         }
 
+        private void ExportarP3_Click(object sender, RoutedEventArgs e)
+        {
+            if (dataStore == null) return;
 
+            try
+            {
+                var messages = dataStore.Messages.Where(FilterMessages);
+
+                var saveFileDialog = new SaveFileDialog
+                {
+                    Title = "Guardar CSV de mensajes ASTERIX",
+                    Filter = "Archivos CSV (*.csv)|*.csv",
+                    FileName = "AsterixExportP3.csv",
+                    DefaultExt = ".csv"
+                };
+                bool? result = saveFileDialog.ShowDialog();
+                if (result == null || !result.Value) return;
+
+                var writer = new StreamWriter(saveFileDialog.FileName);
+
+                writer.WriteLine("CAT;SAC;SIC;Time;LAT;LON;H(m);H(ft);RHO;THETA;Mode3/A;FL;TA;TI;BP;RA;TTA;GS;TAR;TAS;HDG;IAS;MACH;BAR;IVV;TN;GS(kt);HDG;STAT");
+
+                // use the spanish culture to force a comma in the decimal separators
+                var c = CultureInfo.GetCultureInfo("es-ES");
+
+                foreach (AsterixMessage message in messages)
+                {
+                    writer.WriteLine(
+                        $"{message.Cat};" +
+                        $"{message.SAC};" +
+                        $"{message.SIC};" +
+                        $"{TimeSpan.FromSeconds(message.TimeOfDay ?? 0):hh\\:mm\\:ss\\:fff};" +
+
+                        $"{message.Latitude?.ToString(c) ?? "N/A"};" +
+                        $"{message.Longitude?.ToString(c) ?? "N/A"};" +
+                        $"{(message.FlightLevel != null ? (message.FlightLevel.flightLevel * 100 * GeoUtils.FEET2METERS)?.ToString(c) : "N/A")};" +
+                        $"{(message.FlightLevel != null ? (message.FlightLevel.flightLevel * 100)?.ToString(c) : "N/A")};" +
+                        $"{message.Distance?.ToString() ?? "N/A"};" +
+                        $"{message.Azimuth?.ToString() ?? "N/A"};" +
+                        $"{(message.Mode3A!= null ? Convert.ToString(message.Mode3A.Value, 8) : "N/A")};" +
+                        $"{message.FlightLevel?.flightLevel?.ToString(c) ?? "N/A"};" +
+
+                        $"{message.Address?.ToString("X6") ?? "N/A" };" +
+                        $"{message.Identification ?? "N/A"};" +
+
+                        $"{message.BDS?.BARO?.ToString(c) ?? "N/A"};" +
+                        $"{message.BDS?.ROLL?.ToString(c) ?? "N/A"};" +
+                        $"{message.BDS?.TTA?.ToString(c) ?? "N/A"};" +
+                        $"{message.BDS?.GS?.ToString(c) ?? "N/A"};" +
+                        $"{message.BDS?.TAR?.ToString(c) ?? "N/A"};" +
+                        $"{message.BDS?.TAS?.ToString(c) ?? "N/A"};" +
+                        $"{message.BDS?.MH?.ToString(c) ?? "N/A"};" +
+                        $"{message.BDS?.IAS?.ToString(c) ?? "N/A"};" +
+                        $"{message.BDS?.MACH?.ToString(c) ?? "N/A"};" +
+                        $"{message.BDS?.BAROV?.ToString(c) ?? "N/A"};" +
+                        $"{message.BDS?.IVV?.ToString(c) ?? "N/A"};" +
+
+                        $"{message.TrackNum?.ToString(c) ?? "N/A"};" +
+                        $"{message.GS?.ToString(c) ?? "N/A"};" +
+                        $"{message.Heading?.ToString(c) ?? "N/A"};" +
+                        $"{message.I048230?.STAT?.ToString() ?? "N/A"}"
+                        );
+                }
+
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show(
+                    $"Error al guardar el archivo:\n{ex.Message}",
+                    "Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
+            }
+        }
     }
 }

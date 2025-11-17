@@ -8,13 +8,29 @@
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="200"></ColumnDefinition>
-            <ColumnDefinition Width="Auto"></ColumnDefinition>
+            <ColumnDefinition Width="*"></ColumnDefinition>
         </Grid.ColumnDefinitions>
         <StackPanel Grid.Column="0">
             <Button Content="Load File" Click="OpenFile_click"></Button>
             <Button Content="Button3"></Button>
             <ProgressBar x:Name="ProgressBar" Height="10" Minimum="0" Maximum="1"/>
         </StackPanel>
-        <Image Grid.Column="1" Source="/Resources/Welcome_image.jpg" Stretch="Fill"/>
+        <Grid Grid.Column="1">
+            <Image Source="/Resources/Welcome_image.jpg" Stretch="UniformToFill"/>
+
+            <TextBlock Text="ASTERIXParser"
+                   HorizontalAlignment="Right" 
+                   VerticalAlignment="Top" 
+                   Margin="10" 
+                   Foreground="White"
+                   FontSize="64"/>
+
+            <TextBlock Text="PGTA Group 5"
+                   HorizontalAlignment="Right" 
+                   VerticalAlignment="Bottom" 
+                   Margin="10" 
+                   Foreground="White"
+                   FontSize="24"/>
+        </Grid>
     </Grid>
 </UserControl>

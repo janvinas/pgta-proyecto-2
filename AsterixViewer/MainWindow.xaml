@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:AsterixViewer"
         xmlns:tabs="clr-namespace:AsterixViewer.Tabs"
         mc:Ignorable="d"
-        Title="ASTERIX Decoder" Height="450" Width="800">
+        Title="ASTERIX Decoder" Height="450" Width="800" WindowState="Maximized">
     <Window.DataContext>
         <local:MainViewModel/>
     </Window.DataContext>

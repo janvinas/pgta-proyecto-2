@@ -28,18 +28,19 @@
                 <MenuItem x:Name="EliminarSuelo" Header="Eliminar 'On Ground'" IsCheckable="True" IsChecked="False" Click="OnFilterChanged"/>
             </MenuItem>
             <MenuItem Header="Exportar" Click="Exportar_Click"/>
+            <MenuItem Header="Exportar (Formato P3)" Click="ExportarP3_Click"/>
         </Menu>
 
         <Border Grid.Row="0" Background="#f0f0f0" Padding="6" BorderBrush="#ccc" BorderThickness="0,0,0,1">
             <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="5" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <TextBlock Text="Lat. min:" VerticalAlignment="Center" Margin="5,0"/>
-                <TextBox x:Name="LatMinBox" Width="80" Margin="5,0"/>
+                <TextBox x:Name="LatMinBox" Width="80" Margin="5,0" Text="40,9"/>
                 <TextBlock Text="Lat. max:" VerticalAlignment="Center" Margin="5,0"/>
-                <TextBox x:Name="LatMaxBox" Width="80" Margin="5,0"/>
+                <TextBox x:Name="LatMaxBox" Width="80" Margin="5,0" Text="41,7"/>
                 <TextBlock Text="Lon. min:" VerticalAlignment="Center" Margin="5,0"/>
-                <TextBox x:Name="LonMinBox" Width="80" Margin="5,0"/>
+                <TextBox x:Name="LonMinBox" Width="80" Margin="5,0" Text="1,5"/>
                 <TextBlock Text="Lon. max:" VerticalAlignment="Center" Margin="5,0"/>
-                <TextBox x:Name="LonMaxBox" Width="80" Margin="5,0"/>
+                <TextBox x:Name="LonMaxBox" Width="80" Margin="5,0" Text="2,6"/>
                 <Button Content="Aplicar" Click="OnFilterChanged" Margin="10,0"/>
                 <Button Content="Limpiar" Click="OnClearCoordFilter" Margin="5,0"/>
             </StackPanel>
