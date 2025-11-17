@@ -188,6 +188,7 @@ namespace AsterixParser
             foreach (string data in TargetReport) Console.WriteLine("· " + data);
 
             message.TargetReportDescriptor021 = TargetReport;
+            message.targetReportDescriptor021 = targetReportDescriptor021;
         }
 
         public static void DataItem3(ref int k, byte[] body)

@@ -55,6 +55,7 @@ namespace AsterixParser
         public string? AIC { get; set; }
         public int? B1A { get; set; }
         public int? B1B { get; set; }
+        public bool? OnGround { get; set; }
     }
 
     public class BDS 

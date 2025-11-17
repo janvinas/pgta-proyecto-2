@@ -62,10 +62,15 @@ namespace AsterixViewer.Tabs
             {
                 return false;
             }
-            if (msg.targetReportDescriptor021?.GBS == "Set" && !(EliminarSuelo?.IsChecked ?? true))
+            if (msg.targetReportDescriptor021?.GBS == "Set" && (EliminarSuelo?.IsChecked ?? false))
             {
                 return false;
             }
+            if(msg.I048230?.OnGround ?? false && (EliminarSuelo?.IsChecked ?? false))
+            {
+                return false;
+            }
+            
 
             if (BlancoPuroFilter?.IsChecked ?? false)
             {

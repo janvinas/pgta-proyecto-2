@@ -910,12 +910,14 @@ namespace AsterixParser
                     break;
                 case 1:
                     STAT = "No alert, no SPI, aircraft on ground";
+                    ch.OnGround = true;
                     break;
                 case 2:
                     STAT = "Alert, no SPI, aircraft airborne";
                     break;
                 case 3:
                     STAT = "Alert, no SPI, aircraft on ground";
+                    ch.OnGround = true;
                     break;
                 case 4:
                     STAT = "Alert, SPI, aircraft airborne or on ground";
