@@ -48,6 +48,10 @@ namespace AsterixViewer.Tabs
         {
             if (obj is not AsterixMessage msg)
                 return false;
+            if (msg.TimeOfDay == null)
+            {
+                return false;
+            }
 
             // --- FILTROS EXISTENTES ---
             if (msg.Cat == CAT.CAT021 && !(Cat021Filter?.IsChecked ?? true))
@@ -344,20 +348,15 @@ namespace AsterixViewer.Tabs
             {
                 return false;
             }
-            if (msg.targetReportDescriptor021?.GBS == "Set")
+            if(msg.BDS?.IAS == 0) 
             {
                 return false;
             }
-
-            if (msg.TargetReportDescriptor048 == null || msg.TargetReportDescriptor048.Count == 0)
+            if (msg.targetReportDescriptor021?.GBS == "Set" && (EliminarSuelo?.IsChecked ?? false))
             {
                 return false;
             }
-
-            var first = msg.TargetReportDescriptor048[0];
-            if (string.IsNullOrEmpty(first) ||
-                (first.IndexOf("PSR", StringComparison.OrdinalIgnoreCase) < 0 &&
-                    first.IndexOf("SSR", StringComparison.OrdinalIgnoreCase) < 0))
+            if (msg.I048230?.OnGround ?? false && (EliminarSuelo?.IsChecked ?? false))
             {
                 return false;
             }
