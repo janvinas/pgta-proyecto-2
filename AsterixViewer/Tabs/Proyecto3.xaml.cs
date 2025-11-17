@@ -865,7 +865,7 @@ namespace AsterixViewer.Tabs
                     // ✍️ Escribir el archivo (CSV con extensión XLSX)
                     using (var writer2 = new StreamWriter(filePath2, false, Encoding.UTF8))
                     {
-                        writer2.WriteLine("Pareja de callsigns;Hora de activación PV;ToD zona TWR / Distancia zona TWR;ToD mínima distancia zona TMA / Mínima distancia zona TMA;Inc. Radar TMA/TWR;Inc Estela TMA/TWR;Inc LoA, Min distancia según LoA, Misma SID/Distinta SID, Clasif. Estela y Motor de la pareja, SIDs pareja, Modelo Aeronaves;Runway DEP");
+                        writer2.WriteLine("Pareja de callsigns;Hora de activación PV;ToD zona TWR;Distancia zona TWR;ToD mínima distancia zona TMA;Mínima distancia zona TMA;Inc. Radar TMA;Inc. Radar TWR;Inc Estela TMA;Inc. Estela TWR;Inc LoA;Min distancia según LoA;Misma SID/Distinta SID;Clasif. Estelas;Motor de la pareja;SIDs pareja;Modelo Aeronaves;Runway DEP");
                         foreach (var conjunto in listaConjuntosDistanciasDespeguesConsecutivos)
                         {
                             int minimadistanciaTMA = 1;
@@ -877,11 +877,14 @@ namespace AsterixViewer.Tabs
                             try
                             {
                                 writer2.WriteLine(conjunto.vuelo1.codigoVuelo + "//" + conjunto.vuelo2.codigoVuelo + ";" + conjunto.vuelo2.horaPV + ";" + 
-                                    conjunto.listaTiemposVuelo1[0] + "/" + conjunto.listaDistancias[0] + ";" + conjunto.listaTiemposVuelo1[minimadistanciaTMA] + "/" + 
-                                    conjunto.listaDistancias[minimadistanciaTMA] + ";" + IncumplimientoRadar(conjunto.listaDistancias[minimadistanciaTMA]) + "/" + 
-                                    IncumplimientoRadar(conjunto.listaDistancias[0]) + ";" + IncumplimientoEstela(conjunto, conjunto.listaDistancias[minimadistanciaTMA]) + "/" + 
-                                    IncumplimientoEstela(conjunto, conjunto.listaDistancias[0]) + ";" + IncumplimientoLoA(conjunto, conjunto.listaDistancias[0]) + ";" + 
-                                    conjunto.vuelo2.pistadesp);
+                                    conjunto.listaTiemposVuelo2[0] + ";" + Convert.ToString(Convert.ToDouble(conjunto.listaDistancias[0])/1852) + ";" + conjunto.listaTiemposVuelo2[minimadistanciaTMA] + ";" + 
+                                    Convert.ToString(Convert.ToDouble(conjunto.listaDistancias[minimadistanciaTMA])/1852) + ";" + IncumplimientoRadar(conjunto.listaDistancias[minimadistanciaTMA]) + ";" + 
+                                    IncumplimientoRadar(conjunto.listaDistancias[0]) + ";" + IncumplimientoEstela(conjunto, conjunto.listaDistancias[minimadistanciaTMA])[0] + ";" + 
+                                    IncumplimientoEstela(conjunto, conjunto.listaDistancias[0])[0] + ";" + IncumplimientoLoA(conjunto, conjunto.listaDistancias[0])[0] + ";" +
+                                    IncumplimientoLoA(conjunto, conjunto.listaDistancias[0])[2] + ";" + IncumplimientoLoA(conjunto, conjunto.listaDistancias[0])[1] + ";" + 
+                                    IncumplimientoEstela(conjunto, conjunto.listaDistancias[minimadistanciaTMA])[1] + "//" + IncumplimientoEstela(conjunto, conjunto.listaDistancias[minimadistanciaTMA])[2] + ";" + 
+                                    conjunto.vuelo1.motorizacion + "//" + conjunto.vuelo2.motorizacion + ";" + conjunto.vuelo1.sid + "//" + conjunto.vuelo2.sid + ";" + 
+                                    conjunto.vuelo1.tipo_aeronave + "//" + conjunto.vuelo2.tipo_aeronave + ";" + conjunto.vuelo2.pistadesp);
                             }
                             catch
                             {
@@ -920,34 +923,34 @@ namespace AsterixViewer.Tabs
             else return false;
         }
 
-        private string IncumplimientoEstela(DistanciasDespeguesConsecutivos conjunto, string distancia)
+        private List<string> IncumplimientoEstela(DistanciasDespeguesConsecutivos conjunto, string distancia)
         {
             if (conjunto.vuelo1.estela == "Pesada" && conjunto.vuelo2.estela == "Pesada")
             {
-                if (Convert.ToDouble(distancia) < 4 * 1852) return "True";
-                else return "False";
+                if (Convert.ToDouble(distancia) < 4 * 1852) return ["True", conjunto.vuelo1.estela, conjunto.vuelo2.estela];
+                else return ["False", conjunto.vuelo1.estela, conjunto.vuelo2.estela];
             }
             else if ((conjunto.vuelo1.estela == "Pesada" && conjunto.vuelo2.estela == "Media") || (conjunto.vuelo1.estela == "Media" && conjunto.vuelo2.estela == "Ligera"))
             {
-                if (Convert.ToDouble(distancia) < 5 * 1852) return "True";
-                else return "False";
+                if (Convert.ToDouble(distancia) < 5 * 1852) return ["True", conjunto.vuelo1.estela, conjunto.vuelo2.estela];
+                else return ["False", conjunto.vuelo1.estela, conjunto.vuelo2.estela];
             }
             else if ((conjunto.vuelo1.estela == "Super Pesada" && conjunto.vuelo2.estela == "Pesada") || (conjunto.vuelo1.estela == "Pesada" && conjunto.vuelo2.estela == "Ligera"))
             {
-                if (Convert.ToDouble(distancia) < 6 * 1852) return "True";
-                else return "False";
+                if (Convert.ToDouble(distancia) < 6 * 1852) return ["True", conjunto.vuelo1.estela, conjunto.vuelo2.estela];
+                else return ["False", conjunto.vuelo1.estela, conjunto.vuelo2.estela];
             }
             else if (conjunto.vuelo1.estela == "Super pesada" && conjunto.vuelo2.estela == "Media")
             {
-                if (Convert.ToDouble(distancia) < 7 * 1852) return "True";
-                else return "False";
+                if (Convert.ToDouble(distancia) < 7 * 1852) return ["True", conjunto.vuelo1.estela, conjunto.vuelo2.estela];
+                else return ["False", conjunto.vuelo1.estela, conjunto.vuelo2.estela];
             }
             else if (conjunto.vuelo1.estela == "Super pesada" && conjunto.vuelo2.estela == "Ligera")
             {
-                if (Convert.ToDouble(distancia) < 8 * 1852) return "True";
-                else return "False";
+                if (Convert.ToDouble(distancia) < 8 * 1852) return ["True", conjunto.vuelo1.estela, conjunto.vuelo2.estela];
+                else return ["False", conjunto.vuelo1.estela, conjunto.vuelo2.estela];
             }
-            else return "N/A";
+            else return ["N/A", conjunto.vuelo1.estela, conjunto.vuelo2.estela];
         }
 
         private void AñadirMotorizacion()
@@ -962,7 +965,7 @@ namespace AsterixViewer.Tabs
             }
         }
 
-        private bool IncumplimientoLoA(DistanciasDespeguesConsecutivos conjunto, string distancia)
+        private List<string> IncumplimientoLoA(DistanciasDespeguesConsecutivos conjunto, string distancia)
         {
             SeparacionesLoA LoA = new SeparacionesLoA();
             List<string> g1 = new List<string>(["OLOXO", "NATPI", "MOPAS", "GRAUS", "LOBAR", "MAMUK", "REBUL", "VIBOK", "DUQQI"]);
@@ -996,8 +999,8 @@ namespace AsterixViewer.Tabs
             }
             else misma = "misma";
 
-            if (Convert.ToDouble(distancia) < LoA.ObtenerValor(conjunto.vuelo1.motorizacion, conjunto.vuelo2.motorizacion, misma)) return true;
-            else return false;
+            if (Convert.ToDouble(distancia) < LoA.ObtenerValor(conjunto.vuelo1.motorizacion, conjunto.vuelo2.motorizacion, misma)) return ["True", misma, Convert.ToString(LoA.ObtenerValor(conjunto.vuelo1.motorizacion, conjunto.vuelo2.motorizacion, misma)/1852)];
+            else return ["False", misma, Convert.ToString(LoA.ObtenerValor(conjunto.vuelo1.motorizacion, conjunto.vuelo2.motorizacion, misma)/1852)];
         }
     }
 }
