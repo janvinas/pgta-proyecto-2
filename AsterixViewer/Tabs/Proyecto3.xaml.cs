@@ -109,6 +109,9 @@ namespace AsterixViewer.Tabs
         }
         ClasificacionAeronavesLoA clasificacionAeronavesLoA = new ClasificacionAeronavesLoA();
 
+        CoordinatesUVH THR_06R = new CoordinatesUVH();
+        CoordinatesUVH THR_24L = new CoordinatesUVH();
+
         public Proyecto3()
         {
             InitializeComponent();
@@ -496,6 +499,17 @@ namespace AsterixViewer.Tabs
             GeoUtils tma = new GeoUtils(Math.Sqrt(geo.E2), geo.A, centro_tma);
             double rt = 6356752.3142;
 
+            // Calcular Estereograficas de THR_06R y THR_24L
+            CoordinatesWGS84 coords_geodesic = GeoUtils.LatLonStringBoth2Radians("41:17:31.99N 02:06:11.81E", 8);
+            CoordinatesXYZ coords_geocentric = tma.change_geodesic2geocentric(coords_geodesic);
+            CoordinatesXYZ coords_system_cartesian = tma.change_geocentric2system_cartesian(coords_geocentric);
+            THR_24L = tma.change_system_cartesian2stereographic(coords_system_cartesian);
+
+            coords_geodesic = GeoUtils.LatLonStringBoth2Radians("41:16:56.32N 02:04:27.66E", 8);
+            coords_geocentric = tma.change_geodesic2geocentric(coords_geodesic);
+            coords_system_cartesian = tma.change_geocentric2system_cartesian(coords_geocentric);
+            THR_06R = tma.change_system_cartesian2stereographic(coords_system_cartesian);
+
             for (int i = 0; i < datosAsterix.Count; i++)
             {
                 CoordinatesUVH coords_stereographic = ObtenerCoordsEstereograficas(datosAsterix[i]);
@@ -511,8 +525,6 @@ namespace AsterixViewer.Tabs
         /// <returns></returns>
         private CoordinatesUVH ObtenerCoordsEstereograficas(List<string> msg)
         {
-            CoordinatesUVH coordsUVH = new CoordinatesUVH();
-
             // Adaptar valores segun fichero que estamos leyendo
             int LATcol = 4;     // Posición de columna en que se encuentra la variable LAT[º]
             int LONcol = 5;     // Posición de columna en que se encuentra la variable LON[º]
@@ -528,7 +540,9 @@ namespace AsterixViewer.Tabs
             CoordinatesXYZ coords_geocentric = tma.change_geodesic2geocentric(coords_geodesic);
             CoordinatesXYZ coords_system_cartesian = tma.change_geocentric2system_cartesian(coords_geocentric);
 
-            return tma.change_system_cartesian2stereographic(coords_system_cartesian);
+            CoordinatesUVH coordsUVH = tma.change_system_cartesian2stereographic(coords_system_cartesian);
+
+            return coordsUVH;
         }
 
         private void ClasificarDistintosVuelos()
@@ -620,6 +634,11 @@ namespace AsterixViewer.Tabs
             int tiempo_ms_vuelo1;
             int tiempo_ms_vuelo2;
 
+            Point posTHR_24L = new Point(THR_24L.U, THR_24L.V);
+            Point posTHR_06R = new Point(THR_06R.U, THR_06R.V);
+            bool condicion05NMvuelo1 = false;
+            bool condicion05NMvuelo2 = false;
+
             for (int i = 0; i < vuelosOrdenados.Count - 1; i++)
             {
                 Vuelo vuelo1 = vuelosOrdenados[i];
@@ -635,26 +654,35 @@ namespace AsterixViewer.Tabs
                     if (datosAsterix[j][TIcol] == vuelo1.codigoVuelo)
                     {
                         numberOfIteratedMSGvuelo1++;
+                        Point posVuelo1 = new Point(Convert.ToDouble(datosAsterix[j][Xcol]), Convert.ToDouble(datosAsterix[j][Ycol]));
                         tiempo_ms_vuelo1 = int.Parse(datosAsterix[j][TIMEcol].Split(':')[1]) * 60000 + int.Parse(datosAsterix[j][TIMEcol].Split(':')[2]) * 1000 + int.Parse(datosAsterix[j][TIMEcol].Split(':')[3]);
 
-                        // Iterar sobre los siguientes N vuelos para encontrar la detección simultanea del vuelo2 (N = 5 arbitrario)
-                        for (int j2 = j + 1; j2 < Math.Min(j + 5, datosAsterix.Count); j2++)   
+                        if (vuelo1.pistadesp == "LEBL-24L") condicion05NMvuelo1 = (CalcularDistanciaEntrePuntos(posVuelo1, posTHR_24L) > 1852/2);
+                        else condicion05NMvuelo1 = (CalcularDistanciaEntrePuntos(posVuelo1, posTHR_06R) > 1852 / 2);
+
+                        if (condicion05NMvuelo1)
                         {
-                            if (datosAsterix[j2][TIcol] == vuelo2.codigoVuelo)
+                            // Iterar sobre los siguientes N vuelos para encontrar la detección simultanea del vuelo2 (N = 5 arbitrario)
+                            for (int j2 = j + 1; j2 < Math.Min(j + 5, datosAsterix.Count); j2++)
                             {
-                                tiempo_ms_vuelo2 = int.Parse(datosAsterix[j2][TIMEcol].Split(':')[1]) * 60000 + int.Parse(datosAsterix[j2][TIMEcol].Split(':')[2]) * 1000 + int.Parse(datosAsterix[j2][TIMEcol].Split(':')[3]);
-
-                                if (Math.Abs(tiempo_ms_vuelo2 - tiempo_ms_vuelo1) < 3000)
+                                if (datosAsterix[j2][TIcol] == vuelo2.codigoVuelo)
                                 {
-                                    Point posVuelo1 = new Point(Convert.ToDouble(datosAsterix[j][Xcol]), Convert.ToDouble(datosAsterix[j][Ycol]));
+                                    tiempo_ms_vuelo2 = int.Parse(datosAsterix[j2][TIMEcol].Split(':')[1]) * 60000 + int.Parse(datosAsterix[j2][TIMEcol].Split(':')[2]) * 1000 + int.Parse(datosAsterix[j2][TIMEcol].Split(':')[3]);
                                     Point posVuelo2 = new Point(Convert.ToDouble(datosAsterix[j2][Xcol]), Convert.ToDouble(datosAsterix[j2][Ycol]));
-                                    double distance = CalcularDistanciaEntrePuntos(posVuelo1, posVuelo2);
 
-                                    distanciasDespeguesConsecutivos.listaDistancias.Add(distance.ToString());
-                                    distanciasDespeguesConsecutivos.listaTiemposVuelo1.Add(datosAsterix[j][3]);
-                                    distanciasDespeguesConsecutivos.listaTiemposVuelo2.Add(datosAsterix[j2][3]);
+                                    if (vuelo2.pistadesp == "LEBL-24L") condicion05NMvuelo2 = (CalcularDistanciaEntrePuntos(posVuelo2, posTHR_24L) > 1852 / 2);
+                                    else condicion05NMvuelo2 = (CalcularDistanciaEntrePuntos(posVuelo2, posTHR_06R) > 1852 / 2);
+
+                                    if (Math.Abs(tiempo_ms_vuelo2 - tiempo_ms_vuelo1) < 3000 && condicion05NMvuelo2)
+                                    {
+                                        double distance = CalcularDistanciaEntrePuntos(posVuelo1, posVuelo2);
+
+                                        distanciasDespeguesConsecutivos.listaDistancias.Add(distance.ToString());
+                                        distanciasDespeguesConsecutivos.listaTiemposVuelo1.Add(datosAsterix[j][3]);
+                                        distanciasDespeguesConsecutivos.listaTiemposVuelo2.Add(datosAsterix[j2][3]);
+                                    }
+                                    break;
                                 }
-                                break;
                             }
                         }
                     }
@@ -818,6 +846,7 @@ namespace AsterixViewer.Tabs
                     MessageBoxImage.Error
                 );
             }
+
             // csv como nos piden
             try
             {
@@ -847,7 +876,12 @@ namespace AsterixViewer.Tabs
                             }
                             try
                             {
-                                writer2.WriteLine(conjunto.vuelo1.codigoVuelo + "//" + conjunto.vuelo2.codigoVuelo + ";" + conjunto.vuelo2.horaPV + ";" + conjunto.listaTiemposVuelo1[0] + "/" + conjunto.listaDistancias[0] + ";" + conjunto.listaTiemposVuelo1[minimadistanciaTMA] + "/" + conjunto.listaDistancias[minimadistanciaTMA] + ";" + IncumplimientoRadar(conjunto.listaDistancias[minimadistanciaTMA]) + "/" + IncumplimientoRadar(conjunto.listaDistancias[0]) + ";" + IncumplimientoEstela(conjunto, conjunto.listaDistancias[minimadistanciaTMA]) + "/" + IncumplimientoEstela(conjunto, conjunto.listaDistancias[0]) + ";" + IncumplimientoLoA(conjunto, conjunto.listaDistancias[0]) + ";" + conjunto.vuelo2.pistadesp);
+                                writer2.WriteLine(conjunto.vuelo1.codigoVuelo + "//" + conjunto.vuelo2.codigoVuelo + ";" + conjunto.vuelo2.horaPV + ";" + 
+                                    conjunto.listaTiemposVuelo1[0] + "/" + conjunto.listaDistancias[0] + ";" + conjunto.listaTiemposVuelo1[minimadistanciaTMA] + "/" + 
+                                    conjunto.listaDistancias[minimadistanciaTMA] + ";" + IncumplimientoRadar(conjunto.listaDistancias[minimadistanciaTMA]) + "/" + 
+                                    IncumplimientoRadar(conjunto.listaDistancias[0]) + ";" + IncumplimientoEstela(conjunto, conjunto.listaDistancias[minimadistanciaTMA]) + "/" + 
+                                    IncumplimientoEstela(conjunto, conjunto.listaDistancias[0]) + ";" + IncumplimientoLoA(conjunto, conjunto.listaDistancias[0]) + ";" + 
+                                    conjunto.vuelo2.pistadesp);
                             }
                             catch
                             {
