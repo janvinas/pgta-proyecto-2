@@ -250,7 +250,7 @@ namespace AsterixViewer.AsterixMap
 
         private void SetupMap()
         {
-            var map = new Map(BasemapStyle.ArcGISTopographic);
+            var map = new Map(BasemapStyle.ArcGISDarkGray);
             var mapCenterPoint = new MapPoint(2.0670034, 41.2874084, SpatialReferences.Wgs84);
             map.InitialViewpoint = new Viewpoint(mapCenterPoint, 300000);
             Map = map;
@@ -295,7 +295,7 @@ namespace AsterixViewer.AsterixMap
                         }
                         else
                         {
-                            var sym = new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Circle, System.Drawing.Color.Chocolate, 5);
+                            var sym = new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Circle, System.Drawing.Color.Orange, 5);
                             var graphic = new Graphic(pos, sym);
                             graphic.Attributes["Key"] = key;
                             planeGraphics.Graphics.Add(graphic);
@@ -324,7 +324,7 @@ namespace AsterixViewer.AsterixMap
                         }
                         else
                         {
-                            var sym = new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Circle, System.Drawing.Color.BlueViolet, 5);
+                            var sym = new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Circle, System.Drawing.Color.Violet, 5);
                             var graphic = new Graphic(pos, sym);
                             graphic.Attributes["Key"] = key;
                             planeGraphics.Graphics.Add(graphic);
