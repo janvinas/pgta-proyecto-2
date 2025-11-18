@@ -206,7 +206,7 @@ namespace AsterixViewer.Tabs
             // OrdenarVuelos();
             CalcularDistanciaMinimaSonometro();
 
-            // Guardar
+            GuardarDistMinSonometro();
         }
 
         // -------------------------------- LECTORES DE ARCHIVOS DE PARAMETROS DE INPUT -----------------------------------------------------------------
@@ -626,6 +626,7 @@ namespace AsterixViewer.Tabs
             string TI;
 
             int TIcol = 13;     // Posición de columna en que se encuentra la variable TI en csv datosAsterix
+            int TIMEcol = 3;
             
             for (int i = 0; i < datosAsterix.Count(); i++)
             {
@@ -636,18 +637,27 @@ namespace AsterixViewer.Tabs
                     Vuelo vuelo = new Vuelo();
                     vuelo.codigoVuelo = TI;
                     vuelo.horaPV = datosAsterix [i][3]; // Columna con la hora del Plan de Vuelo
-                    for (int j = 0; j < listaPV.Count(); j++)
+                    foreach (List<string> msg in datosAsterix) if (msg[TIcol] == TI) vuelo.mensajesVuelo.Add(msg);
+
+                    int firstMsgTime_ms = int.Parse(vuelo.mensajesVuelo[0][TIMEcol].Split(':')[0]) * 3600*1000 + int.Parse(vuelo.mensajesVuelo[0][TIMEcol].Split(':')[1]) * 60*1000 + int.Parse(datosAsterix[0][TIMEcol].Split(':')[2]) * 1000 + int.Parse(datosAsterix[0][TIMEcol].Split(':')[3]);
+
+                    for (int j = 1; j < listaPV.Count(); j++)
                     {
-                        if (listaPV[j][1] == datosAsterix[i][TIcol])
+                        int ATOT_ms = (int)TimeSpan.Parse(listaPV[j][10]).TotalMilliseconds;
+                        int diff = Math.Abs(firstMsgTime_ms - ATOT_ms);
+                        
+                        if (listaPV[j][1] == datosAsterix[i][TIcol] && diff < 3600/2*1000)  
                         { 
                             vuelo.estela = listaPV[j][7];
                             vuelo.pistadesp = listaPV[j][11];
                             vuelo.tipo_aeronave = listaPV[j][6];
                             vuelo.sid = listaPV[j][9];
+                            vuelo.ATOT = listaPV[j][10];
+
+                            break;
                         }
                     }
 
-                    foreach (List<string> msg in datosAsterix) if (msg[TIcol] == TI) vuelo.mensajesVuelo.Add(msg);
 
                     vuelosOrdenados.Add(vuelo);
                     TI_usados.Add(datosAsterix[i][TIcol]);
@@ -1100,6 +1110,66 @@ namespace AsterixViewer.Tabs
                     // ✅ Confirmar al usuario
                     MessageBox.Show(
                         $"Archivo exportado correctamente:\n{filePath2}",
+                        "Exportación completada",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information
+                    );
+                }
+                else
+                {
+                    MessageBox.Show("Exportación cancelada por el usuario.");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Error al guardar el archivo:\n{ex.Message}",
+                    "Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
+            }
+        }
+
+        private void GuardarDistMinSonometro()
+        {
+            // csv como nos piden
+            try
+            {
+                var saveFileDialog1 = new SaveFileDialog
+                {
+                    Title = "Guardar CSV de Distancias Minimas Sonometro",
+                    Filter = "Archivos CSV (*.xlsx)|*.csv",
+                    FileName = "MinDistance Sonometro.csv",
+                    DefaultExt = ".csv"
+                };
+
+                if (saveFileDialog1.ShowDialog() == true)
+                {
+                    var filePath1 = saveFileDialog1.FileName;
+
+                    // ✍️ Escribir el archivo (CSV con extensión XLSX)
+                    using (var writer1 = new StreamWriter(filePath1, false, Encoding.UTF8))
+                    {
+                        writer1.WriteLine("Callsign;ATOT;Time DEP 0,5NM THR;SID;Estela;Tipo Aeronave;Distancia Minima al Sonometro;Tiempo de Deteccion de Distancia Minima");
+                        foreach (DistanciaMinimaSonometro distMinSonometro in listaDistanciasMinimasSonometro)
+                        {
+                            try
+                            {
+                                writer1.WriteLine(distMinSonometro.vuelo.codigoVuelo + ";" + distMinSonometro.vuelo.ATOT + ";" + "DEP 05NM (aun no esta)" + ";" + 
+                                    distMinSonometro.vuelo.sid + ";" + distMinSonometro.vuelo.estela + ";" + distMinSonometro.vuelo.tipo_aeronave + ";" + 
+                                    distMinSonometro.distMinSonometro / 1852 + ";" + distMinSonometro.timeMinSonometro);
+                            }
+                            catch
+                            {
+
+                            }
+                        }
+                    }
+
+                    // ✅ Confirmar al usuario
+                    MessageBox.Show(
+                        $"Archivo exportado correctamente:\n{filePath1}",
                         "Exportación completada",
                         MessageBoxButton.OK,
                         MessageBoxImage.Information
