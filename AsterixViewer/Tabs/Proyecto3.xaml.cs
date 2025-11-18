@@ -47,6 +47,8 @@ namespace AsterixViewer.Tabs
             public string tipo_aeronave { get; set; }
             public string sid { get; set; }
             public string motorizacion { get; set; }
+            public string ATOT { get; set; }
+            public string timeDEP_05NM { get; set; }
             public List<List<string>> mensajesVuelo { get; set; } = new List<List<string>>();
         }
 
@@ -99,6 +101,7 @@ namespace AsterixViewer.Tabs
             }
         }
 
+        // Clasificacion Aeronaves segun performance de LoA
         public class ClasificacionAeronavesLoA
         {
             public List<string> HP = new List<string>();
@@ -109,9 +112,19 @@ namespace AsterixViewer.Tabs
         }
         ClasificacionAeronavesLoA clasificacionAeronavesLoA = new ClasificacionAeronavesLoA();
 
+        // Definicion de distintos puntos fijos
         CoordinatesUVH THR_06R = new CoordinatesUVH();
         CoordinatesUVH THR_24L = new CoordinatesUVH();
         CoordinatesUVH sonometro = new CoordinatesUVH();
+
+        // 
+        public class DistanciaMinimaSonometro
+        {
+            public Vuelo vuelo { get; set; }
+            public double distMinSonometro { get; set; }
+            public string timeMinSonometro { get; set; }
+        }
+        List<DistanciaMinimaSonometro> listaDistanciasMinimasSonometro = new List<DistanciaMinimaSonometro>();
 
         public Proyecto3()
         {
@@ -168,7 +181,7 @@ namespace AsterixViewer.Tabs
             ClasificarDistintosVuelos();
 
             // Ordena los vuelos segun el ATOT en listaPV, compara segun identificador de vuelo TI
-            OrdenarVuelos();
+            // OrdenarVuelos();
 
             // Calcula todas las distancias entre despegues consecutivos, crea clases DistanciasDespeguesConsecutivos
             // y rellena la lista listaConjuntosDistanciasDespeguesConsecutivos (ver definicion)
@@ -180,13 +193,21 @@ namespace AsterixViewer.Tabs
         {
             CalcularPosicionesEstereograficas();
             ClasificarDistintosVuelos();
-            OrdenarVuelos();
+            // OrdenarVuelos();
             CalcularDistanciasDespeguesConsecutivos();
 
             GuardarDistDESPConsecutivos();
         }
 
+        private void DistanciasMinimasSonometro_Click(object sender, RoutedEventArgs e)
+        {
+            CalcularPosicionesEstereograficas();
+            ClasificarDistintosVuelos();
+            // OrdenarVuelos();
+            CalcularDistanciaMinimaSonometro();
 
+            // Guardar
+        }
 
         // -------------------------------- LECTORES DE ARCHIVOS DE PARAMETROS DE INPUT -----------------------------------------------------------------
         // ---------------------------------------------------------------------------------------------------------------------------------------------- 
@@ -594,6 +615,11 @@ namespace AsterixViewer.Tabs
             return coordsUVH;
         }
 
+        private void ObtenerATOTvuelo()
+        {
+
+        }
+
         private void ClasificarDistintosVuelos()
         {
             List<string> TI_usados = new List<string>();
@@ -619,7 +645,6 @@ namespace AsterixViewer.Tabs
                             vuelo.tipo_aeronave = listaPV[j][6];
                             vuelo.sid = listaPV[j][9];
                         }
-                        
                     }
 
                     foreach (List<string> msg in datosAsterix) if (msg[TIcol] == TI) vuelo.mensajesVuelo.Add(msg);
@@ -828,6 +853,49 @@ namespace AsterixViewer.Tabs
 
             if (Convert.ToDouble(distancia) < LoA.ObtenerValor(conjunto.vuelo1.motorizacion, conjunto.vuelo2.motorizacion, misma)) return ["True", misma, Convert.ToString(LoA.ObtenerValor(conjunto.vuelo1.motorizacion, conjunto.vuelo2.motorizacion, misma) / 1852)];
             else return ["False", misma, Convert.ToString(LoA.ObtenerValor(conjunto.vuelo1.motorizacion, conjunto.vuelo2.motorizacion, misma) / 1852)];
+        }
+
+        private void CalcularDistanciaMinimaSonometro()
+        {
+
+            int Xcol = datosAsterix[1].Count - 2;
+            int Ycol = datosAsterix[1].Count - 1;
+            int Timecol = 3;
+            Point posSonometro = new Point(sonometro.U, sonometro.V);
+            Point posVuelo;
+
+            double dist;
+            double distMin;
+            string timeMin;
+
+            foreach (Vuelo vuelo in vuelosOrdenados)
+            {
+                if (vuelo.pistadesp == "LEBL-24L")
+                {
+                    posVuelo = new Point(Convert.ToDouble(vuelo.mensajesVuelo[0][Xcol]), Convert.ToDouble(vuelo.mensajesVuelo[0][Ycol]));
+                    distMin = CalcularDistanciaEntrePuntos(posVuelo, posSonometro);
+                    timeMin = vuelo.mensajesVuelo[0][Timecol];
+
+                    foreach (List<string> MSG in vuelo.mensajesVuelo)
+                    {
+                        posVuelo = new Point(Convert.ToDouble(MSG[Xcol]), Convert.ToDouble(MSG[Ycol]));
+                        dist = CalcularDistanciaEntrePuntos(posVuelo, posSonometro);
+
+                        if (dist < distMin)
+                        {
+                            distMin = dist;
+                            timeMin = MSG[Timecol];
+                        }
+                    }
+
+                    DistanciaMinimaSonometro distanciaMinima = new DistanciaMinimaSonometro();
+                    distanciaMinima.vuelo = vuelo;
+                    distanciaMinima.distMinSonometro = distMin;
+                    distanciaMinima.timeMinSonometro = timeMin;
+
+                    listaDistanciasMinimasSonometro.Add(distanciaMinima);
+                }
+            }
         }
 
         // -------------------------------- FUNCIONES PARA EXPORTAR DATOS EN FORMATO CSV ----------------------------------------------------------------

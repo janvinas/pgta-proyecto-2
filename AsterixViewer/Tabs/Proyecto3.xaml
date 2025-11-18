@@ -20,6 +20,7 @@
             <Button Content="Guardar PV Actualizados" Click="GuardarMSG_PV_Click"/>
             <Button Content="PruebasDEBUG" Click="PruebasDEBUG_Click"/>
             <Button Content="[1] Cálculos separaciones Despegues" Click="CalculoSeparacionesDespegues_Click"/>
+            <Button Content="[6] Cálculos distancias Sonómetro" Click="DistanciasMinimasSonometro_Click"/>
         </StackPanel>
     </Grid>
 </UserControl>
