@@ -87,6 +87,16 @@ namespace AsterixViewer.Tabs
                 }
             }
 
+            if (!string.IsNullOrWhiteSpace(IdentFilterBox.Text))
+            {
+                if (msg.Identification == null ||
+                    !msg.Identification.Contains(IdentFilterBox.Text, StringComparison.OrdinalIgnoreCase))
+                {
+                    return false;
+                }
+            }
+
+
             var c = CultureInfo.GetCultureInfo("es-ES");
 
             if (!string.IsNullOrWhiteSpace(LatMinBox.Text) &&
