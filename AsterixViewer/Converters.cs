@@ -94,12 +94,12 @@ namespace AsterixViewer
                 if (fl.flightLevel is null) return "Unknown Error";
                 if (fl.flightLevel < 60)
                 {
-                    return (fl.flightLevel.Value*100).ToString("000", CultureInfo.InvariantCulture)+" ft";
+                    return (fl.flightLevel.Value*100).ToString(CultureInfo.InvariantCulture)+" ft";
                 }
                 else
                 {
                     int flInt = (int)fl.flightLevel.Value;
-                    return "FL" + flInt.ToString();
+                    return "FL" + flInt.ToString("000");
                 }
             }
             return "";

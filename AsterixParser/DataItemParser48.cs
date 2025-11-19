@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Metadata.Ecma335;
 using System.Text;
@@ -265,7 +266,8 @@ namespace AsterixParser
 
             ushort mode3A = (ushort) (raw & 0x0FFF);
             message.Mode3A = mode3A;
-            
+            //if(mode3A == Convert.ToInt32("1421",8)) Debugger.Break();
+
             Config = V + "\n" + G + "\n" + L;
             message.configMode3A = Config;
 
@@ -284,8 +286,7 @@ namespace AsterixParser
             bool notValidated = ((body[k] >> 7) & 1) == 1;
             bool garbledCode = ((body[k] >> 6) & 1) == 1;
 
-            int FL_raw = (body[k] << 8) | body[k + 1];
-            FL_raw = (FL_raw << 18) >> 18;
+            int FL_raw = ((body[k] << 8) | body[k + 1]) & 0b11111111111111;
 
             message.FlightLevel = new FlightLevel(FL_raw / 4f, garbledCode, notValidated);
             k += 2;

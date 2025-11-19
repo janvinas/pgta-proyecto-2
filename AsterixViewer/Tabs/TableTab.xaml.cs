@@ -41,9 +41,6 @@ namespace AsterixViewer.Tabs
             }
         }
 
-
-        // EN: TableTab.xaml.cs
-
         private bool FilterMessages(object obj)
         {
             if (obj is not AsterixMessage msg)
@@ -52,8 +49,6 @@ namespace AsterixViewer.Tabs
             {
                 return false;
             }
-
-            // --- FILTROS EXISTENTES ---
             if (msg.Cat == CAT.CAT021 && !(Cat021Filter?.IsChecked ?? true))
             {
                 return false;
@@ -70,7 +65,7 @@ namespace AsterixViewer.Tabs
             {
                 return false;
             }
-            if(msg.I048230?.OnGround ?? false && (EliminarSuelo?.IsChecked ?? false))
+            if(msg.I048230?.OnGround == true && (EliminarSuelo?.IsChecked ?? false))
             {
                 return false;
             }
@@ -94,7 +89,6 @@ namespace AsterixViewer.Tabs
 
             var c = CultureInfo.GetCultureInfo("es-ES");
 
-            // --- Filtro de coordenadas ---
             if (!string.IsNullOrWhiteSpace(LatMinBox.Text) &&
                 !string.IsNullOrWhiteSpace(LatMaxBox.Text) &&
                 !string.IsNullOrWhiteSpace(LonMinBox.Text) &&
