@@ -10,6 +10,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.Json;
 using System.Windows.Input;
 using System.Windows.Threading;
 
@@ -83,27 +84,6 @@ namespace AsterixViewer.AsterixMap
                 OnPropertyChanged();
             }
         }
-        private List<AsterixMessage>? _selectedFlight;
-        public List<AsterixMessage>? SelectedFlight
-        {
-            get => _selectedFlight;
-            set
-            {
-                _selectedFlight = value;
-                OnPropertyChanged();
-            }
-        }
-        private CAT? _selectedFlightCat;
-        public CAT? SelectedFlightCat
-        {
-            get => _selectedFlightCat;
-            set
-            {
-                _selectedFlightCat = value;
-                OnPropertyChanged();
-            }
-        }
-
 
         public bool IsPlaying
         {
@@ -292,12 +272,14 @@ namespace AsterixViewer.AsterixMap
                         if (mapPoints.TryGetValue(key, out var g))
                         {
                             g.Geometry = pos;
+                            g.Attributes["message"] = JsonSerializer.Serialize(msg021);
                         }
                         else
                         {
                             var sym = new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Circle, System.Drawing.Color.Orange, 5);
                             var graphic = new Graphic(pos, sym);
                             graphic.Attributes["Key"] = key;
+                            graphic.Attributes["message"] = JsonSerializer.Serialize(msg021);
                             planeGraphics.Graphics.Add(graphic);
                             mapPoints[key] = graphic;
                         }
@@ -321,12 +303,14 @@ namespace AsterixViewer.AsterixMap
                         if (mapPoints.TryGetValue(key, out var g))
                         {
                             g.Geometry = pos;
+                            g.Attributes["message"] = JsonSerializer.Serialize(msgOther);
                         }
                         else
                         {
                             var sym = new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Circle, System.Drawing.Color.Violet, 5);
                             var graphic = new Graphic(pos, sym);
                             graphic.Attributes["Key"] = key;
+                            graphic.Attributes["message"] = JsonSerializer.Serialize(msgOther);
                             planeGraphics.Graphics.Add(graphic);
                             mapPoints[key] = graphic;
                         }
@@ -359,20 +343,7 @@ namespace AsterixViewer.AsterixMap
                 HideGraphicDetails();
                 return;
             }
-
             SelectedGraphic = graphic;
-            var targetPoint = (MapPoint)SelectedGraphic.Geometry;
-
-            var match = dataStore.Flights
-                .SelectMany(f => f.Value.Select(m => new { Flight = f.Key, Match = m }))
-                .FirstOrDefault(x =>
-                    Math.Abs(x.Match.Latitude.GetValueOrDefault() - targetPoint.Y) < 0.0001 &&
-                    Math.Abs(x.Match.Longitude.GetValueOrDefault() - targetPoint.X) < 0.0001);
-
-            if (match == null) return;
-            SelectedFlight = dataStore.Flights[match.Flight];
-            SelectedFlightCat = match.Match.Cat;
-
             // Crear o mover highlight
             if (selectedHighlightGraphic == null)
             {
@@ -397,8 +368,6 @@ namespace AsterixViewer.AsterixMap
             }
 
             SelectedGraphic = null;
-            SelectedFlight = null;
-            SelectedFlightCat = null;
             SelectedGraphicInfo = string.Empty;
             IsInfoPanelVisible = false;
             IsMoreInfoVisible = false;
@@ -406,12 +375,12 @@ namespace AsterixViewer.AsterixMap
 
         private void UpdateSelectedGraphicInfo()
         {
-            if (SelectedGraphic == null || SelectedFlight == null || SelectedFlightCat == null || dataStore == null)
+            if (SelectedGraphic == null || dataStore == null)
                 return;
 
-            // Identificar vuelo
 
-            var msg = FindMessage(SelectedFlight.Where(m => m.Cat == SelectedFlightCat).ToList(), dataStore.ReplayTime);
+            if (SelectedGraphic.Attributes["message"] is not string msgString) return;
+            var msg = JsonSerializer.Deserialize<AsterixMessage>(msgString);
             if (msg == null) return;
 
             var sb = new StringBuilder();

@@ -101,9 +101,9 @@ namespace AsterixParser
 
     public class FlightLevel(float? flightLevel, bool garbledCode, bool codeNotValidated)
     {
-        public float? flightLevel = flightLevel;
-        public Boolean garbledCode = garbledCode;
-        public Boolean codeNotValidated = codeNotValidated;
+        public float? flightLevel { get; set; } = flightLevel;
+        public Boolean garbledCode { get; set; } = garbledCode;
+        public Boolean codeNotValidated { get; set; } = codeNotValidated;
     }
     public class TargetReportDescriptor021
     {
@@ -153,6 +153,5 @@ namespace AsterixParser
         public float? BPS { get; set; } // DI48 CAT21
         public BDS? BDS { get; set; } // DI7
         public double? QNHcorrection { get; set; }
-
     }
 }
