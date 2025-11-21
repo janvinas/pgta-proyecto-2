@@ -11,6 +11,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
+using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
 
@@ -185,7 +186,20 @@ namespace AsterixViewer.AsterixMap
             set { _isMoreInfoVisible = value; OnPropertyChanged(); }
         }
 
-        public ICommand ShowMoreInfoCommand { get; }
+        private Visibility _botonVisibilidad = Visibility.Collapsed;
+
+        public Visibility BotonVisibilidad
+        {
+            get { return _botonVisibilidad; }
+            set
+            {
+                _botonVisibilidad = value;
+                OnPropertyChanged(nameof(BotonVisibilidad));
+            }
+        }
+
+        public ICommand ShowMoreInfoCommand { get; set; }
+
         public ICommand HideMoreInfoCommand { get; }
         private string _extendedGraphicInfo = string.Empty;
         public string ExtendedGraphicInfo
@@ -236,14 +250,11 @@ namespace AsterixViewer.AsterixMap
             Map = map;
         }
 
-        // EN: MapViewModel.cs
 
         private void DisplayFlights()
         {
             if (dataStore == null || dataStore.Flights == null) return;
 
-            // --- MODIFICACIÓN 1: Obtener el filtro global ---
-            // Este predicado es el mismo que usa la tabla (el método FilterMessages).
             var globalFilter = dataStore.GlobalFilter;
 
             var visibleKeys = new HashSet<string>();
@@ -255,14 +266,8 @@ namespace AsterixViewer.AsterixMap
 
                 var msg021 = FindMessage(messages.Where(m => m.Cat == CAT.CAT021).ToList(), dataStore.ReplayTime);
 
-                // --- MODIFICACIÓN 2.A: Aplicar el filtro a msg021 ---
-                // Comprobamos si el mensaje existe Y (si el filtro no es nulo O si pasa el filtro)
                 if (msg021 != null && (globalFilter == null || globalFilter(msg021)))
                 {
-                    // El mensaje es válido Y ha pasado el filtro.
-                    // Ahora solo comprobamos la antigüedad y si tiene coordenadas.
-                    // Nota: La comprobación 'GBS != "Set"' se elimina de aquí porque
-                    // ya está incluida en el 'globalFilter' (es el filtro 'EliminarSuelo').
                     if (msg021.Latitude.HasValue && msg021.Longitude.HasValue && dataStore.ReplayTime - msg021.TimeOfDay < 10)
                     {
                         string key = $"{flightId}_CAT021";
@@ -285,12 +290,9 @@ namespace AsterixViewer.AsterixMap
                         }
                     }
                 }
-                // --- FIN MODIFICACIÓN 2.A ---
 
                 var msgOther = FindMessage(messages.Where(m => m.Cat != CAT.CAT021).ToList(), dataStore.ReplayTime);
 
-                // --- MODIFICACIÓN 2.B: Aplicar el filtro a msgOther ---
-                // Hacemos la misma comprobación para los otros tipos de mensajes
                 if (msgOther != null && (globalFilter == null || globalFilter(msgOther)))
                 {
                     // Pasa el filtro, ahora comprobar antigüedad y coordenadas
@@ -316,7 +318,6 @@ namespace AsterixViewer.AsterixMap
                         }
                     }
                 }
-                // --- FIN MODIFICACIÓN 2.B ---
             }
 
             var toRemove = mapPoints.Keys
@@ -404,7 +405,19 @@ namespace AsterixViewer.AsterixMap
             sb.AppendLine($"Speed: {speed} kt");
             sb.AppendLine($"Heading: {heading} º");
 
+            if (msg.Cat == CAT.CAT021)
+            {
+                BotonVisibilidad = Visibility.Collapsed;
+            }
+            else
+            {
+                BotonVisibilidad = Visibility.Visible;
 
+                ShowMoreInfoCommand = new RelayCommand((_) =>
+                {
+                    IsMoreInfoVisible = true;
+                });
+            }
             SelectedGraphicInfo = sb.ToString();
             if (msg.Cat == CAT.CAT048)
             {
@@ -414,9 +427,9 @@ namespace AsterixViewer.AsterixMap
                 sbExt.AppendLine($"Category: {msg.Cat}");
                 sbExt.AppendLine($"Asterix SAC/SIC: {msg.SAC}/{msg.SIC}");
                 sbExt.AppendLine($"Mode 3/A: {msg.Mode3A?.ToString() ?? "N/A"}");
-                sbExt.AppendLine($"{msg.BDS.BDSsTabla ?? "N/A"}");
-                sbExt.AppendLine($"Baro: {msg.BDS.BARO.ToString() ?? "N/A"}");
-                sbExt.AppendLine($"IAS: {msg.BDS.IAS.ToString() ?? "N/A"}");
+                sbExt.AppendLine($"{msg.BDS?.BDSsTabla ?? "N/A"}");
+                sbExt.AppendLine($"Baro: {msg.BDS?.BARO.ToString() ?? "N/A"}");
+                sbExt.AppendLine($"IAS: {msg.BDS?.IAS?.ToString() ?? "N/A"}");
 
                 ExtendedGraphicInfo = sbExt.ToString();
             }
