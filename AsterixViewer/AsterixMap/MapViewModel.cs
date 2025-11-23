@@ -107,6 +107,7 @@ namespace AsterixViewer.AsterixMap
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
+        private const string PlaneIconUri = "pack://application:,,,/AsterixViewer;component/Resources/avion.png";
         public MapViewModel(DataStore dataStore)
         {
             this.dataStore = dataStore;
@@ -172,6 +173,9 @@ namespace AsterixViewer.AsterixMap
             SetupMap();
 
             planeGraphics = new GraphicsOverlay();
+
+            ConfigurePlaneRenderer();
+
             selectedOverlay = new GraphicsOverlay();
 
             var overlays = new GraphicsOverlayCollection { planeGraphics, selectedOverlay };
@@ -179,6 +183,49 @@ namespace AsterixViewer.AsterixMap
 
             DisplayFlights();
         }
+
+        private void ConfigurePlaneRenderer()
+        {
+            try
+            {
+                var dotSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Circle, System.Drawing.Color.BlueViolet, 8);
+
+                string imagePath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "avion.png");
+
+                Symbol planeSymbol;
+
+                if (System.IO.File.Exists(imagePath))
+                {
+                    planeSymbol = new PictureMarkerSymbol(new Uri(imagePath, UriKind.Absolute))
+                    {
+                        Width = 25,
+                        Height = 25
+                    };
+                }
+                else
+                {
+                    planeSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Square, System.Drawing.Color.Blue, 15);
+                    System.Diagnostics.Debug.WriteLine($"⚠️ IMAGEN NO ENCONTRADA EN: {imagePath}");
+                }
+
+                var renderer = new UniqueValueRenderer();
+                renderer.FieldNames.Add("RenderType");
+
+                renderer.UniqueValues.Add(new UniqueValue("Punto", "CAT021", dotSymbol, "CAT021"));
+
+                renderer.UniqueValues.Add(new UniqueValue("Avion", "CAT048", planeSymbol, "CAT048"));
+
+                renderer.RotationExpression = "[Heading]";
+                renderer.RotationType = RotationType.Geographic;
+
+                planeGraphics.Renderer = renderer;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error renderer: {ex.Message}");
+            }
+        }
+
         private bool _isMoreInfoVisible;
         public bool IsMoreInfoVisible
         {
@@ -256,7 +303,6 @@ namespace AsterixViewer.AsterixMap
             if (dataStore == null || dataStore.Flights == null) return;
 
             var globalFilter = dataStore.GlobalFilter;
-
             var visibleKeys = new HashSet<string>();
 
             foreach (var item in dataStore.Flights)
@@ -264,62 +310,22 @@ namespace AsterixViewer.AsterixMap
                 var flightId = item.Key;
                 var messages = item.Value;
 
+                // ---------------- PROCESAR CAT021 ----------------
                 var msg021 = FindMessage(messages.Where(m => m.Cat == CAT.CAT021).ToList(), dataStore.ReplayTime);
 
                 if (msg021 != null && (globalFilter == null || globalFilter(msg021)))
                 {
-                    if (msg021.Latitude.HasValue && msg021.Longitude.HasValue && dataStore.ReplayTime - msg021.TimeOfDay < 10)
-                    {
-                        string key = $"{flightId}_CAT021";
-                        var pos = new MapPoint(msg021.Longitude.Value, msg021.Latitude.Value, SpatialReferences.Wgs84);
-                        visibleKeys.Add(key);
-
-                        if (mapPoints.TryGetValue(key, out var g))
-                        {
-                            g.Geometry = pos;
-                            g.Attributes["message"] = JsonSerializer.Serialize(msg021);
-                        }
-                        else
-                        {
-                            var sym = new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Circle, System.Drawing.Color.Orange, 5);
-                            var graphic = new Graphic(pos, sym);
-                            graphic.Attributes["Key"] = key;
-                            graphic.Attributes["message"] = JsonSerializer.Serialize(msg021);
-                            planeGraphics.Graphics.Add(graphic);
-                            mapPoints[key] = graphic;
-                        }
-                    }
+                    ProcessFlightGraphic(msg021, flightId.ToString(), "CAT021", visibleKeys);
                 }
 
-                var msgOther = FindMessage(messages.Where(m => m.Cat != CAT.CAT021).ToList(), dataStore.ReplayTime);
+                // ---------------- PROCESAR CAT048 ----------------
+                var msg048 = FindMessage(messages.Where(m => m.Cat == CAT.CAT048).ToList(), dataStore.ReplayTime);
 
-                if (msgOther != null && (globalFilter == null || globalFilter(msgOther)))
+                if (msg048 != null && (globalFilter == null || globalFilter(msg048)))
                 {
-                    // Pasa el filtro, ahora comprobar antigüedad y coordenadas
-                    if (msgOther.Latitude.HasValue && msgOther.Longitude.HasValue && dataStore.ReplayTime - msgOther.TimeOfDay < 10)
-                    {
-                        string key = $"{flightId}_OTHER";
-                        var pos = new MapPoint(msgOther.Longitude.Value, msgOther.Latitude.Value, SpatialReferences.Wgs84);
-                        visibleKeys.Add(key);
-
-                        if (mapPoints.TryGetValue(key, out var g))
-                        {
-                            g.Geometry = pos;
-                            g.Attributes["message"] = JsonSerializer.Serialize(msgOther);
-                        }
-                        else
-                        {
-                            var sym = new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Circle, System.Drawing.Color.Violet, 5);
-                            var graphic = new Graphic(pos, sym);
-                            graphic.Attributes["Key"] = key;
-                            graphic.Attributes["message"] = JsonSerializer.Serialize(msgOther);
-                            planeGraphics.Graphics.Add(graphic);
-                            mapPoints[key] = graphic;
-                        }
-                    }
+                    ProcessFlightGraphic(msg048, flightId.ToString(), "CAT048", visibleKeys);
                 }
             }
-
             var toRemove = mapPoints.Keys
                 .Where(k => !visibleKeys.Contains(k))
                 .ToList();
@@ -335,6 +341,44 @@ namespace AsterixViewer.AsterixMap
 
             if (SelectedGraphic != null && selectedHighlightGraphic != null)
                 selectedHighlightGraphic.Geometry = SelectedGraphic.Geometry;
+        }
+        private void ProcessFlightGraphic(AsterixMessage msg, string flightId, string suffix, HashSet<string> visibleKeys)
+        {
+            if (msg == null) return;
+
+            // Validación de coordenadas y tiempo
+            if (msg.Latitude.HasValue && msg.Longitude.HasValue && dataStore.ReplayTime - msg.TimeOfDay < 10)
+            {
+                string key = $"{flightId}_{suffix}";
+                var pos = new MapPoint(msg.Longitude.Value, msg.Latitude.Value, SpatialReferences.Wgs84);
+                visibleKeys.Add(key);
+
+                double heading = msg.Heading ?? 0;
+                int zIndex = (suffix == "CAT021") ? 100 : 0;
+
+                if (mapPoints.TryGetValue(key, out var g))
+                {
+                    g.Geometry = pos;
+                    g.Attributes["message"] = JsonSerializer.Serialize(msg);
+                    g.Attributes["Heading"] = heading;
+                    g.Attributes["RenderType"] = suffix;
+
+                    g.ZIndex = zIndex;
+                }
+                else
+                {
+                    var graphic = new Graphic(pos);
+                    graphic.Attributes["Key"] = key;
+                    graphic.Attributes["message"] = JsonSerializer.Serialize(msg);
+                    graphic.Attributes["Heading"] = heading;
+                    graphic.Attributes["RenderType"] = suffix;
+
+                    graphic.ZIndex = zIndex;
+
+                    planeGraphics.Graphics.Add(graphic);
+                    mapPoints[key] = graphic;
+                }
+            }
         }
 
         public void ShowGraphicDetails(Graphic graphic)
