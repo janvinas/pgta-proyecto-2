@@ -247,11 +247,11 @@ namespace AsterixViewer
             {
                 return false;
             }
-            if (msg.targetReportDescriptor021?.GBS == "Set" && !_showOnGround)
+            if (msg.I048230?.OnGround ?? false && !_showOnGround)
             {
                 return false;
             }
-            if (msg.I048230?.OnGround ?? false && !_showOnGround)
+            if (msg.I048230?.STAT == null)
             {
                 return false;
             }

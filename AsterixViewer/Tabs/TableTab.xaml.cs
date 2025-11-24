@@ -53,6 +53,13 @@ namespace AsterixViewer.Tabs
 
             filtersViewModel.PropertyChanged += FiltersViewMode_PropertyChanged;
             dataStore.PropertyChanged += DataStore_PropertyChanged;
+
+            view = CollectionViewSource.GetDefaultView(dataStore.Messages);
+            if (view != null)
+            {
+                view.Filter = filtersViewModel.FilterMessages;
+                DataGrid.ItemsSource = view;
+            }
         }
 
         private void OnTRDClick(object sender, RoutedEventArgs e)
