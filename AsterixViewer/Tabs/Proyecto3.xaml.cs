@@ -23,6 +23,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Windows.Management.Deployment;
+using static AsterixViewer.Tabs.Proyecto3;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace AsterixViewer.Tabs
@@ -163,7 +164,6 @@ namespace AsterixViewer.Tabs
             listaPV = LeerExcelComoLista(rutaExcel);
             AcondicionarPV();
             FiltroDeparturesLEBL();
-            CalcularDistanciasDespeguesConsecutivos();
         }
 
         private void ClasificacionAeronaves_Click(object sender, RoutedEventArgs e)
@@ -194,6 +194,8 @@ namespace AsterixViewer.Tabs
             CalcularPosicionesEstereograficas();
             ClasificarDistintosVuelos();
             // OrdenarVuelos();
+            CalcularTiempo05NMfromTHR();
+
             CalcularDistanciasDespeguesConsecutivos();
 
             GuardarDistDESPConsecutivos();
@@ -204,6 +206,8 @@ namespace AsterixViewer.Tabs
             CalcularPosicionesEstereograficas();
             ClasificarDistintosVuelos();
             // OrdenarVuelos();
+            CalcularTiempo05NMfromTHR();
+
             CalcularDistanciaMinimaSonometro();
 
             GuardarDistMinSonometro();
@@ -615,11 +619,6 @@ namespace AsterixViewer.Tabs
             return coordsUVH;
         }
 
-        private void ObtenerATOTvuelo()
-        {
-
-        }
-
         private void ClasificarDistintosVuelos()
         {
             List<string> TI_usados = new List<string>();
@@ -698,6 +697,57 @@ namespace AsterixViewer.Tabs
             vuelosOrdenados = vuelosOrdenadosAux;
         }
 
+        private void CalcularTiempo05NMfromTHR()
+        {
+            int TIcol = 13;     // Posición de columna en que se encuentra la variable TI en csv datosAsterix
+            int TIMEcol = 3;
+            int Xcol = datosAsterix[1].Count - 2;
+            int Ycol = datosAsterix[1].Count - 1;
+
+            Point posTHR_24L = new Point(THR_24L.U, THR_24L.V);
+            Point posTHR_06R = new Point(THR_06R.U, THR_06R.V);
+            Point posVuelo;
+            Point posVuelo_siguienteMSG;
+
+            double distanciaVueloTHR;
+            double distanciaVueloTHR_MSGposterior;
+
+            bool condicion05NMvuelo = false;
+
+            foreach (Vuelo vuelo in vuelosOrdenados)
+            {
+                condicion05NMvuelo = false;
+                int numberOfIteratedMSGvuelo = 0;
+
+                for (int j = 0; j < vuelo.mensajesVuelo.Count - 1; j++)
+                {
+                    numberOfIteratedMSGvuelo++;
+                    posVuelo = new Point(Convert.ToDouble(vuelo.mensajesVuelo[j][Xcol]), Convert.ToDouble(vuelo.mensajesVuelo[j][Ycol]));
+                    posVuelo_siguienteMSG = new Point(Convert.ToDouble(vuelo.mensajesVuelo[j+1][Xcol]), Convert.ToDouble(vuelo.mensajesVuelo[j+1][Ycol]));
+
+                    if (vuelo.pistadesp == "LEBL-24L") {
+                        distanciaVueloTHR = CalcularDistanciaEntrePuntos(posVuelo, posTHR_06R);
+                        distanciaVueloTHR_MSGposterior = CalcularDistanciaEntrePuntos(posVuelo_siguienteMSG, posTHR_06R);
+
+                        condicion05NMvuelo = (distanciaVueloTHR > 1852 / 2) && (distanciaVueloTHR < distanciaVueloTHR_MSGposterior);
+                    }
+                    else
+                    {
+                        distanciaVueloTHR = CalcularDistanciaEntrePuntos(posVuelo, posTHR_24L);
+                        distanciaVueloTHR_MSGposterior = CalcularDistanciaEntrePuntos(posVuelo_siguienteMSG, posTHR_24L);
+
+                        condicion05NMvuelo = (distanciaVueloTHR > 1852 / 2) && (distanciaVueloTHR < distanciaVueloTHR_MSGposterior);
+                    }
+
+                    if (condicion05NMvuelo)
+                    {
+                        vuelo.timeDEP_05NM = vuelo.mensajesVuelo[j][TIMEcol];
+                        break;
+                    }
+                }
+            }
+        }
+
         private double CalcularDistanciaEntrePuntos(Point punto1, Point punto2)
         {
             double dx = punto2.X - punto1.X;
@@ -720,8 +770,12 @@ namespace AsterixViewer.Tabs
 
             Point posTHR_24L = new Point(THR_24L.U, THR_24L.V);
             Point posTHR_06R = new Point(THR_06R.U, THR_06R.V);
+            Point posVuelo1;
+            Point posVuelo2;
             bool condicion05NMvuelo1 = false;
             bool condicion05NMvuelo2 = false;
+
+            double distance;
 
             for (int i = 0; i < vuelosOrdenados.Count - 1; i++)
             {
@@ -737,12 +791,14 @@ namespace AsterixViewer.Tabs
                 {
                     if (datosAsterix[j][TIcol] == vuelo1.codigoVuelo)
                     {
+                        condicion05NMvuelo1 = false;
                         numberOfIteratedMSGvuelo1++;
-                        Point posVuelo1 = new Point(Convert.ToDouble(datosAsterix[j][Xcol]), Convert.ToDouble(datosAsterix[j][Ycol]));
+
+                        posVuelo1 = new Point(Convert.ToDouble(datosAsterix[j][Xcol]), Convert.ToDouble(datosAsterix[j][Ycol]));
                         tiempo_ms_vuelo1 = int.Parse(datosAsterix[j][TIMEcol].Split(':')[1]) * 60000 + int.Parse(datosAsterix[j][TIMEcol].Split(':')[2]) * 1000 + int.Parse(datosAsterix[j][TIMEcol].Split(':')[3]);
 
-                        if (vuelo1.pistadesp == "LEBL-24L") condicion05NMvuelo1 = (CalcularDistanciaEntrePuntos(posVuelo1, posTHR_24L) > 1852/2);
-                        else condicion05NMvuelo1 = (CalcularDistanciaEntrePuntos(posVuelo1, posTHR_06R) > 1852 / 2);
+                        if (vuelo1.pistadesp == "LEBL-24L") condicion05NMvuelo1 = (CalcularDistanciaEntrePuntos(posVuelo1, posTHR_06R) > 1852/2);
+                        else condicion05NMvuelo1 = (CalcularDistanciaEntrePuntos(posVuelo1, posTHR_24L) > 1852 / 2);
 
                         if (condicion05NMvuelo1)
                         {
@@ -752,14 +808,14 @@ namespace AsterixViewer.Tabs
                                 if (datosAsterix[j2][TIcol] == vuelo2.codigoVuelo && vuelo1.pistadesp == vuelo2.pistadesp)
                                 {
                                     tiempo_ms_vuelo2 = int.Parse(datosAsterix[j2][TIMEcol].Split(':')[1]) * 60000 + int.Parse(datosAsterix[j2][TIMEcol].Split(':')[2]) * 1000 + int.Parse(datosAsterix[j2][TIMEcol].Split(':')[3]);
-                                    Point posVuelo2 = new Point(Convert.ToDouble(datosAsterix[j2][Xcol]), Convert.ToDouble(datosAsterix[j2][Ycol]));
+                                    posVuelo2 = new Point(Convert.ToDouble(datosAsterix[j2][Xcol]), Convert.ToDouble(datosAsterix[j2][Ycol]));
 
-                                    if (vuelo2.pistadesp == "LEBL-24L") condicion05NMvuelo2 = (CalcularDistanciaEntrePuntos(posVuelo2, posTHR_24L) > 1852 / 2);
-                                    else condicion05NMvuelo2 = (CalcularDistanciaEntrePuntos(posVuelo2, posTHR_06R) > 1852 / 2);
+                                    if (vuelo2.pistadesp == "LEBL-24L") condicion05NMvuelo2 = (CalcularDistanciaEntrePuntos(posVuelo2, posTHR_06R) > 1852 / 2);
+                                    else condicion05NMvuelo2 = (CalcularDistanciaEntrePuntos(posVuelo2, posTHR_24L) > 1852 / 2);
 
                                     if (Math.Abs(tiempo_ms_vuelo2 - tiempo_ms_vuelo1) < 3000 && condicion05NMvuelo2)
                                     {
-                                        double distance = CalcularDistanciaEntrePuntos(posVuelo1, posVuelo2);
+                                        distance = CalcularDistanciaEntrePuntos(posVuelo1, posVuelo2);
 
                                         distanciasDespeguesConsecutivos.listaDistancias.Add(distance.ToString());
                                         distanciasDespeguesConsecutivos.listaTiemposVuelo1.Add(datosAsterix[j][3]);
@@ -1156,14 +1212,12 @@ namespace AsterixViewer.Tabs
                         {
                             try
                             {
-                                writer1.WriteLine(distMinSonometro.vuelo.codigoVuelo + ";" + distMinSonometro.vuelo.ATOT + ";" + "DEP 05NM (aun no esta)" + ";" + 
-                                    distMinSonometro.vuelo.sid + ";" + distMinSonometro.vuelo.estela + ";" + distMinSonometro.vuelo.tipo_aeronave + ";" + 
-                                    distMinSonometro.distMinSonometro / 1852 + ";" + distMinSonometro.timeMinSonometro);
+                                writer1.WriteLine(distMinSonometro.vuelo.codigoVuelo + ";" + distMinSonometro.vuelo.ATOT + ";" + 
+                                    distMinSonometro.vuelo.timeDEP_05NM + ";" + distMinSonometro.vuelo.sid + ";" + distMinSonometro.vuelo.estela + ";" + 
+                                    distMinSonometro.vuelo.tipo_aeronave + ";" + distMinSonometro.distMinSonometro / 1852 + ";" + 
+                                    distMinSonometro.timeMinSonometro);
                             }
-                            catch
-                            {
-
-                            }
+                            catch { }
                         }
                     }
 
