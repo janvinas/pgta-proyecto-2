@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows.Data;
@@ -11,7 +12,6 @@ namespace AsterixViewer
     public class DataStore : INotifyPropertyChanged
     {
         public ICollectionView FilteredMessages { get; private set; }
-        public Predicate<object> GlobalFilter { get; set; }
         public void RefreshFilters()
         {
             if (FilteredMessages != null)
@@ -92,6 +92,8 @@ namespace AsterixViewer
                 }
             }
         }
+
+
 
         /// <summary>
         /// Calcula el primer y último tiempo en los mensajes cargados.

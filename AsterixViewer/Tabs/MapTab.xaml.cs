@@ -1,19 +1,22 @@
-﻿using Esri.ArcGISRuntime.UI;
+﻿using AsterixViewer.AsterixMap;
+using Esri.ArcGISRuntime.UI;
 using Esri.ArcGISRuntime.UI.Controls;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
-using System.Diagnostics;
 
 namespace AsterixViewer.Tabs
 {
     public partial class MapTab : UserControl
     {
-        private AsterixViewer.AsterixMap.MapViewModel ViewModel;
+        private MapViewModel ViewModel;
 
         public MapTab()
         {
             InitializeComponent();
-            ViewModel = new AsterixMap.MapViewModel(((App)Application.Current).DataStore);
+            var dataStore = ((App)Application.Current).DataStore;
+            var filtersViewModel = ((App)Application.Current).FiltersViewModel;
+            ViewModel = new MapViewModel(dataStore, filtersViewModel);
             DataContext = ViewModel;
             MainMapView.GeoViewTapped += OnMapTapped;
         }

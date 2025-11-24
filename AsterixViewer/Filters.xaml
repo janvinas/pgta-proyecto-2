@@ -1,0 +1,39 @@
+﻿<UserControl x:Class="AsterixViewer.Filters"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:AsterixViewer"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="12">
+            <Label Content="Filtros:"/>
+            <CheckBox Content="CAT021" IsChecked="{Binding ShowCat21}"/>
+            <CheckBox Content="CAT048" IsChecked="{Binding ShowCat48}"/>
+            <CheckBox Content="Blanco Puro" IsChecked="{Binding ShowBlancoPuro}"/>
+            <CheckBox Content="Transponder Fijo" IsChecked="{Binding ShowTransponderFijo}"/>
+            <CheckBox Content="On Ground" IsChecked="{Binding ShowOnGround}"/>
+
+            <Label Content="Identificador:"/>
+            <TextBox x:Name="IdentFilterBox" Margin="2" Text="{Binding IdFilter, UpdateSourceTrigger=Explicit}"/>
+            <Button Content="Filtrar ID" Click="OnIdFilterChanged" Margin="2"/>
+
+            <Label Content="Latitude"/>
+            <ui:TextBox x:Name="LatMinBox" Text="{Binding MinLatitude, UpdateSourceTrigger=Explicit}" Margin="2" PlaceholderText="Min Lat."/>
+            <ui:TextBox x:Name="LatMaxBox" Text="{Binding MaxLatitude, UpdateSourceTrigger=Explicit}" Margin="2" PlaceholderText="Max Lat."/>
+            <Label Content="Longitude"/>
+            <ui:TextBox x:Name="LonMinBox" Text="{Binding MinLongitude, UpdateSourceTrigger=Explicit}" Margin="2" PlaceholderText="Min Lon."/>
+            <ui:TextBox x:Name="LonMaxBox" Text="{Binding MaxLongitude, UpdateSourceTrigger=Explicit}" Margin="2" PlaceholderText="Max Lon."/>
+
+            <StackPanel Orientation="Horizontal">
+                <Button Content="Aplicar" Click="OnCoordsFilterChanged" Margin="2"/>
+                <Button Content="Limpiar" Click="OnClearCoordFilter" Margin="2"/>
+            </StackPanel>
+
+            <Button Content="Exportar" Click="Exportar_Click" Width="auto" Margin="2"/>
+            <Button Content="Exportar (Formato P3)" Click="ExportarP3_Click" Width="auto" Margin="2"/>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

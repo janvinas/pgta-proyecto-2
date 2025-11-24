@@ -31,6 +31,7 @@ namespace AsterixViewer
         private async void OpenFile_click(object sender, RoutedEventArgs args)
         {
             var dialog = new OpenFileDialog();
+            dialog.Filter = "Archivos ASTERIX|*.ast";
             if (dialog.ShowDialog() != true)
                 return;
 

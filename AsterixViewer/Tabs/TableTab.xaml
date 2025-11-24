@@ -5,6 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:AsterixViewer.Tabs"
              xmlns:main="clr-namespace:AsterixViewer"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
@@ -14,65 +15,12 @@
         <main:FLConverter x:Key="FLConverter"/>
     </UserControl.Resources>
     <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
-        <Menu Grid.Row="1">
-            <MenuItem Header="Filtros">
-                <MenuItem x:Name="Cat021Filter" Header="CAT021" IsCheckable="True" IsChecked="True" Click="OnFilterChanged"/>
-                <MenuItem x:Name="Cat048Filter" Header="CAT048" IsCheckable="True" IsChecked="True" Click="OnFilterChanged"/>
-                <MenuItem x:Name="BlancoPuroFilter" Header="Blanco Puro" IsCheckable="True" IsChecked="False" Click="OnFilterChanged"/>
-                <MenuItem x:Name="TransponderFijoFilter" Header="Transponder Fijo" IsCheckable="True" IsChecked="True" Click="OnFilterChanged"/>
-                <MenuItem x:Name="EliminarSuelo" Header="Eliminar 'On Ground'" IsCheckable="True" IsChecked="False" Click="OnFilterChanged"/>
-            </MenuItem>
-            <MenuItem Header="Exportar" Click="Exportar_Click"/>
-            <MenuItem Header="Exportar (Formato P3)" Click="ExportarP3_Click"/>
-        </Menu>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="250"/>
+        </Grid.ColumnDefinitions>
 
-        <Border Grid.Row="0" Background="#f0f0f0" Padding="6" BorderBrush="#ccc" BorderThickness="0,0,0,1">
-            <StackPanel Orientation="Horizontal" Margin="5" HorizontalAlignment="Center" VerticalAlignment="Center">
-                <TextBlock Text="Identificador:" VerticalAlignment="Center" Margin="10,0,5,0"/>
-                <TextBox x:Name="IdentFilterBox" Width="100" Margin="5" Height="20"/>
-                <Button Content="Filtrar ID" Click="OnFilterChanged" Margin="5" Height="20"/>
-
-                <StackPanel Orientation="Vertical" Margin="10,0">
-                    <TextBlock Text="Latitud" HorizontalAlignment="Center" FontWeight="Bold"/>
-
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                        <TextBlock Text="Min:" VerticalAlignment="Center" Margin="5,0" Width="25" Height="17"/>
-                        <TextBox x:Name="LatMinBox" Width="70" Margin="5,0" Height="17"/>
-                    </StackPanel>
-
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                        <TextBlock Text="Max:" VerticalAlignment="Center" Margin="5,0" Width="25" Height="17"/>
-                        <TextBox x:Name="LatMaxBox" Width="70" Margin="5,0" Height="17"/>
-                    </StackPanel>
-                </StackPanel>
-
-                <StackPanel Orientation="Vertical" Margin="10,0">
-                    <TextBlock Text="Longitud" HorizontalAlignment="Center" FontWeight="Bold"/>
-
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                        <TextBlock Text="Min:" VerticalAlignment="Center" Margin="5,0" Height="17" Width="25"/>
-                        <TextBox x:Name="LonMinBox" Width="70" Margin="5,0" Height="17"/>
-                    </StackPanel>
-
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                        <TextBlock Text="Max:" VerticalAlignment="Center" Margin="5,0" Width="25" Height="17"/>
-                        <TextBox x:Name="LonMaxBox" Width="70" Margin="5,0" Height="17"/>
-                    </StackPanel>
-                </StackPanel>
-
-                <Button Content="Aplicar" Click="OnFilterChanged" Margin="5" Height="20" Width="45"/>
-                <Button Content="Limpiar" Click="OnClearCoordFilter" Margin="5" Height="20" Width="45"/>
-
-            </StackPanel>
-        </Border>
-
-
-        <DataGrid x:Name="DataGrid" Grid.Row="2" IsReadOnly="True" AutoGenerateColumns="False" CanUserAddRows="False">
+        <DataGrid x:Name="DataGrid" Grid.Column="0" IsReadOnly="True" AutoGenerateColumns="False" CanUserAddRows="False">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="CAT" Binding="{Binding Cat, StringFormat={}{0}, TargetNullValue='Unknown'}"/>
                 <DataGridTextColumn Header="SIC" Binding="{Binding SIC}"/>
@@ -149,5 +97,9 @@
                 <DataGridTextColumn Header="IVV" Binding="{Binding BDS.IVV}"/>
             </DataGrid.Columns>
         </DataGrid>
+
+        <Border Grid.Column="1">
+            <main:Filters></main:Filters>
+        </Border>
     </Grid>
 </UserControl>

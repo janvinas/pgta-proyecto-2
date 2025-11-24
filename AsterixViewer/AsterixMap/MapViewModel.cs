@@ -25,6 +25,7 @@ namespace AsterixViewer.AsterixMap
         public ICommand HideDetailsCommand { get; }
 
         private readonly DataStore dataStore;
+        private readonly FiltersViewModel filtersViewModel;
         public TimeSliderViewModel TimeSliderViewModel { get; }
         public string ReplayTimeText => TimeSpan.FromSeconds(dataStore.ReplayTime).ToString(@"hh\:mm\:ss\.fff");
         private DispatcherTimer _replayTimer;
@@ -108,11 +109,13 @@ namespace AsterixViewer.AsterixMap
         }
 
         private const string PlaneIconUri = "pack://application:,,,/AsterixViewer;component/Resources/avion.png";
-        public MapViewModel(DataStore dataStore)
+        public MapViewModel(DataStore dataStore, FiltersViewModel filtersViewModel)
         {
             this.dataStore = dataStore;
+            this.filtersViewModel = filtersViewModel;
             TimeSliderViewModel = new TimeSliderViewModel(dataStore);
             dataStore.PropertyChanged += OnDataStoreChanged;
+            filtersViewModel.PropertyChanged += OnFiltersChanged;
 
             ChangeTimeCommand = new RelayCommand((object? args) =>
             {
@@ -282,10 +285,11 @@ namespace AsterixViewer.AsterixMap
                 planeGraphics.Graphics.Clear();
                 DisplayFlights();
             }
-            else if (e.PropertyName == "FiltersRefreshed") // "FiltersRefreshed" es un ejemplo
-            {
-                DisplayFlights(); // Llama a DisplayFlights para aplicar el filtro
-            }
+        }
+
+        private void OnFiltersChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            DisplayFlights();
         }
 
 
@@ -301,8 +305,6 @@ namespace AsterixViewer.AsterixMap
         private void DisplayFlights()
         {
             if (dataStore == null || dataStore.Flights == null) return;
-
-            var globalFilter = dataStore.GlobalFilter;
             var visibleKeys = new HashSet<string>();
 
             foreach (var item in dataStore.Flights)
@@ -313,7 +315,7 @@ namespace AsterixViewer.AsterixMap
                 // ---------------- PROCESAR CAT021 ----------------
                 var msg021 = FindMessage(flight.cat21Messages, dataStore.ReplayTime);
 
-                if (msg021 != null && (globalFilter == null || globalFilter(msg021)))
+                if (msg021 != null && filtersViewModel.FilterMessages(msg021))
                 {
                     ProcessFlightGraphic(msg021, flightId.ToString(), "CAT021", visibleKeys);
                 }
@@ -321,7 +323,7 @@ namespace AsterixViewer.AsterixMap
                 // ---------------- PROCESAR CAT048 ----------------
                 var msg048 = FindMessage(flight.cat48Messages, dataStore.ReplayTime);
 
-                if (msg048 != null && (globalFilter == null || globalFilter(msg048)))
+                if (msg048 != null && filtersViewModel.FilterMessages(msg048))
                 {
                     ProcessFlightGraphic(msg048, flightId.ToString(), "CAT048", visibleKeys);
                 }

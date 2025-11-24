@@ -12,11 +12,12 @@ namespace AsterixViewer
     {
         public DataStore DataStore { get; }
         public MapViewModel MapViewModel { get; }
+        public FiltersViewModel FiltersViewModel { get; }
 
         public App()
         {
             DataStore = new DataStore();
-            MapViewModel = new MapViewModel(DataStore);
+            FiltersViewModel = new FiltersViewModel();
         }
 
         protected override void OnStartup(StartupEventArgs e)
