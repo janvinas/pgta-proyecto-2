@@ -141,7 +141,9 @@ namespace AsterixViewer.Tabs
             public DatosAltitud data1500ft = new DatosAltitud();
             public DatosAltitud data3500ft = new DatosAltitud();
         }
-        List<IASaltitudes> listaIASaltitudes = new List<IASaltitudes>();
+        List<IASaltitudes> listaVelocidadesIASDespegue = new List<IASaltitudes>();
+
+        public bool calculosPreliminaresHechos = false;
 
         public Proyecto3()
         {
@@ -188,57 +190,93 @@ namespace AsterixViewer.Tabs
             LeerClasificacionAeronaves();
         }
 
-        private void PruebasDEBUG_Click(object sender, RoutedEventArgs e)
+        private void CalculosPreliminares_Click(object sender, RoutedEventArgs e)
         {
-            // Calcula posiciones Esterograficas de todos los mensajes Asterix y añade las columnas X e Y a cada mensaje
-            CalcularPosicionesEstereograficas();
+            if (!calculosPreliminaresHechos)
+            {
+                try
+                {
+                    CalcularPosicionesEstereograficas();
+                    ClasificarDistintosVuelosPRUEBA();
+                    // OrdenarVuelos();
+                    CalcularTiempo05NMfromTHR();
 
-            // Clasifica los distintos Vuelos segun su identificador TI
-            ClasificarDistintosVuelos();
-
-            // Ordena los vuelos segun el ATOT en listaPV, compara segun identificador de vuelo TI
-            // OrdenarVuelos();
-
-            // Calcula todas las distancias entre despegues consecutivos, crea clases DistanciasDespeguesConsecutivos
-            // y rellena la lista listaConjuntosDistanciasDespeguesConsecutivos (ver definicion)
-            CalcularDistanciasDespeguesConsecutivos();
+                    calculosPreliminaresHechos = true;
+                }
+                catch
+                {
+                    MessageBox.Show(
+                        $"Se deben leer todos los archivos apropiados!!",
+                        "Error",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error
+                    );
+                }
+            }
         }
 
         // Todas las llamadas necesarias para calcular las separciones entre despegues consecutivos
         private void CalculoSeparacionesDespegues_Click(object sender, RoutedEventArgs e)
         {
-            CalcularPosicionesEstereograficas();
-            ClasificarDistintosVuelos();
-            // OrdenarVuelos();
-            CalcularTiempo05NMfromTHR();
+            if (calculosPreliminaresHechos)
+            {
+                listaConjuntosDistanciasDespeguesConsecutivos.Clear();
+                CalcularDistanciasDespeguesConsecutivos();
 
-            CalcularDistanciasDespeguesConsecutivos();
-
-            GuardarDistDESPConsecutivos();
+                GuardarDistDESPConsecutivos();
+            }
+            else
+            {
+                MessageBox.Show(
+                    $"NO se pueden hacer los cálculos apropiados \n" +
+                    $"realizar previamente los cálculos preliminares",
+                    "Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
+            }
         }
 
         private void DistanciasMinimasSonometro_Click(object sender, RoutedEventArgs e)
         {
-            CalcularPosicionesEstereograficas();
-            ClasificarDistintosVuelos();
-            // OrdenarVuelos();
-            CalcularTiempo05NMfromTHR();
+            if (calculosPreliminaresHechos)
+            {
+                listaDistanciasMinimasSonometro.Clear();
+                CalcularDistanciaMinimaSonometro();
 
-            CalcularDistanciaMinimaSonometro();
-
-            GuardarDistMinSonometro();
+                GuardarDistMinSonometro();
+            }
+            else
+            {
+                MessageBox.Show(
+                    $"NO se pueden hacer los cálculos apropiados \n" +
+                    $"realizar previamente los cálculos preliminares",
+                    "Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
+            }
         }
 
         private void VelocidadIASDespegue_Click(object sender, RoutedEventArgs e)
         {
-            CalcularPosicionesEstereograficas();
-            ClasificarDistintosVuelos();
-            // OrdenarVuelos();
-            CalcularTiempo05NMfromTHR();
+            if (calculosPreliminaresHechos)
+            {
+                listaVelocidadesIASDespegue.Clear();
+                CalcularVelocidadIASDespegue();
 
-            CalcularVelocidadIASDespegue();
-
-            GuardarVelocidadIASDespegue();
+                GuardarVelocidadIASDespegue();
+            }
+            else
+            {
+                MessageBox.Show(
+                    $"NO se pueden hacer los cálculos apropiados \n" +
+                    $"realizar previamente los cálculos preliminares",
+                    "Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
+            }
         }
 
         // -------------------------------- LECTORES DE ARCHIVOS DE PARAMETROS DE INPUT -----------------------------------------------------------------
@@ -691,6 +729,72 @@ namespace AsterixViewer.Tabs
             }
         }
 
+        // HAY QUE REDEFINIR ESTA FUNCION ENTERA
+        /* IDEA:
+         * 1- Iterar lista de PV par crear los nuevos "Aviones"
+         * 2- Cada nuevo TI/TA/TrackNum -> nuevo Avion
+         * 3- Bucle en datosAsterix desde 0 hasta encontrar ID -> comprobar si ATOT - Time < 30'
+         * 4- Introducir todos los mensajes desde ese punto hasta que no haya durante 100 mensajes
+         * 5- Introducir Avion en listaAviones
+         */
+
+        private void ClasificarDistintosVuelosPRUEBA()
+        {
+            int colPV_callsign = 1;
+            int colPV_ATOT = 10;
+
+            int colAST_time = 3;
+            int colAST_callsign = 13;
+
+            int ATOT_ms;
+            int ASTtime_ms;
+
+            int counter = 0;
+
+            listaPV.RemoveAt(0);
+            foreach (List<string> planVuelo in listaPV)
+            {
+                Vuelo vuelo = new Vuelo();
+                vuelo.codigoVuelo = planVuelo[colPV_callsign];
+
+                vuelo.tipo_aeronave = planVuelo[6];
+                vuelo.estela = planVuelo[7];
+                vuelo.sid = planVuelo[9];
+                vuelo.ATOT = planVuelo[10];
+                vuelo.pistadesp = planVuelo[11];
+
+                for (int i = 0; i < datosAsterix.Count; i++)
+                {
+                    if (datosAsterix[i][colAST_callsign] == planVuelo[colPV_callsign])
+                    {
+                        ATOT_ms = (int)TimeSpan.Parse(planVuelo[colPV_ATOT]).TotalMilliseconds;
+                        ASTtime_ms = int.Parse(datosAsterix[i][colAST_time].Split(':')[0]) * 3600 * 1000
+                            + int.Parse(datosAsterix[i][colAST_time].Split(':')[1]) * 60 * 1000
+                            + int.Parse(datosAsterix[i][colAST_time].Split(':')[2]) * 1000
+                            + int.Parse(datosAsterix[i][colAST_time].Split(':')[3]);
+
+                        if (Math.Abs(ATOT_ms - ASTtime_ms) < 0.5 * 3600 * 1000)
+                        {
+                            for (int j = i; j < datosAsterix.Count; j++)
+                            {
+                                if (datosAsterix[j][colAST_callsign] == planVuelo[colPV_callsign])
+                                {
+                                    vuelo.mensajesVuelo.Add(datosAsterix[j]);
+                                    counter = 0;
+                                }
+                                else counter++;
+
+                                if (counter >= 100) break;
+                            }
+                        }
+                    }
+                }
+
+                // TAL VEZ ES MEJOR NO ELIMINAR LOS PV SI NO SALEN EN ASTERIX
+                if (vuelo.mensajesVuelo.Count > 0) vuelosOrdenados.Add(vuelo);
+            }
+        }
+
         /// <summary>
         /// Función que ordena los vuelos por hora de despegue (para luego comprobar distancias entre despegues de manera fácil)
         /// </summary>
@@ -1082,7 +1186,7 @@ namespace AsterixViewer.Tabs
                     }
                 }
 
-                listaIASaltitudes.Add(iasAltitudes);
+                listaVelocidadesIASDespegue.Add(iasAltitudes);
             }
         }
 
@@ -1388,7 +1492,7 @@ namespace AsterixViewer.Tabs
                     using (var writer1 = new StreamWriter(filePath1, false, Encoding.UTF8))
                     {
                         writer1.WriteLine("Callsign;ATOT;SID;Estela;Tipo Aeronave;Runway;IAS850ft;time850ft;altitudTomada850ft;IAS1500ft;time1500ft;altitudTomada1500ft;IAS3500ft;time3500ft;altitudTomada3500ft");
-                        foreach (IASaltitudes iasAltitudes in listaIASaltitudes)
+                        foreach (IASaltitudes iasAltitudes in listaVelocidadesIASDespegue)
                         {
                             try
                             {
