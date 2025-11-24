@@ -127,6 +127,22 @@ namespace AsterixViewer.Tabs
         }
         List<DistanciaMinimaSonometro> listaDistanciasMinimasSonometro = new List<DistanciaMinimaSonometro>();
 
+        public class DatosAltitud
+        {
+            public string IAS;
+            public string Time;
+            public string Altura;
+        }
+
+        public class IASaltitudes
+        {
+            public Vuelo vuelo;
+            public DatosAltitud data850ft = new DatosAltitud();
+            public DatosAltitud data1500ft = new DatosAltitud();
+            public DatosAltitud data3500ft = new DatosAltitud();
+        }
+        List<IASaltitudes> listaIASaltitudes = new List<IASaltitudes>();
+
         public Proyecto3()
         {
             InitializeComponent();
@@ -211,6 +227,18 @@ namespace AsterixViewer.Tabs
             CalcularDistanciaMinimaSonometro();
 
             GuardarDistMinSonometro();
+        }
+
+        private void VelocidadIASDespegue_Click(object sender, RoutedEventArgs e)
+        {
+            CalcularPosicionesEstereograficas();
+            ClasificarDistintosVuelos();
+            // OrdenarVuelos();
+            CalcularTiempo05NMfromTHR();
+
+            CalcularVelocidadIASDespegue();
+
+            GuardarVelocidadIASDespegue();
         }
 
         // -------------------------------- LECTORES DE ARCHIVOS DE PARAMETROS DE INPUT -----------------------------------------------------------------
@@ -635,7 +663,7 @@ namespace AsterixViewer.Tabs
 
                     Vuelo vuelo = new Vuelo();
                     vuelo.codigoVuelo = TI;
-                    vuelo.horaPV = datosAsterix [i][3]; // Columna con la hora del Plan de Vuelo
+                    vuelo.horaPV = datosAsterix [i][TIMEcol]; // Columna con la hora del Plan de Vuelo
                     foreach (List<string> msg in datosAsterix) if (msg[TIcol] == TI) vuelo.mensajesVuelo.Add(msg);
 
                     int firstMsgTime_ms = int.Parse(vuelo.mensajesVuelo[0][TIMEcol].Split(':')[0]) * 3600*1000 + int.Parse(vuelo.mensajesVuelo[0][TIMEcol].Split(':')[1]) * 60*1000 + int.Parse(datosAsterix[0][TIMEcol].Split(':')[2]) * 1000 + int.Parse(datosAsterix[0][TIMEcol].Split(':')[3]);
@@ -656,7 +684,6 @@ namespace AsterixViewer.Tabs
                             break;
                         }
                     }
-
 
                     vuelosOrdenados.Add(vuelo);
                     TI_usados.Add(datosAsterix[i][TIcol]);
@@ -779,6 +806,8 @@ namespace AsterixViewer.Tabs
 
             double distance;
 
+            int N = 20;
+
             for (int i = 0; i < vuelosOrdenados.Count - 1; i++)
             {
                 Vuelo vuelo1 = vuelosOrdenados[i];
@@ -804,8 +833,8 @@ namespace AsterixViewer.Tabs
 
                         if (condicion05NMvuelo1)
                         {
-                            // Iterar sobre los siguientes N vuelos para encontrar la detección simultanea del vuelo2 (N = 5 arbitrario)
-                            for (int j2 = j + 1; j2 < Math.Min(j + 5, datosAsterix.Count); j2++)
+                            // Iterar sobre los siguientes N vuelos para encontrar la detección simultanea del vuelo2 (N = 15 arbitrario)
+                            for (int j2 = j + 1; j2 < Math.Min(j + N, datosAsterix.Count); j2++)
                             {
                                 if (datosAsterix[j2][TIcol] == vuelo2.codigoVuelo && vuelo1.pistadesp == vuelo2.pistadesp)
                                 {
@@ -963,6 +992,97 @@ namespace AsterixViewer.Tabs
 
                     listaDistanciasMinimasSonometro.Add(distanciaMinima);
                 }
+            }
+        }
+
+        private void CalcularVelocidadIASDespegue()
+        {
+            int colHft = 7;
+            int colIAS = 21;
+            int colTIME = 3;
+
+            int i;
+            int j;
+            int k;
+
+            int valorIAS;
+            double valorHft;
+            double valorHft_prev;
+
+            int target_altitude;
+            int index;
+
+            foreach (Vuelo vuelo in vuelosOrdenados)
+            {
+                IASaltitudes iasAltitudes = new IASaltitudes();
+                iasAltitudes.vuelo = vuelo;
+
+                // 850ft
+                target_altitude = 850;
+                for (i = 1; i < vuelo.mensajesVuelo.Count; i++)
+                {
+                    valorIAS = int.TryParse(vuelo.mensajesVuelo[i][colIAS], out int tmp) ? tmp : 0;
+                    valorHft = Convert.ToDouble(vuelo.mensajesVuelo[i][colHft]);
+                    valorHft_prev = Convert.ToDouble(vuelo.mensajesVuelo[i-1][colHft]);
+
+                    if (valorHft > 1500) break;
+                    if (valorHft - target_altitude > 0)
+                    {
+                        if (Math.Abs(valorHft_prev - target_altitude) < Math.Abs(valorHft - target_altitude)) index = i-1;
+                        else index = i;
+
+                        iasAltitudes.data850ft.IAS = vuelo.mensajesVuelo[index][colIAS];
+                        iasAltitudes.data850ft.Time = vuelo.mensajesVuelo[index][colTIME];
+                        iasAltitudes.data850ft.Altura = vuelo.mensajesVuelo[index][colHft];
+
+                        break;
+                    }
+                }
+
+                // 1500ft
+                target_altitude = 1500;
+                for (j = i; j < vuelo.mensajesVuelo.Count; j++)
+                {
+                    valorIAS = int.TryParse(vuelo.mensajesVuelo[j][colIAS], out int tmp) ? tmp : 0;
+                    valorHft = Convert.ToDouble(vuelo.mensajesVuelo[j][colHft]);
+                    valorHft_prev = Convert.ToDouble(vuelo.mensajesVuelo[j - 1][colHft]);
+
+                    if (valorHft > 3500) break;
+                    if (valorHft - target_altitude > 0)
+                    {
+                        if (Math.Abs(valorHft_prev - target_altitude) < Math.Abs(valorHft - target_altitude)) index = j - 1;
+                        else index = j;
+
+                        iasAltitudes.data1500ft.IAS = vuelo.mensajesVuelo[index][colIAS];
+                        iasAltitudes.data1500ft.Time = vuelo.mensajesVuelo[index][colTIME];
+                        iasAltitudes.data1500ft.Altura = vuelo.mensajesVuelo[index][colHft];
+
+                        break;
+                    }
+                }
+
+                // 3500ft
+                target_altitude = 3500;
+                for (k = j; k < vuelo.mensajesVuelo.Count; k++)
+                {
+                    valorIAS = int.TryParse(vuelo.mensajesVuelo[k][colIAS], out int tmp) ? tmp : 0;
+                    valorHft = Convert.ToDouble(vuelo.mensajesVuelo[k][colHft]);
+                    valorHft_prev = Convert.ToDouble(vuelo.mensajesVuelo[k - 1][colHft]);
+
+                    if (valorHft - target_altitude > 0)
+                    {
+                        if (Math.Abs(valorHft_prev - target_altitude) < Math.Abs(valorHft - target_altitude)) index = k - 1;
+                        else index = k;
+
+                        iasAltitudes.data3500ft.IAS = vuelo.mensajesVuelo[index][colIAS];
+                        iasAltitudes.data3500ft.Time = vuelo.mensajesVuelo[index][colTIME];
+                        iasAltitudes.data3500ft.Altura = vuelo.mensajesVuelo[index][colHft];
+
+                        break;
+                    }
+                }
+
+                listaIASaltitudes.Add(iasAltitudes);
             }
         }
 
@@ -1218,6 +1338,65 @@ namespace AsterixViewer.Tabs
                                     distMinSonometro.vuelo.timeDEP_05NM + ";" + distMinSonometro.vuelo.sid + ";" + distMinSonometro.vuelo.estela + ";" + 
                                     distMinSonometro.vuelo.tipo_aeronave + ";" + distMinSonometro.distMinSonometro / 1852 + ";" + 
                                     distMinSonometro.timeMinSonometro);
+                            }
+                            catch { }
+                        }
+                    }
+
+                    // ✅ Confirmar al usuario
+                    MessageBox.Show(
+                        $"Archivo exportado correctamente:\n{filePath1}",
+                        "Exportación completada",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information
+                    );
+                }
+                else
+                {
+                    MessageBox.Show("Exportación cancelada por el usuario.");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Error al guardar el archivo:\n{ex.Message}",
+                    "Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
+            }
+        }
+
+        private void GuardarVelocidadIASDespegue()
+        {
+            // csv como nos piden
+            try
+            {
+                var saveFileDialog1 = new SaveFileDialog
+                {
+                    Title = "Guardar CSV de Velocidades IAS Despegue",
+                    Filter = "Archivos CSV (*.xlsx)|*.csv",
+                    FileName = "IAS TakeOff.csv",
+                    DefaultExt = ".csv"
+                };
+
+                if (saveFileDialog1.ShowDialog() == true)
+                {
+                    var filePath1 = saveFileDialog1.FileName;
+
+                    // ✍️ Escribir el archivo (CSV con extensión XLSX)
+                    using (var writer1 = new StreamWriter(filePath1, false, Encoding.UTF8))
+                    {
+                        writer1.WriteLine("Callsign;ATOT;SID;Estela;Tipo Aeronave;Runway;IAS850ft;time850ft;altitudTomada850ft;IAS1500ft;time1500ft;altitudTomada1500ft;IAS3500ft;time3500ft;altitudTomada3500ft");
+                        foreach (IASaltitudes iasAltitudes in listaIASaltitudes)
+                        {
+                            try
+                            {
+                                writer1.WriteLine(iasAltitudes.vuelo.codigoVuelo + ";" + iasAltitudes.vuelo.ATOT + ";" + iasAltitudes.vuelo.sid + ";" +
+                                    iasAltitudes.vuelo.estela + ";" + iasAltitudes.vuelo.tipo_aeronave + ";" + iasAltitudes.vuelo.pistadesp + ";" +
+                                    iasAltitudes.data850ft.IAS + ";" + iasAltitudes.data850ft.Time + ";" + iasAltitudes.data850ft.Altura + ";" +
+                                    iasAltitudes.data1500ft.IAS + ";" + iasAltitudes.data1500ft.Time + ";" + iasAltitudes.data1500ft.Altura + ";" +
+                                    iasAltitudes.data3500ft.IAS + ";" + iasAltitudes.data3500ft.Time + ";" + iasAltitudes.data3500ft.Altura);
                             }
                             catch { }
                         }

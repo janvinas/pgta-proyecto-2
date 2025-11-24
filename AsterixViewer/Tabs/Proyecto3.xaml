@@ -9,7 +9,7 @@
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="200"></ColumnDefinition>
+            <ColumnDefinition Width="400"></ColumnDefinition>
             <ColumnDefinition Width="Auto" MinWidth="0"></ColumnDefinition>
         </Grid.ColumnDefinitions>
         <StackPanel Grid.Column="0">
@@ -19,8 +19,9 @@
             <Button Content="Guardar MSG Actualizados" Click="GuardarMSG_Asterix_Click"/>
             <Button Content="Guardar PV Actualizados" Click="GuardarMSG_PV_Click"/>
             <Button Content="PruebasDEBUG" Click="PruebasDEBUG_Click"/>
-            <Button Content="[1] Cálculos separaciones Despegues" Click="CalculoSeparacionesDespegues_Click"/>
-            <Button Content="[6] Cálculos distancias Sonómetro" Click="DistanciasMinimasSonometro_Click"/>
+            <Button Content="[1] Pérdidas de separación y Alcances" Click="CalculoSeparacionesDespegues_Click"/>
+            <Button Content="[4] Velocidad IAS de despegues" Click="VelocidadIASDespegue_Click"/>
+            <Button Content="[6] Distancia mínima Sonómetro" Click="DistanciasMinimasSonometro_Click"/>
         </StackPanel>
     </Grid>
 </UserControl>
