@@ -94,6 +94,12 @@
                 <DataGridTextColumn Header="Longitude" Binding="{Binding Longitude, StringFormat={}{0:F3}°, TargetNullValue=''}"/>
                 <DataGridTextColumn Header="Latitude" Binding="{Binding Latitude, StringFormat={}{0:F3}°, TargetNullValue=''}"/>
 
+                <DataGridTextColumn Header="Address" Binding="{Binding Address, Converter={StaticResource AddressConverter}}"/>
+                <DataGridTextColumn Header="Callsign" Binding="{Binding Identification}"/>
+                <DataGridTextColumn Header="Track N." Binding="{Binding TrackNum}"/>
+                <DataGridTextColumn Header="Gr. Speed" Binding="{Binding GS, StringFormat={}{0:F2} kt, TargetNullValue=''}"/>
+                <DataGridTextColumn Header="Heading" Binding="{Binding Heading, StringFormat={}{0:F2}°, TargetNullValue=''}"/>
+
                 <DataGridTextColumn Header="SRL" Binding="{Binding RadarPlotCharacteristics.SRL, StringFormat={}{0:F2}°, TargetNullValue=''}"/>
                 <DataGridTextColumn Header="SSR" Binding="{Binding RadarPlotCharacteristics.SSR}"/>
                 <DataGridTextColumn Header="SAM" Binding="{Binding RadarPlotCharacteristics.SAM, StringFormat={}{0} dBm, TargetNullValue=''}"/>
@@ -105,12 +111,6 @@
                 <DataGridTextColumn Header="SCR" Binding="{Binding RadarPlotCharacteristics.SCR}"/>
                 <DataGridTextColumn Header="RW" Binding="{Binding RadarPlotCharacteristics.RW, StringFormat={}{0} NM, TargetNullValue=''}"/>
                 <DataGridTextColumn Header="AR" Binding="{Binding RadarPlotCharacteristics.AR, StringFormat={}{0} NM, TargetNullValue=''}"/>
-
-                <DataGridTextColumn Header="Address" Binding="{Binding Address, Converter={StaticResource AddressConverter}}"/>
-                <DataGridTextColumn Header="Callsign" Binding="{Binding Identification}"/>
-                <DataGridTextColumn Header="Track N." Binding="{Binding TrackNum}"/>
-                <DataGridTextColumn Header="Gr. Speed" Binding="{Binding GS, StringFormat={}{0:F2} kt, TargetNullValue=''}"/>
-                <DataGridTextColumn Header="Heading" Binding="{Binding Heading, StringFormat={}{0:F2}°, TargetNullValue=''}"/>
 
                 <DataGridTextColumn Header="BDS" Binding="{Binding BDS.BDSsTabla}"/>
                 <DataGridTextColumn Header="statusMCP" Binding="{Binding BDS.statusMCP}"/>
