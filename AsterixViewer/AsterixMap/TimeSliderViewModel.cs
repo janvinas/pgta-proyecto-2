@@ -75,7 +75,7 @@ namespace AsterixViewer.AsterixMap
             dataStore.PropertyChanged += OnDataStoreChanged;
             _replayTimeThrottleTimer = new DispatcherTimer
             {
-                Interval = TimeSpan.FromMilliseconds(50) // update frequency
+                Interval = TimeSpan.FromMilliseconds(100) // update frequency
             };
             _replayTimeThrottleTimer.Tick += (s, e) => FlushReplayTime();
             _replayTimeThrottleTimer.Start();

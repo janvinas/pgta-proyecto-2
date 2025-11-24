@@ -11,7 +11,7 @@
             <ColumnDefinition Width="*"></ColumnDefinition>
         </Grid.ColumnDefinitions>
         <StackPanel Grid.Column="0">
-            <Button Content="Load File" Click="OpenFile_click"></Button>
+            <Button Content="Load File"></Button>
             <Button Content="Button3"></Button>
             <ProgressBar x:Name="ProgressBar" Height="10" Minimum="0" Maximum="1"/>
         </StackPanel>

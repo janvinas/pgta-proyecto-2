@@ -8,11 +8,13 @@ namespace AsterixViewer.Tabs
 {
     public partial class MapTab : UserControl
     {
-        private AsterixViewer.AsterixMap.MapViewModel ViewModel => DataContext as AsterixViewer.AsterixMap.MapViewModel;
+        private AsterixViewer.AsterixMap.MapViewModel ViewModel;
 
         public MapTab()
         {
             InitializeComponent();
+            ViewModel = new AsterixMap.MapViewModel(((App)Application.Current).DataStore);
+            DataContext = ViewModel;
             MainMapView.GeoViewTapped += OnMapTapped;
         }
 

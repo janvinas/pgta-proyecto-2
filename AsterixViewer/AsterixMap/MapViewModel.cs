@@ -308,10 +308,10 @@ namespace AsterixViewer.AsterixMap
             foreach (var item in dataStore.Flights)
             {
                 var flightId = item.Key;
-                var messages = item.Value;
+                var flight = item.Value;
 
                 // ---------------- PROCESAR CAT021 ----------------
-                var msg021 = FindMessage(messages.Where(m => m.Cat == CAT.CAT021).ToList(), dataStore.ReplayTime);
+                var msg021 = FindMessage(flight.cat21Messages, dataStore.ReplayTime);
 
                 if (msg021 != null && (globalFilter == null || globalFilter(msg021)))
                 {
@@ -319,7 +319,7 @@ namespace AsterixViewer.AsterixMap
                 }
 
                 // ---------------- PROCESAR CAT048 ----------------
-                var msg048 = FindMessage(messages.Where(m => m.Cat == CAT.CAT048).ToList(), dataStore.ReplayTime);
+                var msg048 = FindMessage(flight.cat48Messages, dataStore.ReplayTime);
 
                 if (msg048 != null && (globalFilter == null || globalFilter(msg048)))
                 {

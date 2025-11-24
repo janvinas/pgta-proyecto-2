@@ -10,8 +10,6 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using static System.Net.Mime.MediaTypeNames;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace AsterixViewer.Tabs
 {
@@ -28,7 +26,7 @@ namespace AsterixViewer.Tabs
 
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
-            dataStore = DataContext as DataStore;
+            dataStore = ((App)Application.Current).DataStore;
             if (dataStore == null || dataStore.Messages == null)
                 return; // Evita el crash si aún no está inicializado
 

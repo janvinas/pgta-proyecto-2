@@ -39,8 +39,8 @@ namespace AsterixViewer
             }
         }
 
-        private Dictionary<uint, List<AsterixMessage>> _flights = [];
-        public Dictionary<uint, List<AsterixMessage>> Flights
+        private Dictionary<uint, Flight> _flights = [];
+        public Dictionary<uint, Flight> Flights
         {
             get => _flights;
             set
@@ -98,8 +98,7 @@ namespace AsterixViewer
         /// </summary>
         private void UpdateReplayTimeBounds()
         {
-            var allTimes = Flights?.Values
-                .SelectMany(f => f)
+            var allTimes = Messages?
                 .Where(m => m.TimeOfDay.HasValue)
                 .Select(m => m.TimeOfDay!.Value)
                 .ToList();

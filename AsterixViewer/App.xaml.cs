@@ -1,4 +1,5 @@
-﻿using System.Configuration;
+﻿using AsterixViewer.AsterixMap;
+using System.Configuration;
 using System.Data;
 using System.Windows;
 
@@ -9,6 +10,15 @@ namespace AsterixViewer
     /// </summary>
     public partial class App : Application
     {
+        public DataStore DataStore { get; }
+        public MapViewModel MapViewModel { get; }
+
+        public App()
+        {
+            DataStore = new DataStore();
+            MapViewModel = new MapViewModel(DataStore);
+        }
+
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);

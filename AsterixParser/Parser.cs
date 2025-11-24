@@ -76,10 +76,10 @@ namespace AsterixParser
             return messages;
         }
 
-        public class ParsingResult(List<AsterixMessage> messages, Dictionary<uint, List<AsterixMessage>> flights)
+        public class ParsingResult(List<AsterixMessage> messages, Dictionary<uint, Flight> flights)
         {
             public List<AsterixMessage> messages = messages;
-            public Dictionary<uint, List<AsterixMessage>> flights = flights;
+            public Dictionary<uint, Flight> flights = flights;
         }
 
         public static async Task<ParsingResult> ParseFileAsync(byte[] file, IProgress<double>? progress = null, CancellationToken cancellationToken = default)
@@ -87,7 +87,7 @@ namespace AsterixParser
             return await Task.Run(() =>
             {
                 List<AsterixMessage> messages = [];
-                Dictionary<uint, List<AsterixMessage>> flights = [];
+                Dictionary<uint, Flight> flights = [];
 
                 int i = 0;
                 double prog = 0;
@@ -137,12 +137,18 @@ namespace AsterixParser
                             message.QNHcorrection = FLcorrected;
                         }
 
-                        if (flights.TryGetValue(address, out var flight))
+                        var found = flights.TryGetValue(address, out var flight);
+                        if (!found) {
+                            flight = new Flight();
+                            flights.Add(address, flight);
+                        }
+
+                        if (cat == 21)
                         {
-                            flight.Add(message);
-                        } else
+                            flight!.cat21Messages.Add(message);
+                        } else if (cat == 48)
                         {
-                            flights.Add(address, [message]);
+                            flight!.cat48Messages.Add(message);
                         }
                     }
 
