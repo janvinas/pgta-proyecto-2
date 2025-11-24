@@ -767,6 +767,8 @@ namespace AsterixViewer.Tabs
 
             int tiempo_ms_vuelo1;
             int tiempo_ms_vuelo2;
+            int tiempo_ms_vuelo1_05NM;
+            int tiempo_ms_vuelo2_05NM;
 
             Point posTHR_24L = new Point(THR_24L.U, THR_24L.V);
             Point posTHR_06R = new Point(THR_06R.U, THR_06R.V);
@@ -795,10 +797,10 @@ namespace AsterixViewer.Tabs
                         numberOfIteratedMSGvuelo1++;
 
                         posVuelo1 = new Point(Convert.ToDouble(datosAsterix[j][Xcol]), Convert.ToDouble(datosAsterix[j][Ycol]));
-                        tiempo_ms_vuelo1 = int.Parse(datosAsterix[j][TIMEcol].Split(':')[1]) * 60000 + int.Parse(datosAsterix[j][TIMEcol].Split(':')[2]) * 1000 + int.Parse(datosAsterix[j][TIMEcol].Split(':')[3]);
+                        tiempo_ms_vuelo1 = int.Parse(datosAsterix[j][TIMEcol].Split(':')[0]) * 3600 * 1000 + int.Parse(datosAsterix[j][TIMEcol].Split(':')[1]) * 60000 + int.Parse(datosAsterix[j][TIMEcol].Split(':')[2]) * 1000 + int.Parse(datosAsterix[j][TIMEcol].Split(':')[3]);
+                        tiempo_ms_vuelo1_05NM = int.Parse(vuelo1.timeDEP_05NM.Split(':')[0]) * 3600 * 1000 + int.Parse(vuelo1.timeDEP_05NM.Split(':')[1]) * 60000 + int.Parse(vuelo1.timeDEP_05NM.Split(':')[2]) * 1000 + int.Parse(vuelo1.timeDEP_05NM.Split(':')[3]);
 
-                        if (vuelo1.pistadesp == "LEBL-24L") condicion05NMvuelo1 = (CalcularDistanciaEntrePuntos(posVuelo1, posTHR_06R) > 1852/2);
-                        else condicion05NMvuelo1 = (CalcularDistanciaEntrePuntos(posVuelo1, posTHR_24L) > 1852 / 2);
+                        condicion05NMvuelo1 = tiempo_ms_vuelo1 >= tiempo_ms_vuelo1_05NM;
 
                         if (condicion05NMvuelo1)
                         {
@@ -807,11 +809,11 @@ namespace AsterixViewer.Tabs
                             {
                                 if (datosAsterix[j2][TIcol] == vuelo2.codigoVuelo && vuelo1.pistadesp == vuelo2.pistadesp)
                                 {
-                                    tiempo_ms_vuelo2 = int.Parse(datosAsterix[j2][TIMEcol].Split(':')[1]) * 60000 + int.Parse(datosAsterix[j2][TIMEcol].Split(':')[2]) * 1000 + int.Parse(datosAsterix[j2][TIMEcol].Split(':')[3]);
                                     posVuelo2 = new Point(Convert.ToDouble(datosAsterix[j2][Xcol]), Convert.ToDouble(datosAsterix[j2][Ycol]));
+                                    tiempo_ms_vuelo2 = int.Parse(datosAsterix[j2][TIMEcol].Split(':')[0]) * 3600 * 1000 + int.Parse(datosAsterix[j2][TIMEcol].Split(':')[1]) * 60000 + int.Parse(datosAsterix[j2][TIMEcol].Split(':')[2]) * 1000 + int.Parse(datosAsterix[j2][TIMEcol].Split(':')[3]);
+                                    tiempo_ms_vuelo2_05NM = int.Parse(vuelo2.timeDEP_05NM.Split(':')[0]) * 3600 * 1000 + int.Parse(vuelo2.timeDEP_05NM.Split(':')[1]) * 60000 + int.Parse(vuelo2.timeDEP_05NM.Split(':')[2]) * 1000 + int.Parse(vuelo2.timeDEP_05NM.Split(':')[3]);
 
-                                    if (vuelo2.pistadesp == "LEBL-24L") condicion05NMvuelo2 = (CalcularDistanciaEntrePuntos(posVuelo2, posTHR_06R) > 1852 / 2);
-                                    else condicion05NMvuelo2 = (CalcularDistanciaEntrePuntos(posVuelo2, posTHR_24L) > 1852 / 2);
+                                    condicion05NMvuelo2 = tiempo_ms_vuelo2 >= tiempo_ms_vuelo2_05NM;
 
                                     if (Math.Abs(tiempo_ms_vuelo2 - tiempo_ms_vuelo1) < 3000 && condicion05NMvuelo2)
                                     {
