@@ -24,13 +24,9 @@ namespace AsterixViewer.AsterixMap
         public ICommand ChangeSpeedCommand { get; }
         public ICommand HideDetailsCommand { get; }
 
-        private readonly DataStore dataStore;
+        public DataStore DataStore { get; set; }
         private readonly FiltersViewModel filtersViewModel;
         public TimeSliderViewModel TimeSliderViewModel { get; }
-        public string ReplayTimeText => TimeSpan.FromSeconds(dataStore.ReplayTime).ToString(@"hh\:mm\:ss\.fff");
-        private DispatcherTimer _replayTimer;
-        private bool _isPlaying;
-        private int _replaySpeedMultiplier = 1;
 
         private Map? _map;
         public Map? Map
@@ -87,19 +83,6 @@ namespace AsterixViewer.AsterixMap
             }
         }
 
-        public bool IsPlaying
-        {
-            get => _isPlaying;
-            set
-            {
-                _isPlaying = value;
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(PlayPauseButtonText));
-            }
-        }
-
-        public string PlayPauseButtonText => IsPlaying ? "Pause" : "Play";
-        public string ReplaySpeedText => $"x{_replaySpeedMultiplier}";
         private Dictionary<string, Graphic> mapPoints = new();
 
         public event PropertyChangedEventHandler? PropertyChanged;
@@ -109,57 +92,19 @@ namespace AsterixViewer.AsterixMap
         }
 
         private const string PlaneIconUri = "pack://application:,,,/AsterixViewer;component/Resources/avion.png";
-        public MapViewModel(DataStore dataStore, FiltersViewModel filtersViewModel)
+        public MapViewModel(DataStore dataStore, FiltersViewModel filtersViewModel, TimeSliderViewModel timeSliderViewModel)
         {
-            this.dataStore = dataStore;
+            this.DataStore = dataStore;
             this.filtersViewModel = filtersViewModel;
-            TimeSliderViewModel = new TimeSliderViewModel(dataStore);
+            TimeSliderViewModel = timeSliderViewModel;
             dataStore.PropertyChanged += OnDataStoreChanged;
             filtersViewModel.PropertyChanged += OnFiltersChanged;
 
-            ChangeTimeCommand = new RelayCommand((object? args) =>
-            {
-                if (args is string timeString && int.TryParse(timeString, out int time))
-                {
-                    dataStore.ReplayTime += time;
-                    OnPropertyChanged(nameof(ReplayTimeText));
-                }
-            });
             // Comando para cerrar el panel de detalles (llama al método existente)
             HideDetailsCommand = new RelayCommand((object? _) =>
             {
                 HideGraphicDetails();
             });
-
-            PlayPauseCommand = new RelayCommand((object? args) =>
-            {
-                IsPlaying = !IsPlaying;
-                if (IsPlaying) _replayTimer.Start();
-                else _replayTimer.Stop();
-            });
-
-            ChangeSpeedCommand = new RelayCommand((object? args) =>
-            {
-                switch (_replaySpeedMultiplier)
-                {
-                    case 1: _replaySpeedMultiplier = 2; break;
-                    case 2: _replaySpeedMultiplier = 4; break;
-                    case 4: _replaySpeedMultiplier = 8; break;
-                    case 8: _replaySpeedMultiplier = 16; break;
-                    case 16: _replaySpeedMultiplier = 32; break;
-                    default: _replaySpeedMultiplier = 1; break;
-                }
-
-                int newIntervalMs = 1000 / _replaySpeedMultiplier;
-                _replayTimer.Interval = TimeSpan.FromMilliseconds(newIntervalMs);
-                OnPropertyChanged(nameof(ReplaySpeedText));
-            });
-
-            _replayTimer = new DispatcherTimer
-            {
-                Interval = TimeSpan.FromSeconds(1)
-            };
-            _replayTimer.Tick += OnTimerTick;
 
             ShowMoreInfoCommand = new RelayCommand((_) =>
             {
@@ -258,27 +203,17 @@ namespace AsterixViewer.AsterixMap
             set { _extendedGraphicInfo = value; OnPropertyChanged(); }
         }
 
-        private void OnTimerTick(object? sender, EventArgs e)
-        {
-            // incrementa el dataStore; DataStore notificará y OnDataStoreChanged actualizará la UI
-            dataStore.ReplayTime += 1;
-            // por seguridad forzamos notificación local también:
-            TimeSliderViewModel.OnPropertyChanged(nameof(TimeSliderViewModel.ReplayTime));
-            OnPropertyChanged(nameof(ReplayTimeText));
-        }
-
 
         private void OnDataStoreChanged(object? sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(DataStore.ReplayTime))
+            if (e.PropertyName == nameof(AsterixViewer.DataStore.ReplayTime))
             {
-                OnPropertyChanged(nameof(ReplayTimeText));
                 DisplayFlights();
 
                 if (SelectedGraphic != null)
                     UpdateSelectedGraphicInfo();
             }
-            else if (e.PropertyName == nameof(DataStore.Flights))
+            else if (e.PropertyName == nameof(AsterixViewer.DataStore.Flights))
             {
                 // recargar gráficos
                 mapPoints = new Dictionary<string, Graphic>();
@@ -304,16 +239,16 @@ namespace AsterixViewer.AsterixMap
 
         private void DisplayFlights()
         {
-            if (dataStore == null || dataStore.Flights == null) return;
+            if (DataStore == null || DataStore.Flights == null) return;
             var visibleKeys = new HashSet<string>();
 
-            foreach (var item in dataStore.Flights)
+            foreach (var item in DataStore.Flights)
             {
                 var flightId = item.Key;
                 var flight = item.Value;
 
                 // ---------------- PROCESAR CAT021 ----------------
-                var msg021 = FindMessage(flight.cat21Messages, dataStore.ReplayTime);
+                var msg021 = FindMessage(flight.cat21Messages, DataStore.ReplayTime);
 
                 if (msg021 != null && filtersViewModel.FilterMessages(msg021))
                 {
@@ -321,7 +256,7 @@ namespace AsterixViewer.AsterixMap
                 }
 
                 // ---------------- PROCESAR CAT048 ----------------
-                var msg048 = FindMessage(flight.cat48Messages, dataStore.ReplayTime);
+                var msg048 = FindMessage(flight.cat48Messages, DataStore.ReplayTime);
 
                 if (msg048 != null && filtersViewModel.FilterMessages(msg048))
                 {
@@ -349,7 +284,7 @@ namespace AsterixViewer.AsterixMap
             if (msg == null) return;
 
             // Validación de coordenadas y tiempo
-            if (msg.Latitude.HasValue && msg.Longitude.HasValue && dataStore.ReplayTime - msg.TimeOfDay < 10)
+            if (msg.Latitude.HasValue && msg.Longitude.HasValue && DataStore.ReplayTime - msg.TimeOfDay < 10)
             {
                 string key = $"{flightId}_{suffix}";
                 var pos = new MapPoint(msg.Longitude.Value, msg.Latitude.Value, SpatialReferences.Wgs84);
@@ -422,7 +357,7 @@ namespace AsterixViewer.AsterixMap
 
         private void UpdateSelectedGraphicInfo()
         {
-            if (SelectedGraphic == null || dataStore == null)
+            if (SelectedGraphic == null || DataStore == null)
                 return;
 
 

@@ -46,6 +46,15 @@ namespace AsterixViewer
             LatMaxBox.Text = "";
             LonMinBox.Text = "";
             LonMaxBox.Text = "";
+
+            var expression = LonMaxBox.GetBindingExpression(TextBox.TextProperty);
+            expression.UpdateSource();
+            expression = LonMinBox.GetBindingExpression(TextBox.TextProperty);
+            expression.UpdateSource();
+            expression = LatMaxBox.GetBindingExpression(TextBox.TextProperty);
+            expression.UpdateSource();
+            expression = LatMinBox.GetBindingExpression(TextBox.TextProperty);
+            expression.UpdateSource();
         }
 
         private void OnIdFilterChanged(object sender, RoutedEventArgs e)
@@ -221,10 +230,6 @@ namespace AsterixViewer
                         MessageBoxImage.Information
                     );
                 }
-                else
-                {
-                    MessageBox.Show("Exportación cancelada por el usuario.");
-                }
             }
             catch (Exception ex)
             {
@@ -302,7 +307,17 @@ namespace AsterixViewer
                             writer.WriteLine(line);
                         }
                     }
-                } // <--- Aquí es donde el archivo se guarda y cierra físicamente de forma automática.
+                }
+
+
+                // 6️⃣ Confirmar al usuario
+                MessageBox.Show(
+                    $"Archivo exportado correctamente:\n{saveFileDialog.FileName}",
+                    "Exportación completada",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information
+                );
+
             }
             catch (Exception ex)
             {

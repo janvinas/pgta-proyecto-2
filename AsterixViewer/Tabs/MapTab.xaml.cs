@@ -16,7 +16,8 @@ namespace AsterixViewer.Tabs
             InitializeComponent();
             var dataStore = ((App)Application.Current).DataStore;
             var filtersViewModel = ((App)Application.Current).FiltersViewModel;
-            ViewModel = new MapViewModel(dataStore, filtersViewModel);
+            var timeSliderViewModel = ((App)Application.Current).TimeSliderViewModel;
+            ViewModel = new MapViewModel(dataStore, filtersViewModel, timeSliderViewModel);
             DataContext = ViewModel;
             MainMapView.GeoViewTapped += OnMapTapped;
         }

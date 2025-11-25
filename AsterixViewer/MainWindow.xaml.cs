@@ -25,7 +25,7 @@ namespace AsterixViewer
 
         public MainWindow()
         {
-            InitializeComponent(); 
+            InitializeComponent();
         }
 
         private async void OpenFile_click(object sender, RoutedEventArgs args)
@@ -39,6 +39,7 @@ namespace AsterixViewer
 
             try
             {
+                ProgressBar.Visibility = Visibility.Visible;
                 Debug.WriteLine("Reading file");
                 byte[] data = await File.ReadAllBytesAsync(path);
                 ProgressBar.Value = 0;
@@ -55,6 +56,10 @@ namespace AsterixViewer
             }
             catch (Exception)
             {
+            }
+            finally
+            {
+                ProgressBar.Visibility = Visibility.Collapsed;
             }
         }
     }

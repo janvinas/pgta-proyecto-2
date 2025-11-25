@@ -1,16 +1,64 @@
 ﻿using AsterixParser;
+using AsterixViewer.AsterixMap;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Windows;
 using System.Windows.Data;
+using System.Windows.Threading;
 
 namespace AsterixViewer
 {
     public class DataStore : INotifyPropertyChanged
     {
+        public DataStore() {
+            PlayPauseCommand = new(args =>
+            {
+                IsPlaying = !IsPlaying;
+                if (IsPlaying) _replayTimer.Start();
+                else _replayTimer.Stop();
+            });
+
+            ChangeSpeedCommand = new((object? args) =>
+            {
+                switch (_replaySpeedMultiplier)
+                {
+                    case 1: _replaySpeedMultiplier = 2; break;
+                    case 2: _replaySpeedMultiplier = 4; break;
+                    case 4: _replaySpeedMultiplier = 8; break;
+                    case 8: _replaySpeedMultiplier = 16; break;
+                    case 16: _replaySpeedMultiplier = 32; break;
+                    default: _replaySpeedMultiplier = 1; break;
+                }
+
+                int newIntervalMs = 1000 / _replaySpeedMultiplier;
+                _replayTimer.Interval = TimeSpan.FromMilliseconds(newIntervalMs);
+                OnPropertyChanged(nameof(ReplaySpeedText));
+            });
+
+            _replayTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(1)
+            };
+            _replayTimer.Tick += OnTimerTick;
+
+            ChangeTimeCommand = new RelayCommand((object? args) =>
+            {
+                if (args is string timeString && int.TryParse(timeString, out int time))
+                {
+                    ReplayTime += time;
+                    OnPropertyChanged(nameof(ReplayTimeText));
+
+                    //update slider
+                    var timeSliderViewModel = ((App)Application.Current).TimeSliderViewModel;
+                    timeSliderViewModel.SetUiTime(ReplayTime);
+                }
+            });
+        }
+
         public ICollectionView FilteredMessages { get; private set; }
         public void RefreshFilters()
         {
@@ -93,6 +141,43 @@ namespace AsterixViewer
             }
         }
 
+        private bool _isPlaying;
+        public bool IsPlaying
+        {
+            get => _isPlaying;
+            set
+            {
+                _isPlaying = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(PlayPauseButtonText));
+            }
+        }
+
+        private int _replaySpeedMultiplier = 1;
+
+
+        public string PlayPauseButtonText => IsPlaying ? "Pause" : "Play";
+        public string ReplaySpeedText => $"x{_replaySpeedMultiplier}";
+
+        public RelayCommand PlayPauseCommand { get; }
+        public RelayCommand ChangeSpeedCommand { get; }
+        public RelayCommand ChangeTimeCommand { get; }
+        private DispatcherTimer _replayTimer;
+
+        public string ReplayTimeText => TimeSpan.FromSeconds(ReplayTime).ToString(@"hh\:mm\:ss\.fff");
+
+        private void OnTimerTick(object? sender, EventArgs e)
+        {
+            // incrementa el dataStore; DataStore notificará y OnDataStoreChanged actualizará la UI
+            ReplayTime += 1;
+            // por seguridad forzamos notificación local también:
+            //TimeSliderViewModel.OnPropertyChanged(nameof(TimeSliderViewModel.ReplayTime));
+            OnPropertyChanged(nameof(ReplayTimeText));
+
+            //update slider
+            var timeSliderViewModel = ((App)Application.Current).TimeSliderViewModel;
+            timeSliderViewModel.SetUiTime(ReplayTime);
+        }
 
 
         /// <summary>

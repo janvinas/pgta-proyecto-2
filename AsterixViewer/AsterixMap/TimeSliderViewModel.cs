@@ -24,6 +24,9 @@ namespace AsterixViewer.AsterixMap
         public double MinReplayTime => dataStore.MinReplayTime;
         public double MaxReplayTime => dataStore.MaxReplayTime;
 
+        public TimeSpan MinReplayTimeSpan => TimeSpan.FromSeconds(MinReplayTime);
+        public TimeSpan MaxReplayTimeSpan => TimeSpan.FromSeconds(MaxReplayTime);
+
 
         private readonly DispatcherTimer _replayTimeThrottleTimer;
         private double _uiReplayTime;
@@ -69,6 +72,11 @@ namespace AsterixViewer.AsterixMap
             }
         }
 
+        public void SetUiTime(double value)
+        {
+            _uiReplayTime = value;
+        }
+
         public TimeSliderViewModel(DataStore dataStore)
         {
             this.dataStore = dataStore;
@@ -91,16 +99,20 @@ namespace AsterixViewer.AsterixMap
             else if (e.PropertyName == nameof(DataStore.MinReplayTime))
             {
                 OnPropertyChanged(nameof(MinReplayTime));
+                OnPropertyChanged(nameof(MinReplayTimeSpan));
             }
             else if (e.PropertyName == nameof(DataStore.MaxReplayTime))
             {
                 OnPropertyChanged(nameof(MaxReplayTime));
+                OnPropertyChanged(nameof(MaxReplayTimeSpan));
             }
             else if (e.PropertyName == nameof(DataStore.Flights))
             {
                 // Asegúrate de notificar min/max si Flights cambió
                 OnPropertyChanged(nameof(MinReplayTime));
                 OnPropertyChanged(nameof(MaxReplayTime));
+                OnPropertyChanged(nameof(MinReplayTimeSpan));
+                OnPropertyChanged(nameof(MaxReplayTimeSpan));
             }
         }
     }

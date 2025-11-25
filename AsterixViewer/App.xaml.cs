@@ -1,6 +1,7 @@
 ﻿using AsterixViewer.AsterixMap;
 using System.Configuration;
 using System.Data;
+using System.Security.Policy;
 using System.Windows;
 
 namespace AsterixViewer
@@ -11,13 +12,14 @@ namespace AsterixViewer
     public partial class App : Application
     {
         public DataStore DataStore { get; }
-        public MapViewModel MapViewModel { get; }
         public FiltersViewModel FiltersViewModel { get; }
+        public TimeSliderViewModel TimeSliderViewModel { get; }
 
         public App()
         {
             DataStore = new DataStore();
             FiltersViewModel = new FiltersViewModel();
+            TimeSliderViewModel = new TimeSliderViewModel(DataStore);
         }
 
         protected override void OnStartup(StartupEventArgs e)
