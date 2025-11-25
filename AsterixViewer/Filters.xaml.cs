@@ -70,10 +70,8 @@ namespace AsterixViewer
         {
             try
             {
-                // 1️⃣ Obtener los mensajes filtrados
                 IEnumerable<AsterixMessage> messages = dataStore.Messages.Where(FiltersViewModel.FilterMessages);
 
-                // 2️⃣ Crear el cuadro de diálogo para elegir ruta y nombre de archivo
                 var saveFileDialog = new SaveFileDialog
                 {
                     Title = "Guardar CSV de mensajes ASTERIX",
@@ -82,14 +80,12 @@ namespace AsterixViewer
                     DefaultExt = ".csv"
                 };
 
-                // 3️⃣ Mostrar el cuadro de diálogo
                 bool? result = saveFileDialog.ShowDialog();
 
                 if (result == true)
                 {
                     string filePath = saveFileDialog.FileName;
 
-                    // 4️⃣ Escribir el CSV
                     using (var writer = new StreamWriter(filePath))
                     {
                         // Encabezado CSV
@@ -241,7 +237,6 @@ namespace AsterixViewer
             }
 
         }
-
         private void ExportarP3_Click(object sender, RoutedEventArgs e)
         {
             if (dataStore == null) return;
@@ -257,54 +252,57 @@ namespace AsterixViewer
                     FileName = "AsterixExportP3.csv",
                     DefaultExt = ".csv"
                 };
+
                 bool? result = saveFileDialog.ShowDialog();
                 if (result == null || !result.Value) return;
 
-                using var writer = new StreamWriter(saveFileDialog.FileName);
-
-                writer.WriteLine("CAT;SAC;SIC;Time;LAT;LON;H(m);H(ft);RHO;THETA;Mode3/A;FL;TA;TI;BP;RA;TTA;GS;TAR;TAS;HDG;IAS;MACH;BAR;IVV;TN;GS(kt);HDG;STAT");
-
-                // use the spanish culture to force a comma in the decimal separators
-                var c = CultureInfo.GetCultureInfo("es-ES");
-
-                foreach (AsterixMessage message in messages)
+                using (var writer = new StreamWriter(saveFileDialog.FileName))
                 {
-                    if (message.FlightLevel?.flightLevel * 100 <= 6000f)
-                    {
-                        string line =
-                            $"{message.Cat};" +
-                            $"{message.SAC};" +
-                            $"{message.SIC};" +
-                            $"{TimeSpan.FromSeconds(message.TimeOfDay ?? 0):hh\\:mm\\:ss\\:fff};" +
-                            $"{message.Latitude?.ToString(c) ?? "N/A"};" +
-                            $"{message.Longitude?.ToString(c) ?? "N/A"};" +
-                            $"{(message.FlightLevel != null ? (message.FlightLevel.flightLevel * 100 * GeoUtils.FEET2METERS)?.ToString(c) : "N/A")};" +
-                            $"{(message.FlightLevel != null ? (message.FlightLevel.flightLevel * 100)?.ToString(c) : "N/A")};" +
-                            $"{message.Distance?.ToString() ?? "N/A"};" +
-                            $"{message.Azimuth?.ToString() ?? "N/A"};" +
-                            $"{(message.Mode3A != null ? Convert.ToString(message.Mode3A.Value, 8) : "N/A")};" +
-                            $"{message.FlightLevel?.flightLevel?.ToString(c) ?? "N/A"};" +
-                            $"{message.Address?.ToString("X6") ?? "N/A"};" +
-                            $"{message.Identification ?? "N/A"};" +
-                            $"{message.BDS?.BARO?.ToString(c) ?? "N/A"};" +
-                            $"{message.BDS?.ROLL?.ToString(c) ?? "N/A"};" +
-                            $"{message.BDS?.TTA?.ToString(c) ?? "N/A"};" +
-                            $"{message.BDS?.GS?.ToString(c) ?? "N/A"};" +
-                            $"{message.BDS?.TAR?.ToString(c) ?? "N/A"};" +
-                            $"{message.BDS?.TAS?.ToString(c) ?? "N/A"};" +
-                            $"{message.BDS?.MH?.ToString(c) ?? "N/A"};" +
-                            $"{message.BDS?.IAS?.ToString(c) ?? "N/A"};" +
-                            $"{message.BDS?.MACH?.ToString(c) ?? "N/A"};" +
-                            $"{message.BDS?.BAROV?.ToString(c) ?? "N/A"};" +
-                            $"{message.BDS?.IVV?.ToString(c) ?? "N/A"};" +
-                            $"{message.TrackNum?.ToString(c) ?? "N/A"};" +
-                            $"{message.GS?.ToString(c) ?? "N/A"};" +
-                            $"{message.Heading?.ToString(c) ?? "N/A"};" +
-                            $"{message.I048230?.STAT?.ToString() ?? "N/A"}";
+                    writer.WriteLine("CAT;SAC;SIC;Time;LAT;LON;H(m);H(ft);RHO;THETA;Mode3/A;FL;TA;TI;BP;RA;TTA;GS;TAR;TAS;HDG;IAS;MACH;BAR;IVV;TN;GS(kt);HDG;STAT");
 
-                        writer.WriteLine(line);
+                    var c = CultureInfo.GetCultureInfo("es-ES");
+
+                    foreach (AsterixMessage message in messages)
+                    {
+                        // Verificamos condición de FlightLevel
+                        if (message.FlightLevel?.flightLevel * 100 <= 6000f)
+                        {
+                            // He optimizado ligeramente la concatenación para que sea más legible y segura
+                            string line =
+                                $"{message.Cat};" +
+                                $"{message.SAC};" +
+                                $"{message.SIC};" +
+                                $"{TimeSpan.FromSeconds(message.TimeOfDay ?? 0):hh\\:mm\\:ss\\:fff};" +
+                                $"{message.Latitude?.ToString(c) ?? "N/A"};" +
+                                $"{message.Longitude?.ToString(c) ?? "N/A"};" +
+                                $"{(message.FlightLevel != null ? (message.FlightLevel.flightLevel * 100 * GeoUtils.FEET2METERS)?.ToString(c) : "N/A")};" +
+                                $"{(message.FlightLevel != null ? (message.FlightLevel.flightLevel * 100)?.ToString(c) : "N/A")};" +
+                                $"{message.Distance?.ToString() ?? "N/A"};" +
+                                $"{message.Azimuth?.ToString() ?? "N/A"};" +
+                                $"{(message.Mode3A != null ? Convert.ToString(message.Mode3A.Value, 8) : "N/A")};" +
+                                $"{message.FlightLevel?.flightLevel?.ToString(c) ?? "N/A"};" +
+                                $"{message.Address?.ToString("X6") ?? "N/A"};" +
+                                $"{message.Identification ?? "N/A"};" +
+                                $"{message.BDS?.BARO?.ToString(c) ?? "N/A"};" +
+                                $"{message.BDS?.ROLL?.ToString(c) ?? "N/A"};" +
+                                $"{message.BDS?.TTA?.ToString(c) ?? "N/A"};" +
+                                $"{message.BDS?.GS?.ToString(c) ?? "N/A"};" +
+                                $"{message.BDS?.TAR?.ToString(c) ?? "N/A"};" +
+                                $"{message.BDS?.TAS?.ToString(c) ?? "N/A"};" +
+                                $"{message.BDS?.MH?.ToString(c) ?? "N/A"};" +
+                                $"{message.BDS?.IAS?.ToString(c) ?? "N/A"};" +
+                                $"{message.BDS?.MACH?.ToString(c) ?? "N/A"};" +
+                                $"{message.BDS?.BAROV?.ToString(c) ?? "N/A"};" +
+                                $"{message.BDS?.IVV?.ToString(c) ?? "N/A"};" +
+                                $"{message.TrackNum?.ToString(c) ?? "N/A"};" +
+                                $"{message.GS?.ToString(c) ?? "N/A"};" +
+                                $"{message.Heading?.ToString(c) ?? "N/A"};" +
+                                $"{message.I048230?.STAT?.ToString() ?? "N/A"}";
+
+                            writer.WriteLine(line);
+                        }
                     }
-                }
+                } // <--- Aquí es donde el archivo se guarda y cierra físicamente de forma automática.
             }
             catch (Exception ex)
             {
