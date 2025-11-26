@@ -281,8 +281,8 @@ namespace AsterixViewer
                                 $"{TimeSpan.FromSeconds(message.TimeOfDay ?? 0):hh\\:mm\\:ss\\:fff};" +
                                 $"{message.Latitude?.ToString(c) ?? "N/A"};" +
                                 $"{message.Longitude?.ToString(c) ?? "N/A"};" +
-                                $"{(message.FlightLevel != null ? (message.QNHcorrection * GeoUtils.FEET2METERS)?.ToString(c) : "N/A")};" +
-                                $"{(message.FlightLevel != null ? (message.QNHcorrection?.ToString(c))?.ToString(c) : "N/A")};" +
+                                $"{(message.QNHcorrection != null ? (message.QNHcorrection * GeoUtils.FEET2METERS)?.ToString(c) : (message.FlightLevel?.flightLevel * 100 * GeoUtils.FEET2METERS)?.ToString(c))};" +
+                                $"{(message.QNHcorrection != null ? (message.QNHcorrection?.ToString(c))?.ToString(c) : (message.FlightLevel?.flightLevel * 100)?.ToString(c))};" +
                                 $"{message.Distance?.ToString() ?? "N/A"};" +
                                 $"{message.Azimuth?.ToString() ?? "N/A"};" +
                                 $"{(message.Mode3A != null ? Convert.ToString(message.Mode3A.Value, 8) : "N/A")};" +
