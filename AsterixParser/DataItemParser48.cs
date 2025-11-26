@@ -410,17 +410,18 @@ namespace AsterixParser
             k += 3; // 3 octets
         }
 
-        public char DecodificarChar6bit(int val) // Mapejar IA-5 (6 bits) a caràcters
+        public char DecodificarChar6bit(int val)
         {
-            if (val >= 0 && val <= 25)
+            if (val >= 1 && val <= 26)
                 return (char)('A' + val - 1);
             else if (val >= 48 && val <= 57)
                 return (char)('0' + (val - 48));
             else if (val == 32)
                 return ' ';
             else
-                return ' '; // valor no definit
+                return ' ';
         }
+
         public void DataItem9(ref int k, byte[] body) // I048/240 Aircraft Identification
         {
             Console.WriteLine("(DF-9)");
