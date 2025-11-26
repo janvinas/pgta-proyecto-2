@@ -100,7 +100,7 @@ namespace AsterixViewer
                         // Encabezado CSV
                         writer.WriteLine(
                             "Cat;SIC;SAC;TimeOfDay;" +  // Initial info
-                            "LAT;LON;FL/Altitude;" +    // LLA COORDS
+                            "LAT;LON;FL/Altitude;Altitude Corrected;" +    // LLA COORDS
                             "TargetReportDescriptor;Distance;Azimuth;Mode3A;" +
                             "FL GarbledCode;FL CodeNotValidated;" +
                             "RPC SRL;RPC SSR;RPC SAM;RPC PRL;RPC PAM;RPC RPD;RPC APD;RPC SCO;RPC SCR;RPC RW;RPC AR;" +
@@ -126,6 +126,7 @@ namespace AsterixViewer
                                 $"{message.Latitude};" +
                                 $"{message.Longitude};" +
                                 $"{message.FlightLevel?.flightLevel};" +
+                                $"{message.QNHcorrection};" +
 
                                 // Report, Distance, Azimuth and Mode3A
                                 $"{(message.Cat == CAT.CAT021
