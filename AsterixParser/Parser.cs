@@ -131,7 +131,7 @@ namespace AsterixParser
                     if (error == 0 && message != null) messages.Add(message);
                     if (message?.Address is uint address && message?.Latitude != null && message?.Longitude != null)
                     {
-                        if(message.BDS != null && message.BDS.BARO != null && message.FlightLevel?.flightLevel * 100 < 6000)
+                        if(message.BDS != null && message.BDS.BARO != null && message.FlightLevel?.flightLevel * 100 <= 6000)
                             {
                             double FLcorrected = (double)(message.FlightLevel.flightLevel * 100 + (message.BDS.BARO - 1013.2) * 30);
                             message.QNHcorrection = FLcorrected;
