@@ -1,4 +1,5 @@
-﻿using AsterixParser;
+﻿using Accord.IO;
+using AsterixParser;
 using AsterixParser.Utils;
 using ExcelDataReader;
 using ExcelDataReader.Log;
@@ -19,6 +20,7 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
@@ -111,12 +113,13 @@ namespace AsterixViewer.Tabs
             public List<string> NRminus = new List<string>();
             public List<string> LP = new List<string>();
         }
-        ClasificacionAeronavesLoA clasificacionAeronavesLoA = new ClasificacionAeronavesLoA();
+        ClasificacionAeronavesLoA clasificacionAeronavesLoA;
 
         // Definicion de distintos puntos fijos
         CoordinatesUVH THR_06R = new CoordinatesUVH();
         CoordinatesUVH THR_24L = new CoordinatesUVH();
         CoordinatesUVH sonometro = new CoordinatesUVH();
+        CoordinatesUVH DVOR_BCN = new CoordinatesUVH();
 
         // 
         public class DistanciaMinimaSonometro
@@ -145,6 +148,21 @@ namespace AsterixViewer.Tabs
 
         public bool calculosPreliminaresHechos = false;
 
+        public class DatosViraje
+        {
+            public Vuelo vuelo;
+            public string lat;
+            public string lon;
+            public string altitud;
+            public string time;
+            public string RA;
+            public string HDG;
+            public string TTA;
+            public bool atraviesaRadial234;
+            public double radialDVOR;
+        }
+        List<DatosViraje> listaVirajes = new List<DatosViraje>();
+
         public Proyecto3()
         {
             InitializeComponent();
@@ -153,6 +171,8 @@ namespace AsterixViewer.Tabs
 
         private void DatosAsterix_Click(object sender, RoutedEventArgs e)
         {
+            datosAsterix.Clear();
+
             var dialog = new OpenFileDialog
             {
                 Filter = "Archivos CSV (*.csv)|*.csv|Todos los archivos (*.*)|*.*"
@@ -168,6 +188,7 @@ namespace AsterixViewer.Tabs
 
         public void Planvuelo_click(object sender, RoutedEventArgs e)
         {
+            listaPV.Clear();
 
             var dialog = new Microsoft.Win32.OpenFileDialog
             {
@@ -279,6 +300,27 @@ namespace AsterixViewer.Tabs
             }
         }
 
+        private void PosicionAltitudViraje_Click(object sender, RoutedEventArgs e)
+        {
+            if (calculosPreliminaresHechos)
+            {
+                listaVirajes.Clear();
+                CalcularPosicionAltitudViraje();
+
+                GuardarPosicionAltitudViraje();
+            }
+            else
+            {
+                MessageBox.Show(
+                    $"NO se pueden hacer los cálculos apropiados \n" +
+                    $"realizar previamente los cálculos preliminares",
+                    "Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
+            }
+        }
+
         // -------------------------------- LECTORES DE ARCHIVOS DE PARAMETROS DE INPUT -----------------------------------------------------------------
         // ---------------------------------------------------------------------------------------------------------------------------------------------- 
 
@@ -363,6 +405,7 @@ namespace AsterixViewer.Tabs
 
         private void LeerClasificacionAeronaves()
         {
+            clasificacionAeronavesLoA = new ClasificacionAeronavesLoA();
             try
             {
                 var dialog = new Microsoft.Win32.OpenFileDialog
@@ -625,22 +668,28 @@ namespace AsterixViewer.Tabs
             double rt = 6356752.3142;
 
             // Calcular Estereograficas de THR_24L
-            CoordinatesWGS84 coords_geodesic = GeoUtils.LatLonStringBoth2Radians("41:17:31.99N 02:06:11.81E", 8);
+            CoordinatesWGS84 coords_geodesic = GeoUtils.LatLonStringBoth2Radians("41:17:31.99N 02:06:11.81E", 8 * 0.3048);
             CoordinatesXYZ coords_geocentric = tma.change_geodesic2geocentric(coords_geodesic);
             CoordinatesXYZ coords_system_cartesian = tma.change_geocentric2system_cartesian(coords_geocentric);
             THR_24L = tma.change_system_cartesian2stereographic(coords_system_cartesian);
 
             // Calcular Estereograficas de THR_06R
-            coords_geodesic = GeoUtils.LatLonStringBoth2Radians("41:16:56.32N 02:04:27.66E", 8);
+            coords_geodesic = GeoUtils.LatLonStringBoth2Radians("41:16:56.32N 02:04:27.66E", 8 * 0.3048);
             coords_geocentric = tma.change_geodesic2geocentric(coords_geodesic);
             coords_system_cartesian = tma.change_geocentric2system_cartesian(coords_geocentric);
             THR_06R = tma.change_system_cartesian2stereographic(coords_system_cartesian);
 
             // Calcular Estereograficas de Sonometro
-            coords_geodesic = GeoUtils.LatLonStringBoth2Radians("41:16:19.00N 02:02:52.00E", 8);
+            coords_geodesic = GeoUtils.LatLonStringBoth2Radians("41:16:19.00N 02:02:52.00E", 8 * 0.3048);
             coords_geocentric = tma.change_geodesic2geocentric(coords_geodesic);
             coords_system_cartesian = tma.change_geocentric2system_cartesian(coords_geocentric);
             sonometro = tma.change_system_cartesian2stereographic(coords_system_cartesian);
+
+            // Calcular Estereograficas de DVOR BCN
+            coords_geodesic = GeoUtils.LatLonStringBoth2Radians("41:18:25.60N 02:06:28.10E", 8 * 0.3048);
+            coords_geocentric = tma.change_geodesic2geocentric(coords_geodesic);
+            coords_system_cartesian = tma.change_geocentric2system_cartesian(coords_geocentric);
+            DVOR_BCN = tma.change_system_cartesian2stereographic(coords_system_cartesian);
         }
 
         private void CalcularPosicionesEstereograficas()
@@ -685,50 +734,6 @@ namespace AsterixViewer.Tabs
             return coordsUVH;
         }
 
-        private void ClasificarDistintosVuelos()
-        {
-            List<string> TI_usados = new List<string>();
-            string TI;
-
-            int TIcol = 13;     // Posición de columna en que se encuentra la variable TI en csv datosAsterix
-            int TIMEcol = 3;
-            
-            for (int i = 0; i < datosAsterix.Count(); i++)
-            {
-                if (!TI_usados.Contains(datosAsterix[i][TIcol]))
-                {
-                    TI = datosAsterix[i][TIcol];
-
-                    Vuelo vuelo = new Vuelo();
-                    vuelo.codigoVuelo = TI;
-                    vuelo.horaPV = datosAsterix [i][TIMEcol]; // Columna con la hora del Plan de Vuelo
-                    foreach (List<string> msg in datosAsterix) if (msg[TIcol] == TI) vuelo.mensajesVuelo.Add(msg);
-
-                    int firstMsgTime_ms = int.Parse(vuelo.mensajesVuelo[0][TIMEcol].Split(':')[0]) * 3600*1000 + int.Parse(vuelo.mensajesVuelo[0][TIMEcol].Split(':')[1]) * 60*1000 + int.Parse(datosAsterix[0][TIMEcol].Split(':')[2]) * 1000 + int.Parse(datosAsterix[0][TIMEcol].Split(':')[3]);
-
-                    for (int j = 1; j < listaPV.Count(); j++)
-                    {
-                        int ATOT_ms = (int)TimeSpan.Parse(listaPV[j][10]).TotalMilliseconds;
-                        int diff = Math.Abs(firstMsgTime_ms - ATOT_ms);
-                        
-                        if (listaPV[j][1] == datosAsterix[i][TIcol] && diff < 3600/2*1000)  
-                        { 
-                            vuelo.estela = listaPV[j][7];
-                            vuelo.pistadesp = listaPV[j][11];
-                            vuelo.tipo_aeronave = listaPV[j][6];
-                            vuelo.sid = listaPV[j][9];
-                            vuelo.ATOT = listaPV[j][10];
-
-                            break;
-                        }
-                    }
-
-                    vuelosOrdenados.Add(vuelo);
-                    TI_usados.Add(datosAsterix[i][TIcol]);
-                }
-            }
-        }
-
         // HAY QUE REDEFINIR ESTA FUNCION ENTERA
         /* IDEA:
          * 1- Iterar lista de PV par crear los nuevos "Aviones"
@@ -737,7 +742,6 @@ namespace AsterixViewer.Tabs
          * 4- Introducir todos los mensajes desde ese punto hasta que no haya durante 100 mensajes
          * 5- Introducir Avion en listaAviones
          */
-
         private void ClasificarDistintosVuelosPRUEBA()
         {
             int colPV_callsign = 1;
@@ -757,6 +761,7 @@ namespace AsterixViewer.Tabs
                 Vuelo vuelo = new Vuelo();
                 vuelo.codigoVuelo = planVuelo[colPV_callsign];
 
+                vuelo.horaPV = planVuelo[4];
                 vuelo.tipo_aeronave = planVuelo[6];
                 vuelo.estela = planVuelo[7];
                 vuelo.sid = planVuelo[9];
@@ -1058,7 +1063,6 @@ namespace AsterixViewer.Tabs
 
         private void CalcularDistanciaMinimaSonometro()
         {
-
             int Xcol = datosAsterix[1].Count - 2;
             int Ycol = datosAsterix[1].Count - 1;
             int Timecol = 3;
@@ -1190,6 +1194,131 @@ namespace AsterixViewer.Tabs
             }
         }
 
+        // Comprobar siempre que heading no sea N/A
+        // Una vez encontrado, corroborar con TA/RA/loquesea si es posible
+        // Crear variable Viraje y guardar datos en listaVirajes
+        public void CalcularPosicionAltitudViraje() 
+        {
+            int colAST_time = 3;
+            int colAST_lat = 4;
+            int colAST_lon = 5;
+            int colAST_altitudeft = 7;
+            int colAST_RA = 15;
+            int colAST_TTA = 16;
+            int colAST_HDG = 20;
+
+            int colAST_posx = datosAsterix[0].Count - 2;
+            int colAST_posy = datosAsterix[0].Count - 1;
+
+            double headingIntended_24L = -114;
+            double headingInicial;
+            double heading;
+            double heading_prev;
+            double heading_aux;
+
+            int indexInicioViraje = 0;
+
+            double posx_viraje;
+            double posy_viraje;
+            double posx_DVOR = DVOR_BCN.U;
+            double posy_DVOR = DVOR_BCN.V;
+
+            double deltaX;
+            double deltaY;
+            double deltaAngle;
+            double radialDVOR;
+            double angle = 234;
+
+            foreach (Vuelo vuelo in vuelosOrdenados)
+            {
+                if (vuelo.pistadesp == "LEBL-24L")
+                {
+                    DatosViraje viraje = new DatosViraje();
+                    viraje.vuelo = vuelo;
+                    viraje.atraviesaRadial234 = false;
+                    indexInicioViraje = 0;
+
+                    // Que el heading inicial no sea N/A
+                    if (vuelo.mensajesVuelo[0][colAST_HDG] != "N/A") headingInicial = Convert.ToDouble(vuelo.mensajesVuelo[0][colAST_HDG]);
+                    else headingInicial = headingIntended_24L;
+
+                    if (Math.Abs(headingIntended_24L - headingInicial) > 10)    // Si el heading inicial no se parece al heading inicial de la 24L -> algo falla
+                    {
+                        listaVirajes.Add(viraje);
+                        continue;
+                    };      
+
+                    for (int i = 1; i < vuelo.mensajesVuelo.Count; i++)
+                    {
+                        // Que el heaing no sean N/A
+                        if (vuelo.mensajesVuelo[i][colAST_HDG] != "N/A")
+                        {
+                            heading = Convert.ToDouble(vuelo.mensajesVuelo[i][colAST_HDG]);
+
+                            // Que el heading anterior no sea N/A, si lo es -> heading anterior es heading inicial para comparar
+                            if (vuelo.mensajesVuelo[i - 1][colAST_HDG] == "N/A") heading_prev = headingInicial;
+                            else heading_prev = Convert.ToDouble(vuelo.mensajesVuelo[i - 1][colAST_HDG]);
+
+                            if (heading < heading_prev && heading < headingInicial && Math.Abs(heading - headingInicial) > 3)     // El heading en la salida de 24L se va a valores mas negativos (mas pequeños)
+                            {
+                                for (int j = i + 1; j < Math.Min(vuelo.mensajesVuelo.Count, i + 5); j++)
+                                {
+                                    if (vuelo.mensajesVuelo[j][colAST_HDG] == "N/A") continue;
+
+                                    heading_aux = Convert.ToDouble(vuelo.mensajesVuelo[j][colAST_HDG]);
+                                    if (Math.Abs(headingInicial - heading_aux) > 10)           // Diferencia de mas de 10 con la inicial -> encontrado
+                                    {
+                                        indexInicioViraje = i;
+                                        break;
+                                    }
+                                    else if (heading_aux > heading) break;                      // Si algno de los siguientes headings se acerca mas al inicial -> no es este
+                                    else if (Math.Abs(heading - heading_aux) < 3) break;        // Si la diferencia con el siguiente es muy baja, aun no es
+                                }
+
+                                if (indexInicioViraje != 0)
+                                {
+                                    // Comprobar si existe RA y TTA, si existen -> comprobar si es valido
+                                    if (vuelo.mensajesVuelo[indexInicioViraje][colAST_RA] != "N/A") {
+                                        if (Math.Abs(Convert.ToDouble(vuelo.mensajesVuelo[indexInicioViraje][colAST_RA])) > 5) break;
+                                    }
+                                    else break;
+
+                                    if (vuelo.mensajesVuelo[indexInicioViraje][colAST_TTA] != "N/A") {
+                                        if (Math.Abs(Convert.ToDouble(vuelo.mensajesVuelo[indexInicioViraje][colAST_TTA]) - headingIntended_24L) < 5) break;
+                                    }
+                                    
+                                }
+                            }
+                        }
+                    }
+
+                    // HACER SI CRUZA EL RADIAL 234:
+                    posx_viraje = Convert.ToDouble(vuelo.mensajesVuelo[indexInicioViraje][colAST_posx]);
+                    posy_viraje = Convert.ToDouble(vuelo.mensajesVuelo[indexInicioViraje][colAST_posy]);
+
+                    deltaX = posx_viraje - posx_DVOR;
+                    deltaY = posy_viraje - posy_DVOR;
+
+                    deltaAngle = Math.Atan2(deltaX, deltaY) * 180.0 / Math.PI;
+                    if (deltaAngle < 0) deltaAngle += 360;
+                    radialDVOR = deltaAngle;
+                    if (radialDVOR > angle) viraje.atraviesaRadial234 = true;
+
+                    viraje.lat = vuelo.mensajesVuelo[indexInicioViraje][colAST_lat];
+                    viraje.lon = vuelo.mensajesVuelo[indexInicioViraje][colAST_lon];
+                    viraje.altitud = vuelo.mensajesVuelo[indexInicioViraje][colAST_altitudeft];
+                    viraje.time = vuelo.mensajesVuelo[indexInicioViraje][colAST_time];
+                    viraje.RA = vuelo.mensajesVuelo[indexInicioViraje][colAST_RA];
+                    viraje.HDG = vuelo.mensajesVuelo[indexInicioViraje][colAST_HDG];
+                    viraje.TTA = vuelo.mensajesVuelo[indexInicioViraje][colAST_TTA];
+
+                    viraje.radialDVOR = radialDVOR;
+
+                    listaVirajes.Add(viraje);
+                }
+            }
+        }
+
         // -------------------------------- FUNCIONES PARA EXPORTAR DATOS EN FORMATO CSV ----------------------------------------------------------------
         // ----------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -1293,6 +1422,8 @@ namespace AsterixViewer.Tabs
 
         private void GuardarDistDESPConsecutivos()
         {
+            // ESTE ES EL ANTIGUO, PARA DEBUGGEAR, QUITARLO
+            /*
             try
             {
                 var saveFileDialog = new SaveFileDialog
@@ -1342,6 +1473,7 @@ namespace AsterixViewer.Tabs
                     MessageBoxImage.Error
                 );
             }
+            */
 
             // csv como nos piden
             try
@@ -1501,6 +1633,63 @@ namespace AsterixViewer.Tabs
                                     iasAltitudes.data850ft.IAS + ";" + iasAltitudes.data850ft.Time + ";" + iasAltitudes.data850ft.Altura + ";" +
                                     iasAltitudes.data1500ft.IAS + ";" + iasAltitudes.data1500ft.Time + ";" + iasAltitudes.data1500ft.Altura + ";" +
                                     iasAltitudes.data3500ft.IAS + ";" + iasAltitudes.data3500ft.Time + ";" + iasAltitudes.data3500ft.Altura);
+                            }
+                            catch { }
+                        }
+                    }
+
+                    // ✅ Confirmar al usuario
+                    MessageBox.Show(
+                        $"Archivo exportado correctamente:\n{filePath1}",
+                        "Exportación completada",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information
+                    );
+                }
+                else
+                {
+                    MessageBox.Show("Exportación cancelada por el usuario.");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Error al guardar el archivo:\n{ex.Message}",
+                    "Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
+            }
+        }
+
+        private void GuardarPosicionAltitudViraje()
+        {
+            // csv como nos piden
+            try
+            {
+                var saveFileDialog1 = new SaveFileDialog
+                {
+                    Title = "Guardar CSV de Datos de Viraje",
+                    Filter = "Archivos CSV (*.xlsx)|*.csv",
+                    FileName = "Datos Viraje.csv",
+                    DefaultExt = ".csv"
+                };
+
+                if (saveFileDialog1.ShowDialog() == true)
+                {
+                    var filePath1 = saveFileDialog1.FileName;
+
+                    // ✍️ Escribir el archivo (CSV con extensión XLSX)
+                    using (var writer1 = new StreamWriter(filePath1, false, Encoding.UTF8))
+                    {
+                        writer1.WriteLine("Callsign;ATOT;Latitud;Longitud;Tiempo Inicio Viraje;RA;HDG;TTA;Altitud;SID;Tipo Aeronave;Estela;Atraviesa Radial 234;Radial DVOR que atraviesa viraje");
+                        foreach (DatosViraje viraje in listaVirajes)
+                        {
+                            try
+                            {
+                                writer1.WriteLine(viraje.vuelo.codigoVuelo + ";" + viraje.vuelo.ATOT + ";" + viraje.lat + ";" + viraje.lon + ";" + viraje.time + ";" +
+                                    viraje.RA + ";" + viraje.HDG + ";" + viraje.TTA + ";" + viraje.altitud + ";" + viraje.vuelo.sid + ";" + 
+                                    viraje.vuelo.tipo_aeronave + ";" + viraje.vuelo.estela + ";" + viraje.atraviesaRadial234 + ";" + viraje.radialDVOR);
                             }
                             catch { }
                         }

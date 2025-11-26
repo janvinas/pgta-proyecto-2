@@ -20,6 +20,7 @@
             <Button Content="Guardar PV Actualizados" Click="GuardarMSG_PV_Click"/>
             <Button Content="Hacer Cálculo Preliminares" Click="CalculosPreliminares_Click"/>
             <Button Content="[1] Pérdidas de separación y Alcances" Click="CalculoSeparacionesDespegues_Click"/>
+            <Button Content="[2] Posición y Altitud Viraje" Click="PosicionAltitudViraje_Click"/>
             <Button Content="[4] Velocidad IAS de despegues" Click="VelocidadIASDespegue_Click"/>
             <Button Content="[6] Distancia mínima Sonómetro" Click="DistanciasMinimasSonometro_Click"/>
         </StackPanel>
