@@ -1,29 +1,144 @@
 ﻿<UserControl x:Class="AsterixViewer.Tabs.Proyecto3"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:AsterixViewer.Tabs"
-             xmlns:main="clr-namespace:AsterixViewer"
-             mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="400"></ColumnDefinition>
-            <ColumnDefinition Width="Auto" MinWidth="0"></ColumnDefinition>
-        </Grid.ColumnDefinitions>
-        <StackPanel Grid.Column="0">
-            <Button Content="Cargar Datos Asterix" Click="DatosAsterix_Click"></Button>
-            <Button Content="Cargar Planes de Vuelo" Click="Planvuelo_click"></Button>
-            <Button Content="Cargar Clasificacion Aeronaves" Click="ClasificacionAeronaves_Click"/>
-            <Button Content="Guardar MSG Actualizados" Click="GuardarMSG_Asterix_Click"/>
-            <Button Content="Guardar PV Actualizados" Click="GuardarMSG_PV_Click"/>
-            <Button Content="Hacer Cálculo Preliminares" Click="CalculosPreliminares_Click"/>
-            <Button Content="[1] Pérdidas de separación y Alcances" Click="CalculoSeparacionesDespegues_Click"/>
-            <Button Content="[2+3] Posición y Altitud Viraje" Click="PosicionAltitudViraje_Click"/>
-            <Button Content="[4] Velocidad IAS de despegues" Click="VelocidadIASDespegue_Click"/>
-            <Button Content="[5] Altitud y velocidad en THR" Click="AltitudVelocidadTHR_Click"/>
-            <Button Content="[6] Distancia mínima Sonómetro" Click="DistanciasMinimasSonometro_Click"/>
-        </StackPanel>
-    </Grid>
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:AsterixViewer.Converters"
+             mc:Ignorable="d">
+
+    <UserControl.Resources>
+        <Style TargetType="GroupBox">
+            <Setter Property="Foreground" Value="LightGray"/>
+            <Setter Property="BorderThickness" Value="0.7"/>
+            <Setter Property="HeaderTemplate">
+                <Setter.Value>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding}"
+                               Foreground="White"
+                               FontWeight="Bold"/>
+                    </DataTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <local:EstadoAsterixConverter x:Key="EstadoAsterixConverter"/>
+    </UserControl.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <Grid Margin="20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- ====================== -->
+            <!--       PASO 1           -->
+            <!-- ====================== -->
+            <GroupBox Header="Paso 1: Cargar Datos" Margin="0 0 0 15">
+                <StackPanel Margin="10">
+                    <WrapPanel Margin="0 0 0 10">
+                        <TextBlock Text="Datos ASTERIX:" Width="180" Foreground="White"/>
+                        <TextBlock Text="{Binding EstadoAsterix}" 
+                           Foreground="{Binding EstadoAsterix, Converter={StaticResource EstadoAsterixConverter}}" 
+                           FontWeight="Bold"/>
+                    </WrapPanel>
+
+                    <WrapPanel Margin="0 0 0 10">
+                        <TextBlock Text="Planes de Vuelo:" Width="180" Foreground="White"/>
+                        <TextBlock Text="{Binding EstadoPV}" 
+                           Foreground="{Binding EstadoPV, Converter={StaticResource EstadoAsterixConverter}}" 
+                           FontWeight="Bold"/>
+                    </WrapPanel>
+
+                    <WrapPanel Margin="0 0 0 10">
+                        <TextBlock Text="Clasificación Aeronaves:" Width="180" Foreground="White"/>
+                        <TextBlock Text="{Binding EstadoClasificacion}" 
+                           Foreground="{Binding EstadoClasificacion, Converter={StaticResource EstadoAsterixConverter}}" 
+                           FontWeight="Bold"/>
+                    </WrapPanel>
+
+                    <WrapPanel Margin="0 10 0 0">
+                        <Button Content="Cargar Datos ASTERIX" Margin="5"
+                            Click="DatosAsterix_Click"
+                            MaxWidth="300"/>
+                        <Button Content="Cargar Planes de Vuelo" Margin="5"
+                            Click="Planvuelo_click"
+                            MaxWidth="300"/>
+                        <Button Content="Cargar Clasificación Aeronaves" Margin="5"
+                            Click="ClasificacionAeronaves_Click"
+                            MaxWidth="300"/>
+                    </WrapPanel>
+                </StackPanel>
+            </GroupBox>
+
+            <!-- ====================== -->
+            <!--       PASO 2           -->
+            <!-- ====================== -->
+            <GroupBox Header="Paso 2: Cálculos Preliminares" Grid.Row="1" Margin="0 0 0 15">
+                <StackPanel Margin="10">
+                    <TextBlock Text="¡¡ Debe completarse el Paso 1 antes de continuar !!" 
+                               Foreground="DarkGray"
+                               Visibility="{Binding InfoPaso2Visibility}" />
+
+                    <Button Content="Hacer Cálculos Preliminares" Width="220"
+                            HorizontalAlignment="Left" Margin="5"
+                            IsEnabled="{Binding Paso2Permitido}"
+                            Click="CalculosPreliminares_Click"/>
+                </StackPanel>
+            </GroupBox>
+
+            <!-- ====================== -->
+            <!--       PASO 3           -->
+            <!-- ====================== -->
+            <GroupBox Header="Paso 3: Generación de Resultados" Grid.Row="2">
+                <StackPanel Margin="10">
+
+                    <TextBlock Text="¡¡ Realice primero los cálculos preliminares !!"
+                               Foreground="DarkGray"
+                               Visibility="{Binding InfoPaso3Visibility}" />
+
+                    <WrapPanel HorizontalAlignment="Left">
+                        <Button Content="Pérdidas de separación y Alcances"
+                                Width="250" Margin="5"
+                                IsEnabled="{Binding Paso3Permitido}"
+                                Click="CalculoSeparacionesDespegues_Click"/>
+
+                        <Button Content="Posición y Altitud Viraje"
+                                Width="250" Margin="5"
+                                IsEnabled="{Binding Paso3Permitido}"
+                                Click="PosicionAltitudViraje_Click"/>
+
+                        <Button Content="Velocidad IAS de Despegues"
+                                Width="250" Margin="5"
+                                IsEnabled="{Binding Paso3Permitido}"
+                                Click="VelocidadIASDespegue_Click"/>
+
+                        <Button Content="Altitud y velocidad en THR"
+                                Width="250" Margin="5"
+                                IsEnabled="{Binding Paso3Permitido}"
+                                Click="AltitudVelocidadTHR_Click"/>
+
+                        <Button Content="Distancia mínima Sonómetro"
+                                Width="250" Margin="5"
+                                IsEnabled="{Binding Paso3Permitido}"
+                                Click="DistanciasMinimasSonometro_Click"/>
+                    </WrapPanel>
+
+                    <Separator Margin="10"/>
+
+                    <WrapPanel>
+                        <Button Content="Guardar MSG Actualizados" Width="200" Margin="5"
+                                IsEnabled="{Binding Paso3Permitido}"
+                                Click="GuardarMSG_Asterix_Click"/>
+                        <Button Content="Guardar PV Actualizados" Width="200" Margin="5"
+                                IsEnabled="{Binding Paso3Permitido}"
+                                Click="GuardarMSG_PV_Click"/>
+                    </WrapPanel>
+
+                </StackPanel>
+            </GroupBox>
+
+        </Grid>
+    </ScrollViewer>
 </UserControl>

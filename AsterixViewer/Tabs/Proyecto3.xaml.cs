@@ -7,9 +7,12 @@ using ExcelDataReader.Log;
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.Intrinsics.X86;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -26,13 +29,11 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Windows.Management.Deployment;
-
+using static AsterixViewer.Projecte3.DatosVirajes;
+using static AsterixViewer.Projecte3.DistanciasSonometro;
 using static AsterixViewer.Projecte3.LecturaArchivos;
 using static AsterixViewer.Projecte3.PerdidasSeparacion;
-using static AsterixViewer.Projecte3.DistanciasSonometro;
 using static AsterixViewer.Projecte3.VelocidadesDespegue;
-using static AsterixViewer.Projecte3.DatosVirajes;
-
 using static AsterixViewer.Tabs.Proyecto3;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
@@ -41,7 +42,7 @@ namespace AsterixViewer.Tabs
     /// <summary>
     /// Lógica de interacción para UserControl1.xaml
     /// </summary>
-    public partial class Proyecto3 : UserControl
+    public partial class Proyecto3 : UserControl, INotifyPropertyChanged
     {
         // -------------------------------- DEFINICIÓN DE VARIABLES GLOBALES ----------------------------------------------------------------------------
         // ---------------------------------------------------------------------------------------------------------------------------------------------- 
@@ -99,7 +100,73 @@ namespace AsterixViewer.Tabs
         public Proyecto3()
         {
             InitializeComponent();
+            DataContext = this;
         }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        private void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        private bool _datosAsterixCargados;
+        public bool DatosAsterixCargados
+        {
+            get => _datosAsterixCargados;
+            set
+            {
+                _datosAsterixCargados = value;
+                OnPropertyChanged(); // Notifica a DatosAsterixCargados
+                OnPropertyChanged(nameof(EstadoAsterix)); // Notifica a EstadoAsterix
+                OnPropertyChanged(nameof(Paso2Permitido));
+                OnPropertyChanged(nameof(InfoPaso2Visibility));
+            }
+        }
+
+        private bool _datosPVCargados;
+        public bool DatosPVCargados
+        {
+            get => _datosPVCargados;
+            set
+            {
+                _datosPVCargados = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(EstadoPV));
+                OnPropertyChanged(nameof(Paso2Permitido));
+                OnPropertyChanged(nameof(InfoPaso2Visibility));
+            }
+        }
+
+        private bool _clasificacionCargada;
+        public bool ClasificacionCargada
+        {
+            get => _clasificacionCargada;
+            set
+            {
+                _clasificacionCargada = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(EstadoClasificacion));
+                OnPropertyChanged(nameof(Paso2Permitido));
+                OnPropertyChanged(nameof(InfoPaso2Visibility));
+            }
+        }
+
+        private bool _preliminaresHechos;
+        public bool PreliminaresHechos
+        {
+            get => _preliminaresHechos;
+            set { _preliminaresHechos = value; OnPropertyChanged(); OnPropertyChanged(nameof(Paso3Permitido)); }
+        }
+
+        public bool Paso2Permitido => DatosAsterixCargados && DatosPVCargados && ClasificacionCargada;
+        public bool Paso3Permitido => PreliminaresHechos;
+
+        public string EstadoAsterix => DatosAsterixCargados ? "✔ Cargado" : "Pendiente";
+        public string EstadoPV => DatosPVCargados ? "✔ Cargado" : "Pendiente";
+        public string EstadoClasificacion => ClasificacionCargada ? "✔ Cargada" : "Pendiente";
+
+        public Visibility InfoPaso2Visibility => Paso2Permitido ? Visibility.Collapsed : Visibility.Visible;
+        public Visibility InfoPaso3Visibility => Paso3Permitido ? Visibility.Collapsed : Visibility.Visible;
 
         private void DatosAsterix_Click(object sender, RoutedEventArgs e)
         {
@@ -107,6 +174,11 @@ namespace AsterixViewer.Tabs
 
             LecturaArchivos lect = new LecturaArchivos();
             datosAsterix = lect.LeerCsvASTERIX();
+
+            DatosAsterixCargados = true; // Esto actualizará EstadoAsterix automáticamente
+
+            OnPropertyChanged(nameof(Paso2Permitido));
+            OnPropertyChanged(nameof(InfoPaso2Visibility));
         }
 
         public void Planvuelo_click(object sender, RoutedEventArgs e)
@@ -115,12 +187,24 @@ namespace AsterixViewer.Tabs
 
             LecturaArchivos lect = new LecturaArchivos();
             listaPV = lect.LeerExcelPV();
+
+            DatosPVCargados = true;
+
+            OnPropertyChanged(nameof(EstadoPV));
+            OnPropertyChanged(nameof(Paso2Permitido));
+            OnPropertyChanged(nameof(InfoPaso2Visibility));
         }
 
         private void ClasificacionAeronaves_Click(object sender, RoutedEventArgs e)
         {
             LecturaArchivos lect = new LecturaArchivos();
             clasificacionAeronavesLoA = lect.LeerClasificacionAeronaves();
+
+            ClasificacionCargada = true;
+
+            OnPropertyChanged(nameof(EstadoClasificacion));
+            OnPropertyChanged(nameof(Paso2Permitido));
+            OnPropertyChanged(nameof(InfoPaso2Visibility));
         }
 
         private void CalculosPreliminares_Click(object sender, RoutedEventArgs e)
@@ -142,12 +226,10 @@ namespace AsterixViewer.Tabs
 
                     calculosPreliminaresHechos = true;
 
-                    MessageBox.Show(
-                        $"Se han hecho los calculos preliminares correctamente",
-                        "Information",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Information
-                    );
+                    PreliminaresHechos = true;
+
+                    OnPropertyChanged(nameof(Paso3Permitido));
+                    OnPropertyChanged(nameof(InfoPaso3Visibility));
                 }
                 catch
                 {
