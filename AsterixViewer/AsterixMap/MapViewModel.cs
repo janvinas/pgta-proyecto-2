@@ -91,6 +91,7 @@ namespace AsterixViewer.AsterixMap
         }
 
         private const string PlaneIconUri = "pack://application:,,,/AsterixViewer;component/Resources/avion.png";
+        private const string AntennaIconUri = "pack://application:,,,/AsterixViewer;component/Resources/antenna.png";
         public MapViewModel(DataStore dataStore, FiltersViewModel filtersViewModel, TimeSliderViewModel timeSliderViewModel)
         {
             this.DataStore = dataStore;
@@ -137,17 +138,34 @@ namespace AsterixViewer.AsterixMap
             {
                 var dotSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Circle, System.Drawing.Color.BlueViolet, 8);
 
-                var ms = new MemoryStream(Properties.Resources.Avion);
+                var msAvion = new MemoryStream();
+                Properties.Resources.Avion.Save(msAvion, System.Drawing.Imaging.ImageFormat.Png);
+                msAvion.Position = 0;
+                var planeSymbol = await PictureMarkerSymbol.CreateAsync(msAvion);
 
-                var planeSymbol = await PictureMarkerSymbol.CreateAsync(ms);
                 planeSymbol.Width = 25;
                 planeSymbol.Height = 25;
+
+
+                var msAntena = new MemoryStream();
+                Properties.Resources.Antena.Save(msAntena, System.Drawing.Imaging.ImageFormat.Png);
+                msAntena.Position = 0;
+                var antennaSymbol = await PictureMarkerSymbol.CreateAsync(msAntena);
+
+                antennaSymbol.Width = 25;
+                antennaSymbol.Height = 25;
+
                 var renderer = new UniqueValueRenderer();
                 renderer.FieldNames.Add("RenderType");
 
+                // CAT021 punto
                 renderer.UniqueValues.Add(new UniqueValue("Punto", "CAT021", dotSymbol, "CAT021"));
 
+                // CAT048 avión
                 renderer.UniqueValues.Add(new UniqueValue("Avion", "CAT048", planeSymbol, "CAT048"));
+
+                // Nuevo: Modo A 7777
+                renderer.UniqueValues.Add(new UniqueValue("Antenna", "MODO3A7777", antennaSymbol, "MODO3A7777"));
 
                 renderer.RotationExpression = "[Heading]";
                 renderer.RotationType = RotationType.Geographic;
@@ -159,6 +177,7 @@ namespace AsterixViewer.AsterixMap
                 MessageBox.Show($"Error renderer: {ex.Message}");
             }
         }
+
 
         private bool _isMoreInfoVisible;
         public bool IsMoreInfoVisible
@@ -269,7 +288,6 @@ namespace AsterixViewer.AsterixMap
         {
             if (msg == null) return;
 
-            // Validación de coordenadas y tiempo
             if (msg.Latitude.HasValue && msg.Longitude.HasValue && DataStore.ReplayTime - msg.TimeOfDay < 10)
             {
                 string key = $"{flightId}_{suffix}";
@@ -279,12 +297,19 @@ namespace AsterixViewer.AsterixMap
                 double heading = msg.Heading ?? 0;
                 int zIndex = (suffix == "CAT021") ? 100 : 0;
 
+                string renderType = null;
+
+                if (msg.Identification?.Length > 4)
+                {
+                    renderType = (msg.Mode3A == 4095 || msg.Identification.StartsWith("7777", StringComparison.Ordinal)) ? "MODO3A7777" : suffix;
+                }
+
                 if (mapPoints.TryGetValue(key, out var g))
                 {
                     g.Geometry = pos;
                     g.Attributes["message"] = JsonSerializer.Serialize(msg);
                     g.Attributes["Heading"] = heading;
-                    g.Attributes["RenderType"] = suffix;
+                    g.Attributes["RenderType"] = renderType;
 
                     g.ZIndex = zIndex;
                 }
@@ -294,7 +319,7 @@ namespace AsterixViewer.AsterixMap
                     graphic.Attributes["Key"] = key;
                     graphic.Attributes["message"] = JsonSerializer.Serialize(msg);
                     graphic.Attributes["Heading"] = heading;
-                    graphic.Attributes["RenderType"] = suffix;
+                    graphic.Attributes["RenderType"] = renderType;
 
                     graphic.ZIndex = zIndex;
 
@@ -303,6 +328,7 @@ namespace AsterixViewer.AsterixMap
                 }
             }
         }
+
 
         public void ShowGraphicDetails(Graphic graphic)
         {
@@ -393,7 +419,7 @@ namespace AsterixViewer.AsterixMap
                 sbExt.AppendLine("------------------------------------------");
                 sbExt.AppendLine($"Category: {msg.Cat}");
                 sbExt.AppendLine($"Asterix SAC/SIC: {msg.SAC}/{msg.SIC}");
-                sbExt.AppendLine($"Mode 3/A: {msg.Mode3A?.ToString() ?? "N/A"}");
+                sbExt.AppendLine($"Mode 3/A: {(msg.Mode3A.HasValue ? Convert.ToString(msg.Mode3A.Value, 8).PadLeft(4, '0') : "N/A")}");
                 sbExt.AppendLine($"{msg.BDS?.BDSsTabla ?? "N/A"}");
                 sbExt.AppendLine($"Baro: {msg.BDS?.BARO.ToString() ?? "N/A"}");
                 sbExt.AppendLine($"IAS: {msg.BDS?.IAS?.ToString() ?? "N/A"}");

@@ -14,7 +14,7 @@ namespace AsterixViewer
 
         private bool _showCat21 = true;
         private bool _showCat48 = true;
-        private bool _showBlancoPuro = false;
+        private bool _showBlancoPuro = true;
         private bool _showTransponderFijo = false;
         private bool _showOnGround = false;
         private double? _minLatitude = 40.9;
@@ -170,33 +170,34 @@ namespace AsterixViewer
             {
                 return false;
             }
-            if (msg.Mode3A == 4095 && !_showTransponderFijo)
+
+            if (!_showTransponderFijo)
             {
-                return false;
+                if (msg.Mode3A == 4095)
+                {
+                    return false;
+                }
+                if (msg.Identification?.Length >= 4 && msg.Identification.StartsWith("7777", StringComparison.Ordinal))
+                {
+                    return false;
+                }
             }
             if (msg.targetReportDescriptor021?.GBS == "Set" && !_showOnGround)
             {
                 return false;
             }
-            if (msg.I048230?.OnGround == true && !_showOnGround)
+            if (msg.I048230?.OnGround == true && !_showOnGround && msg.Mode3A != 4095)
             {
                 return false;
             }
 
 
-            if (_showBlancoPuro)
+            if (!_showBlancoPuro)
             {
-                if (msg.TargetReportDescriptor048 == null || msg.TargetReportDescriptor048.Count == 0)
+                var first = msg.TargetReportDescriptor048?[0];
+                if (first?.IndexOf("ModeS", StringComparison.OrdinalIgnoreCase) < 0)
                 {
-                    return false;
-                }
-
-                var first = msg.TargetReportDescriptor048[0];
-                if (string.IsNullOrEmpty(first) ||
-                    (first.IndexOf("PSR", StringComparison.OrdinalIgnoreCase) < 0 &&
-                     first.IndexOf("SSR", StringComparison.OrdinalIgnoreCase) < 0))
-                {
-                    return false;
+                    return false; 
                 }
             }
 
@@ -247,7 +248,7 @@ namespace AsterixViewer
             {
                 return false;
             }
-            if (msg.I048230?.OnGround ?? false && !_showOnGround)
+            if (msg.I048230?.OnGround ?? false)
             {
                 return false;
             }

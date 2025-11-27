@@ -78,7 +78,7 @@
                         Foreground="White"
                         FontWeight="Bold"
                         FontSize="14"
-                        Text="CAT21"/>
+                        Text="CAT48"/>
 
                     <Canvas
                         Grid.Row="1"
@@ -100,7 +100,7 @@
                         Foreground="White"
                         FontWeight="Bold"
                         FontSize="14"
-                        Text="CAT48"/>
+                        Text="CAT21"/>
                 </Grid>
             </Border>
 
