@@ -93,6 +93,9 @@ namespace AsterixViewer.Tabs
         // Lista de datos de los virajes de los vuelos y sus radiales respecto al DVOR
         List<DatosViraje> listaVirajes = new List<DatosViraje>();
 
+        //
+        List<THRAltitudVelocidad> listaTHRAltitudVelocidad = new List<THRAltitudVelocidad>();
+
         public Proyecto3()
         {
             InitializeComponent();
@@ -138,6 +141,13 @@ namespace AsterixViewer.Tabs
                     CalcularTiempo05NMfromTHR();
 
                     calculosPreliminaresHechos = true;
+
+                    MessageBox.Show(
+                        $"Se han hecho los calculos preliminares correctamente",
+                        "Information",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information
+                    );
                 }
                 catch
                 {
@@ -227,6 +237,27 @@ namespace AsterixViewer.Tabs
                 DatosVirajes vir = new DatosVirajes();
                 listaVirajes = vir.CalcularPosicionAltitudViraje(datosAsterix,vuelosOrdenados,listaVirajes,DVOR_BCN);
                 vir.GuardarPosicionAltitudViraje(listaVirajes);
+            }
+            else
+            {
+                MessageBox.Show(
+                    $"NO se pueden hacer los cálculos apropiados \n" +
+                    $"realizar previamente los cálculos preliminares",
+                    "Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
+            }
+        }
+        private void AltitudVelocidadTHR_Click(object sender, RoutedEventArgs e)
+        {
+            if (calculosPreliminaresHechos)
+            {
+                listaTHRAltitudVelocidad.Clear();
+
+                DatosTHR thr = new DatosTHR();
+                listaTHRAltitudVelocidad = thr.CalcularAltitudVelocidadTHR(datosAsterix, vuelosOrdenados, listaTHRAltitudVelocidad);
+                thr.GuardarAltitudVelocidadTHR(listaTHRAltitudVelocidad);
             }
             else
             {
@@ -377,7 +408,7 @@ namespace AsterixViewer.Tabs
                     }
                 }
             }
-            MessageBox.Show("Planes de vuelo acondicionados");
+            // MessageBox.Show("Planes de vuelo acondicionados");
         }
 
         public void FiltroDeparturesLEBL()
