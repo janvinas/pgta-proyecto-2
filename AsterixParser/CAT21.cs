@@ -35,7 +35,6 @@ namespace AsterixParser
 
             int FRN = 1;
 
-            Console.WriteLine("Lectura de FSPEC:");
             while (fx)
             {
                 byte b = body[k];
@@ -44,7 +43,6 @@ namespace AsterixParser
                     int v = (b >> i) & 1;
                     if (v == 1) nFSPEC.Enqueue(FRN);
                     vFSPEC.Enqueue(v);
-                    Console.Write(v); //Recorre byte y lo imprime
                     FRN++;
                 }
 
@@ -53,8 +51,6 @@ namespace AsterixParser
                 k++;
             }
 
-            Console.WriteLine();
-            Console.WriteLine("Posición byte lectura: " + k);
             return nFSPEC;
         }
 
@@ -69,7 +65,6 @@ namespace AsterixParser
                 //Console.WriteLine(n);
                 //En un array de funciones le pasa el numero del DataField que quiere decodificar
                 parser.functions[n - 1](ref k, body);
-                Console.WriteLine($"Siguiente Byte: {k}");
             }
 
             return error;

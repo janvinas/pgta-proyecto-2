@@ -57,6 +57,23 @@ namespace AsterixViewer
             expression.UpdateSource();
         }
 
+        private void OnSetCoordsLebl(object sender, RoutedEventArgs e)
+        {
+            LatMinBox.Text = "40,9";
+            LatMaxBox.Text = "41,7";
+            LonMinBox.Text = "1,5";
+            LonMaxBox.Text = "2,6";
+
+            var expression = LonMaxBox.GetBindingExpression(TextBox.TextProperty);
+            expression.UpdateSource();
+            expression = LonMinBox.GetBindingExpression(TextBox.TextProperty);
+            expression.UpdateSource();
+            expression = LatMaxBox.GetBindingExpression(TextBox.TextProperty);
+            expression.UpdateSource();
+            expression = LatMinBox.GetBindingExpression(TextBox.TextProperty);
+            expression.UpdateSource();
+        }
+
         private void OnIdFilterChanged(object sender, RoutedEventArgs e)
         {
             var expression = IdentFilterBox.GetBindingExpression(TextBox.TextProperty);

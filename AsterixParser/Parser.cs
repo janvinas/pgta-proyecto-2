@@ -23,10 +23,6 @@ namespace AsterixParser
 
             while (i < file.Length)
             {
-                Console.WriteLine("------------------------------------------------");
-                Console.WriteLine("MENSAJE NUMERO: " + k);
-                Console.WriteLine("------------------------------------------------");
-
                 byte cat = file[i];
                 ushort length =  (ushort) (file[i+2] | (file[i+1] << 8));
 
@@ -34,14 +30,10 @@ namespace AsterixParser
                 byte[] body = new byte[length - 3];
                 Array.Copy(file,i+3,body,0,length-3);
                 
-                Console.Write("Longitud del mensaje: " + length + " ");
-
                 switch (cat)
                 {
                     case 21:
                         {
-                            Console.Write("CAT-" + cat + "\n");
-
                             var message = new AsterixMessage
                             {
                                 Cat = CAT.CAT021
@@ -53,8 +45,6 @@ namespace AsterixParser
                         }
                     case 48:
                         {
-                            Console.Write("CAT-" + cat + "\n");
-
                             var message = new AsterixMessage
                             {
                                 Cat = CAT.CAT048
@@ -63,8 +53,6 @@ namespace AsterixParser
                             error = CAT048.CAT48Reader(i, length);
 
                             if (error == 0) messages.Add(message);
-
-                            Console.WriteLine(message);
 
                             break;
                         }

@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -45,8 +46,6 @@ namespace AsterixViewer.AsterixMap
         private GraphicsOverlay planeGraphics;
         private GraphicsOverlay selectedOverlay;
         private Graphic? selectedHighlightGraphic;
-
-        private readonly Symbol planeSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Circle, System.Drawing.Color.Red, 4);
 
         // 🟡 Símbolo de halo amarillo para selección
         private readonly Symbol highlightSymbol = new CompositeSymbol
@@ -132,30 +131,17 @@ namespace AsterixViewer.AsterixMap
             DisplayFlights();
         }
 
-        private void ConfigurePlaneRenderer()
+        private async void ConfigurePlaneRenderer()
         {
             try
             {
                 var dotSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Circle, System.Drawing.Color.BlueViolet, 8);
 
-                string imagePath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "avion.png");
+                var ms = new MemoryStream(Properties.Resources.Avion);
 
-                Symbol planeSymbol;
-
-                if (System.IO.File.Exists(imagePath))
-                {
-                    planeSymbol = new PictureMarkerSymbol(new Uri(imagePath, UriKind.Absolute))
-                    {
-                        Width = 25,
-                        Height = 25
-                    };
-                }
-                else
-                {
-                    planeSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Square, System.Drawing.Color.Blue, 15);
-                    System.Diagnostics.Debug.WriteLine($"⚠️ IMAGEN NO ENCONTRADA EN: {imagePath}");
-                }
-
+                var planeSymbol = await PictureMarkerSymbol.CreateAsync(ms);
+                planeSymbol.Width = 25;
+                planeSymbol.Height = 25;
                 var renderer = new UniqueValueRenderer();
                 renderer.FieldNames.Add("RenderType");
 

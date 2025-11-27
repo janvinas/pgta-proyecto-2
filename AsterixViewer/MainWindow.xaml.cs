@@ -1,5 +1,6 @@
 ﻿using AsterixParser;
 using AsterixViewer.AsterixMap;
+using AsterixViewer.Tabs;
 using Microsoft.Win32;
 using System.Diagnostics;
 using System.IO;
@@ -26,6 +27,12 @@ namespace AsterixViewer
         public MainWindow()
         {
             InitializeComponent();
+            Loaded += MainWindow_Loaded;
+        }
+
+        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            NavigationView.Navigate(typeof(StartTab));
         }
 
         private async void OpenFile_click(object sender, RoutedEventArgs args)

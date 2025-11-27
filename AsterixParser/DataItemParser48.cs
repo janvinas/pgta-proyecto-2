@@ -53,8 +53,6 @@ namespace AsterixParser
 
         public void DataItem1(ref int k, byte[] body) // I048/010
         {
-            Console.WriteLine("(DF-1)");
-
             byte SAC = body[k];
             byte SIC = body[k + 1];
             message.SIC = SIC;
@@ -64,8 +62,6 @@ namespace AsterixParser
 
         public void DataItem2(ref int k, byte[] body) //Comprobar si esta bien, ya que el primero que sale realmente en el de prueba no existe
         {
-            Console.WriteLine("(DF-2)");
-
             int date = (body[k + 2] | body[k + 1] << 8 | (body[k] << 16));
             float seconds = date/128f;
             message.TimeOfDay = seconds;
@@ -74,8 +70,6 @@ namespace AsterixParser
 
         public void DataItem3(ref int k, byte[] body) // I048/020
         {
-            Console.WriteLine("(DF-3)");
-
             List<string> TargetReport = [];
 
             string TYP = null;
@@ -219,8 +213,6 @@ namespace AsterixParser
             }
 
             k += 1;
-            Console.WriteLine("Target Report data: ");
-            foreach (string data in TargetReport) Console.WriteLine("· " + data);
 
             message.TargetReportDescriptor048 = TargetReport;
 
@@ -228,22 +220,16 @@ namespace AsterixParser
 
         public void DataItem4(ref int k, byte[] body)
         {
-            Console.WriteLine("(DF-4)");
             ushort rho_raw = (ushort)(body[k + 1] | (body[k] << 8));
             ushort theta_raw = (ushort)(body[k + 2] << 8 | body[k + 3]);
             message.Distance = rho_raw / 256.0;
             message.Azimuth = theta_raw * 360.0 / (double)Math.Pow(2, 16);
-
-            Console.WriteLine("Rho: " + message.Distance);
-            Console.WriteLine("Theta: " + message.Azimuth);
 
             k += 4;
         }
 
         public void DataItem5(ref int k, byte[] body) // I048/070
         {
-            Console.WriteLine("(DF-5)");
-
             string Config = null;
             string V = null;
             string G = null;
@@ -271,18 +257,11 @@ namespace AsterixParser
             Config = V + "\n" + G + "\n" + L;
             message.configMode3A = Config;
 
-            Console.WriteLine("Config 3/A: ");
-            Console.WriteLine("· " + Config);
-            string octalCode = Convert.ToString(mode3A, 8);
-            Console.WriteLine($"Mode-3/A en octal: {octalCode}");
-
             k += 2;
         }
 
         public void DataItem6(ref int k, byte[] body)
         {
-            Console.WriteLine("(DF-6)");
-
             bool notValidated = ((body[k] >> 7) & 1) == 1;
             bool garbledCode = ((body[k] >> 6) & 1) == 1;
 
@@ -321,8 +300,6 @@ namespace AsterixParser
 
         public void DataItem7(ref int k, byte[] body) // I048/130 Radar Plot Characteristics
         {
-            Console.WriteLine("(DF-7)");
-
             RadarPlotCharacteristics ch = new();
             int n;
             Queue<int> nSubfield = PrimarySubfieldDecoder(ref k, body);
@@ -334,64 +311,53 @@ namespace AsterixParser
                     case 1: // Subfield 1 SRL
                         double srl = body[k];
                         srl = srl * 360 / (8192); // SRL in degrees
-                        Console.WriteLine($"Range Covered (SRL): {srl} degrees.");
                         k++;
                         break;
                     case 2: // Subfield 2 SRR
                         int srr = body[k]; // Number of Received Replies for (M)SSR
-                        Console.WriteLine($"Number of Received Replies for (M)SSR: {srr}.");
                         k++;
                         break;
                     case 3: // Subfield 3 SAM
                         sbyte sam = (sbyte)body[k]; // Amplitude of M(SSR) Reply in dBm
-                        Console.WriteLine($"Amplitude of M(SSR) Reply in dBm: {sam} dBm.");
                         k++;
                         break;
                     case 4: // Subfield 4 PRL
                         double prl = body[k];
                         prl = prl * 360 / (8192); // PRL in degrees
-                        Console.WriteLine($"Range Covered (PRL): {prl} degrees.");
                         k++;
                         break;
                     case 5: // Subfield 5 PAM
                         sbyte pam = (sbyte)body[k]; // Amplitude of PSR Reply in dBm
-                        Console.WriteLine($"Amplitude of PSR Reply in dBm: {pam} dBm.");
                         k++;
                         break;
                     case 6: // Subfield 6 RPD
                         sbyte rpd_byte = (sbyte)body[k];
                         double rpd_1 = rpd_byte;
                         double rpd = rpd_1 / 256; // Difference in Range Betweeen PSR and SSR (PSR-SSR) in NM
-                        Console.WriteLine($"Difference in Range Betweeen PSR and SSR (PSR-SSR): {rpd} NM.");
                         k++;
                         break;
                     case 7: // Subfield 7 APD
                         sbyte apd_byte = (sbyte)body[k];
                         double apd = apd_byte;
                         apd = apd * 360 / Math.Pow(2, 14); // Difference in azimuth between PSR and SSR plot in degrees
-                        Console.WriteLine($"Difference in azimuth between PSR and SSR plot: {apd} degrees.");
                         k++;
                         break;
                     case 8: // Subfield 8 SCO
-                        Console.WriteLine($"Score: {body[k]}");
                         k++;
                         break;
                     case 9: // Subfield 9 SCR
                         ushort scr_combined = (ushort)((body[k] << 8) | body[k + 1]);
                         double scr = scr_combined * 0.1; // Signal / Clutter Radio
-                        Console.WriteLine($"Signal / Clutter Radio: {scr} dB.");
                         k += 2;
                         break;
                     case 10: // Subfield 10 RW
                         ushort rw_combined = (ushort)((body[k] << 8) | body[k + 1]);
                         double rw = rw_combined / 256; // Range Width in NM
-                        Console.WriteLine($"Range Width: {rw} NM.");
                         k += 2;
                         break;
                     case 11: // Subfield 11 AR
                         ushort ar_combined = (ushort)((body[k] << 8) | body[k + 1]);
                         double ar = ar_combined / 256; // Ambiguous Range in NM
-                        Console.WriteLine($"Ambiguous Range: {ar} NM.");
                         k += 2;
                         break;
                 }
@@ -403,8 +369,6 @@ namespace AsterixParser
 
         public void DataItem8(ref int k, byte[] body) // I048/220 Aircraft Address
         {
-            Console.WriteLine("(DF-8)");
-
             uint address = (uint)( body[k] << 16 | body[k+1] << 8 | body[k+2]);
             message.Address = address;
             k += 3; // 3 octets
@@ -424,8 +388,6 @@ namespace AsterixParser
 
         public void DataItem9(ref int k, byte[] body) // I048/240 Aircraft Identification
         {
-            Console.WriteLine("(DF-9)");
-
             byte[] id = { body[k], body[k + 1], body[k + 2], body[k + 3], body[k + 4], body[k + 5] };
             ulong bits = 0; // Concatenar els 6 bytes en un nombre de 48 bits (ulong)
             for (int i = 0; i < 6; i++)
@@ -447,9 +409,7 @@ namespace AsterixParser
 
         public void DataItem10(ref int k, byte[] body)
         {
-            Console.WriteLine("(I048/250 - Mode S MB Data)");
             byte REP = body[k++];
-            Console.WriteLine("Number of MB data blocks: " + REP);
             string BDSs = null;
 
             BDS bds = new BDS();
@@ -464,15 +424,11 @@ namespace AsterixParser
                 int BDS2 = bdsCode & 0x0F;
                 string bdsString = $"BDS {BDS1},{BDS2}";
 
-                Console.WriteLine($"\nBlock {i + 1}: BDS {BDS1},{BDS2}");
-
                 if (BDS2 == 0)
                 {
                     switch (BDS1)
                     {
                         case 4:
-                            Console.WriteLine("  (BDS 4,0) Selected Altitude / Baro / MCP / FMS");
-
                             int statusMCP = (b[0] >> 7) & 0x01;
 
                             int mcpRaw = (((b[0] << 8) | b[1]) >> 3) & 0x0FFF;
@@ -506,12 +462,6 @@ namespace AsterixParser
                                 default: TargetALT = "Reserved"; break;
                             }
 
-                            Console.WriteLine($"    statusMCP: {statusMCP}, MCP: {MCP_feet} ft");
-                            Console.WriteLine($"    statusFMS: {statusFMS}, FMS: {FMS_feet} ft");
-                            Console.WriteLine($"    statusBARO: {statusBARO}, BARO setting: {BARO_hPa:F1} hPa");
-                            Console.WriteLine($"    infoMCP: {infoMCP}, VNAV:{VNAV}, ALTflag:{ALTflag}, APPR:{APPR}, statusTarget:{statusTarget}");
-                            Console.WriteLine($"    TargetALT source: {TargetALT}");
-
                             if (BDSs == null) {
                                 BDSs += bdsString;
                                 bds.BDSsCSV += "4.0";
@@ -541,7 +491,6 @@ namespace AsterixParser
                             // ===========================
                             // BDS 5,0 - Roll / Track / Speeds
                             // ===========================
-                            Console.WriteLine("  (BDS 5,0) Roll / True Track / Ground Speed / Track Angle Rate / True Airspeed");
 
                             // ====== ROLL ANGLE ======
                             int statusROLL = (b[0] >> 7) & 0x01;      // Bit 0 (MSB)
@@ -551,8 +500,6 @@ namespace AsterixParser
                             if (signROLL == 1) rollSigned = raw9 - (1 << 9);
                             float ROLL = rollSigned * (45.0f / 256.0f);
 
-                            Console.WriteLine($"    Roll: status={statusROLL}, sign={signROLL}, raw={raw9}, signed={rollSigned}, val={ROLL:F3}°");
-
                             // ====== TRUE TRACK ANGLE ======
                             int statusTTA = (b[1] >> 4) & 0b1;  // Bit 0
                             int signTTA = (b[1] >> 3) & 0b1;    // Bit 1 (informativo)
@@ -561,13 +508,10 @@ namespace AsterixParser
                             if (signTTA == 1) ttaSigned = raw10 - (1 << 10);
                             float TTA = ttaSigned * (90.0f / 512.0f);
 
-                            Console.WriteLine($"    True Track Angle: status={statusTTA}, raw={raw10}, signed={ttaSigned}, val={TTA:F3}°");
-
                             // ====== GROUND SPEED ======
                             int statusGS = b[2] & 0b1;
                             int gsRaw = ((b[3] << 2) | (b[4] >> 6)) & 0b1111111111;
                             float GS = gsRaw * (1024.0f / 512.0f); // LSB = 2 kt
-                            Console.WriteLine($"    Ground Speed: status={statusGS}, raw={gsRaw}, val={GS:F0} kt");
 
                             // ====== TRACK ANGLE RATE ======
                             int statusTAR = (b[4] >> 5) & 0b1;
@@ -576,13 +520,11 @@ namespace AsterixParser
                             int tarSigned = tarRaw;
                             if (signTAR == 1) tarSigned = tarRaw - (1 << 9);
                             float TAR = tarSigned * (8.0f / 256.0f);
-                            Console.WriteLine($"    Track Angle Rate: status={statusTAR}, sign={signTAR}, raw={tarRaw}, val={TAR:F3} °/s");
 
                             // ====== TRUE AIRSPEED ======
                             int statusTAS = (b[5] >> 2) & 0b1;
                             int tasRaw = (((b[5] & 0b11) << 8) | b[6]) & 0b1111111111;
                             float TAS = tasRaw * 2.0f; // LSB = 2 kt
-                            Console.WriteLine($"    True Airspeed: status={statusTAS}, raw={tasRaw}, val={TAS:F0} kt");
 
                             if (BDSs == null) {
                                 BDSs += bdsString;
@@ -607,8 +549,6 @@ namespace AsterixParser
                             break;
                         case 6:
                             // ----- MH -----
-                            Console.WriteLine("  (BDS 6,0) Magnetic Heading / IAS / MACH / Vertical Rates");
-
                             int statusMH = (b[0] >> 7) & 0x01;
                             int signMH = (b[0] >> 6) & 0x01;
                             int mhRaw = (((b[0] << 8) | b[1]) >> 4 ) & 0b1111111111;
@@ -616,19 +556,15 @@ namespace AsterixParser
                             if (signMH == 1) MHSigned = mhRaw - (1 << 10);
                             float MH = MHSigned * (90.0f / 512.0f);
 
-                            Console.WriteLine($"    statusMH: {statusMH}, sign:{signMH}, Magnetic Heading: {MH:F2}° (raw={mhRaw})");
-
                             // ----- IAS -----
                             int statusIAS = (b[1] >> 3) & 0b1;
                             int iasRaw = (((b[1]<< 8) | b[2]) >> 1) & 0b1111111111; 
                             float IAS = iasRaw * 1.0f;
-                            Console.WriteLine($"    IAS (raw10): {iasRaw} -> {IAS:F0} kt");
 
                             // ----- MACH -----
                             int statusMACH = (b[2]) & 0b1;
                             int machRaw = (((b[3] << 8) | b[4]) >> 6)& 0b1111111111;
                             float MACH = machRaw * (2.048f / 512.0f);
-                            Console.WriteLine($"    MACH (raw11): {machRaw} -> {MACH:F3} Mach");
 
                             // ----- BAROMETRIC ALTITUDE RATE (BARO V/S) -----
                             int statusBAROV = (b[4] >> 5) & 0b1;
@@ -637,7 +573,6 @@ namespace AsterixParser
                             int baroSigned = baroVRaw;
                             if (signBAROV == 1) baroSigned = baroVRaw - (1 << 10);
                             float BAROV = baroSigned * 32.0f;
-                            Console.WriteLine($"    Baro V/S (approx raw): {baroSigned} -> {BAROV:F0} ft/min");
 
                             // ----- INERTIAL VERTICAL VELOCITY (IVV) -----
                             int statusIVV = (b[5] >> 2) & 0b1;
@@ -647,7 +582,6 @@ namespace AsterixParser
                             int ivvSigned = ivvRaw;
                             if (signIVV == 1) ivvSigned = ivvRaw - (1 << 9);
                             float IVV = ivvSigned * 32.0f;
-                            Console.WriteLine($"    IVV (approx raw): {ivvSigned} -> {IVV:F0} ft/min");
                             if (BDSs == null)
                             {
                                 BDSs += bdsString;
@@ -672,7 +606,6 @@ namespace AsterixParser
                             break;
 
                         default:
-                            Console.WriteLine($"  BDS {BDS1},{BDS2} not implemented.");
                             break;
                     }
                 }
@@ -707,8 +640,6 @@ namespace AsterixParser
 
         public void DataItem14(ref int k, byte[] body) // I048/170 Track Status
         {
-            Console.WriteLine("(DF-14)");
-
             TrackStatus ts = new();
 
             Queue<string> TrackStatus = new Queue<string>();
@@ -804,8 +735,8 @@ namespace AsterixParser
             }
 
             // Lo printeamos por consola, el puto Pau dice que no, pero me suda la polla
-            Console.WriteLine("Track status data: ");
-            foreach (string data in TrackStatus) Console.WriteLine(data);
+            //Console.WriteLine("Track status data: ");
+            //foreach (string data in TrackStatus) Console.WriteLine(data);
 
             k += 1;
             message.TrackStatus = ts;
@@ -813,43 +744,32 @@ namespace AsterixParser
 
         public void DataItem15(ref int k, byte[] body)
         {
-            Console.WriteLine("(DF-15)");
-
             k += 4;
         }
 
         public void DataItem16(ref int k, byte[] body)
         {
-            Console.WriteLine("(DF-16)");
-
             if (body[k] >> 1 == 1) k += 2;
             else k += 1;
         }
 
         public void DataItem17(ref int k, byte[] body)
         {
-            Console.WriteLine("(DF-17)");
-
             k += 2;
         }
 
         public void DataItem18(ref int k, byte[] body)
         {
-            Console.WriteLine("(DF-18)");
-
             k += 4;
         }
 
         public void DataItem19(ref int k, byte[] body)
         {
-            Console.WriteLine("(DF-19)");
-
             k += 2;
         }
 
         public void DataItem20(ref int k, byte[] body)
         {
-            Console.WriteLine("(DF-20)");
             int dk = 1; // Starts by 1 as it must jump the base octet
 
             if ((body[k] >> 7 & 0b1) == 1) dk += 2; // Presence of subfield #1 (2 Octets)
@@ -860,8 +780,6 @@ namespace AsterixParser
 
         public void DataItem21(ref int k, byte[] body) // I048/230 Communications/ACAS Capability and Flight Status
         {
-            Console.WriteLine("(DF-21)");
-
             I048230 ch = new();
 
             string[] Capability = new string[8];
@@ -877,8 +795,6 @@ namespace AsterixParser
 
 
             ushort raw = (ushort)(body[k + 1] | (body[k] << 8));
-
-            Console.WriteLine($"Valor binario : {Convert.ToString(raw, 2).PadLeft(16, '0')}");
 
             int bits;
 
@@ -971,9 +887,6 @@ namespace AsterixParser
             ch.B1B = B1B;
 
             Capability = [ COM,STAT,SI,MSSC,ARC,AIC,Convert.ToString(B1A), Convert.ToString(B1B)];
-
-            Console.WriteLine("Capability and Flight Status: ");
-            foreach (string data in Capability) Console.WriteLine("· " + data);
 
             k += 2;
             message.I048230 = ch;

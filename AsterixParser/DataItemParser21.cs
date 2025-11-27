@@ -35,8 +35,6 @@ namespace AsterixParser
 
         public void DataItem1(ref int k, byte[] body) // I021/010 Data Source Identification
         {
-            Console.WriteLine("(DF-1)");
-
             byte SAC = body[k];
             byte SIC = body[k + 1];
 
@@ -47,7 +45,6 @@ namespace AsterixParser
         }
         public void DataItem2(ref int k, byte[] body)
         {
-            Console.WriteLine("(DF-2) Target Report Descriptor");
             TargetReportDescriptor021 targetReportDescriptor021 = new TargetReportDescriptor021();
             List<string> TargetReport = [];
 
@@ -91,11 +88,6 @@ namespace AsterixParser
             TargetReport.Add(RAB);
             targetReportDescriptor021.RAB = RAB;
 
-            Console.WriteLine($"Address Type: {ATP_VAL}");
-            Console.WriteLine($"Altitude Reporting Capability: {ARC_VAL}");
-            Console.WriteLine($"Range Check: {RC}");
-            Console.WriteLine($"Report Type: {RAB}");
-
             // --- First extension ---
             if (FX)
             {
@@ -134,13 +126,6 @@ namespace AsterixParser
                 TargetReport.Add(CL_VAL);
                 targetReportDescriptor021.CL_VAL = CL_VAL;
 
-                Console.WriteLine($"Differential Correction: {DCR}");
-                Console.WriteLine($"Ground Bit Setting: {GBS}");
-                Console.WriteLine($"Simulated Target: {SIM}");
-                Console.WriteLine($"Test Target: {TST}");
-                Console.WriteLine($"Selected Altitude Available: {SAA}");
-                Console.WriteLine($"Confidence Level: {CL_VAL}");
-
                 FX = (ext1 & 1) == 1;
 
                 // --- Second extension ---
@@ -166,12 +151,6 @@ namespace AsterixParser
                     TargetReport.Add(RCF);
                     targetReportDescriptor021.RCF = RCF;
 
-                    Console.WriteLine($"  Independent Position Check: {IPC}");
-                    Console.WriteLine($"  No-go Bit Status: {NOGO}");
-                    Console.WriteLine($"  Compact Position Reporting: {CPR}");
-                    Console.WriteLine($"  Local Decoding Position Jump: {LDPJ}");
-                    Console.WriteLine($"  Range Check: {RCF}");
-
                     FX = (ext2 & 1) == 1;
 
                     // --- Third extension ---
@@ -179,13 +158,9 @@ namespace AsterixParser
                     {
                         byte ext3 = body[k];
                         k++;
-                        Console.WriteLine($"  Third Extension present (not defined in specification). Byte value: {ext3:X2}");
                     }
                 }
             }
-
-            Console.WriteLine("Target Report data: ");
-            foreach (string data in TargetReport) Console.WriteLine("· " + data);
 
             message.TargetReportDescriptor021 = TargetReport;
             message.targetReportDescriptor021 = targetReportDescriptor021;
@@ -193,31 +168,26 @@ namespace AsterixParser
 
         public static void DataItem3(ref int k, byte[] body)
         {
-            Console.WriteLine("(3)");
             k += 2;
         }
 
         public static void DataItem4(ref int k, byte[] body)
         {
-            Console.WriteLine("(4)");
             k++;
         }
 
         public static void DataItem5(ref int k, byte[] body)
         {
-            Console.WriteLine("(5)");
             k += 3;
         }
 
         public static void DataItem6(ref int k, byte[] body)
         {
-            Console.WriteLine("(6)");
             k += 6;
         }
 
         public void DataItem7(ref int k, byte[] body) // I021/131 High-Resolution Position in WGS-84 Co-ordinates
         {
-            Console.WriteLine("(DF-7)");
             int lat_i = (body[k] << 24) | (body[k + 1] << 16) | (body[k + 2] << 8) | body[k + 3]; // Composem el integer de latitud
             int lon_i = (body[k + 4] << 24) | (body[k + 5] << 16) | (body[k + 6] << 8) | body[k + 7]; // Composem el integer de longitud
 
@@ -225,11 +195,6 @@ namespace AsterixParser
             lat = lat * 180 / (double)(Math.Pow(2, 30));
             double lon = lon_i;
             lon = lon * 180 / (double)(Math.Pow(2, 30));
-
-            if (lat >= 0) Console.WriteLine($"Latitude: {lat} degrees North.");
-            else Console.WriteLine($"Latitude: {lat} degrees South.");
-            if (lon >= 0) Console.WriteLine($"Longitude: {lon} degrees East.");
-            else Console.WriteLine($"Longitude: {lon} degrees West.");
 
             message.Latitude = lat;
             message.Longitude =  lon;
@@ -239,25 +204,21 @@ namespace AsterixParser
 
         public static void DataItem8(ref int k, byte[] body)
         {
-            Console.WriteLine("(8)");
             k += 3;
         }
 
         public static void DataItem9(ref int k, byte[] body)
         {
-            Console.WriteLine("(9)");
             k += 2;
         }
 
         public static void DataItem10(ref int k, byte[] body)
         {
-            Console.WriteLine("(10)");
             k += 2;
         }
 
         public void DataItem11(ref int k, byte[] body) // I021/080 Target Address
         {
-            Console.WriteLine("(DF-11)");
             //byte[] address = { body[k], body[k + 1], body[k + 2] };
             //string hexAddress = BitConverter.ToString(address).Replace("-", "");
             //Console.WriteLine(hexAddress);
@@ -268,7 +229,6 @@ namespace AsterixParser
 
         public void DataItem12(ref int k, byte[] body)
         {
-            Console.WriteLine("(DF-12)");
             int date = (body[k + 2] | body[k + 1] << 8 | (body[k] << 16));
             float seconds = date / 128f;
 
@@ -279,31 +239,26 @@ namespace AsterixParser
 
         public static void DataItem13(ref int k, byte[] body)
         {
-            Console.WriteLine("(13)");
             k += 4;
         }
 
         public static void DataItem14(ref int k, byte[] body)
         {
-            Console.WriteLine("(14)");
             k += 3;
         }
 
         public static void DataItem15(ref int k, byte[] body)
         {
-            Console.WriteLine("(15)");
             k += 4;
         }
 
         public static void DataItem16(ref int k, byte[] body)
         {
-            Console.WriteLine("(16)");
             k += 2;
         }
 
         public static void DataItem17(ref int k, byte[] body)
         {
-            Console.WriteLine("(17)");
 
             if ((body[k] >> 0 & 1) == 1)
             {
@@ -319,13 +274,11 @@ namespace AsterixParser
 
         public static void DataItem18(ref int k, byte[] body)
         {
-            Console.WriteLine("(18)");
             k += 1;
         }
 
         public void DataItem19(ref int k, byte[] body) // I021/070 Mode 3/A Code
         {
-            Console.WriteLine("(DF-19)");
 
             ushort raw = (ushort)(body[k + 1] | (body[k] << 8));
 
@@ -333,20 +286,17 @@ namespace AsterixParser
             message.Mode3A = mode3A;
 
             string octalCode = Convert.ToString(mode3A, 8);
-            Console.WriteLine($"Mode-3/A en octal: {octalCode}");
 
             k += 2;
         }
 
         public static void DataItem20(ref int k, byte[] body)
         {
-            Console.WriteLine("(20)");
             k += 2;
         }
 
         public void DataItem21(ref int k, byte[] body)
         {
-            Console.WriteLine("(21)");
 
             short FL_raw = (short)(body[k + 1] | (body[k] << 8));
 
@@ -356,43 +306,36 @@ namespace AsterixParser
 
         public static void DataItem22(ref int k, byte[] body)
         {
-            Console.WriteLine("(22)");
             k += 2;
         }
 
         public static void DataItem23(ref int k, byte[] body)
         {
-            Console.WriteLine("(23)");
             k += 1;
         }
 
         public static void DataItem24(ref int k, byte[] body)
         {
-            Console.WriteLine("(24)");
             k += 2;
         }
 
         public static void DataItem25(ref int k, byte[] body)
         {
-            Console.WriteLine("(25)");
             k += 2;
         }
 
         public static void DataItem26(ref int k, byte[] body)
         {
-            Console.WriteLine("(26)");
             k += 4;
         }
 
         public static void DataItem27(ref int k, byte[] body)
         {
-            Console.WriteLine("(27)");
             k += 2;
         }
 
         public static void DataItem28(ref int k, byte[] body)
         {
-            Console.WriteLine("(28)");
             k += 3;
         }
 
@@ -409,7 +352,6 @@ namespace AsterixParser
         }
         public void DataItem29(ref int k, byte[] body)
         {
-            Console.WriteLine("(29)");
 
             byte[] id = { body[k], body[k + 1], body[k + 2], body[k + 3], body[k + 4], body[k + 5] };
             ulong bits = 0; // Concatenar els 6 bytes en un nombre de 48 bits (ulong)
@@ -427,20 +369,17 @@ namespace AsterixParser
                 sb.Append(DecodificarChar6bit(val6bit));
             }
             message.Identification = sb.ToString().Trim();
-            Console.WriteLine(sb.ToString().Trim());
 
             k += 6;
         }
 
         public static void DataItem30(ref int k, byte[] body)
         {
-            Console.WriteLine("(30)");
             k += 1;
         }
 
         public static void DataItem31(ref int k, byte[] body)
         {
-            Console.WriteLine("(31)");
 
             int dk = 0;
             if ((body[k] >> 7 & 1)== 1) dk += 2;
@@ -453,19 +392,16 @@ namespace AsterixParser
 
         public static void DataItem32(ref int k, byte[] body)
         {
-            Console.WriteLine("(32)");
             k += 2;
         }
 
         public static void DataItem33(ref int k, byte[] body)
         {
-            Console.WriteLine("(33)");
             k += 2;
         }
 
         public static void DataItem34(ref int k, byte[] body)
         {
-            Console.WriteLine("(34)");
 
             int dk = 1;
             byte b = body[k];
@@ -483,19 +419,16 @@ namespace AsterixParser
 
         public static void DataItem35(ref int k, byte[] body)
         {
-            Console.WriteLine("(35)");
             k += 1;
         }
 
         public static void DataItem36(ref int k, byte[] body)
         {
-            Console.WriteLine("(36)");
             k += 1;
         }
 
         public static void DataItem37(ref int k, byte[] body)
         {
-            Console.WriteLine("(37)");
 
             if ((body[k] >> 0 & 1) == 1) k += 1;
             k += 1;
@@ -503,13 +436,11 @@ namespace AsterixParser
 
         public static void DataItem38(ref int k, byte[] body)
         {
-            Console.WriteLine("(38)");
             k += 1;
         }
 
         public static void DataItem39(ref int k, byte[] body)
         {
-            Console.WriteLine("(39)");
 
             byte REP = body[k];
             k += 1 + 8 * REP;
@@ -517,19 +448,16 @@ namespace AsterixParser
 
         public static void DataItem40(ref int k, byte[] body)
         {
-            Console.WriteLine("(40)");
             k += 7;
         }
 
         public static void DataItem41(ref int k, byte[] body)
         {
-            Console.WriteLine("(41)");
             k += 1;
         }
 
         public static void DataItem42(ref int k, byte[] body)
         {
-            Console.WriteLine("(42)");
             int dk = 0;
 
             bool fx = true;
@@ -547,32 +475,26 @@ namespace AsterixParser
 
         public static void DataItem43(ref int k, byte[] body)
         {
-            Console.WriteLine("(43)");
         }
 
         public static void DataItem44(ref int k, byte[] body)
         {
-            Console.WriteLine("(44)");
         }
 
         public static void DataItem45(ref int k, byte[] body)
         {
-            Console.WriteLine("(45)");
         }
 
         public static void DataItem46(ref int k, byte[] body)
         {
-            Console.WriteLine("(46)");
         }
 
         public static void DataItem47(ref int k, byte[] body)
         {
-            Console.WriteLine("(47)");
         }
 
         public void DataItem48(ref int k, byte[] body)
         {
-            Console.WriteLine("(DF-48)");
 
             int length = body[k];
             k++;

@@ -24,8 +24,6 @@ namespace AsterixViewer.Tabs
     /// </summary>
     public partial class StartTab : UserControl
     {
-        public event EventHandler? FinishedLoadingFile;
-
         public StartTab()
         {
             InitializeComponent();

@@ -32,9 +32,10 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <Grid Grid.Row="0" Margin="0,0,0,16">
+                <Grid Grid.Row="0">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
@@ -43,11 +44,12 @@
                     <Button Content="Aplicar" Click="OnCoordsFilterChanged" Margin="2" Grid.Column="0" HorizontalAlignment="Stretch"/>
                     <Button Content="Limpiar" Click="OnClearCoordFilter" Margin="2" Grid.Column="1" HorizontalAlignment="Stretch"/>
                 </Grid>
+                <Button Content="Limitar área LEBL" Click="OnSetCoordsLebl" Margin="2,2,2,16" Grid.Row="1" HorizontalAlignment="Stretch"/>
 
-                <Button Content="Exportar" Click="Exportar_Click" Margin="2" Grid.Row="1" HorizontalAlignment="Stretch"/>
+                <Button Content="Exportar" Click="Exportar_Click" Margin="2" Grid.Row="2" HorizontalAlignment="Stretch"/>
 
-                <Button Content="Exportar (Formato P3)" Click="ExportarP3_Click" Margin="2" Grid.Row="2" HorizontalAlignment="Stretch"/>
-            </Grid>
+                <Button Content="Exportar (Formato P3)" Click="ExportarP3_Click" Margin="2" Grid.Row="3" HorizontalAlignment="Stretch"/>
+            </Grid> 
         </StackPanel>
     </ScrollViewer>
 </UserControl>
