@@ -11,29 +11,20 @@ namespace AsterixParser
 {
     internal class DataItemParser21
     {
-        private readonly AsterixMessage message;
 
         /*Jan decia de hacerlo asi:
         public static Action[] functions = {}
         */
         //Para poner el valor de "k" y poderlo modificar se necesita poner ref y por lo cual crear el delegate 
-        public delegate void DelegateFunctions(ref int k, byte[] body);
-        public DelegateFunctions[] functions;
-
-        public DataItemParser21(AsterixMessage message)
-        {
-            this.message = message;
-
-            functions = [
+        public delegate void DelegateFunctions(ref AsterixMessage message, ref int k, byte[] body);
+        public static readonly DelegateFunctions[] functions = [
             DataItem1, DataItem2, DataItem3, DataItem4, DataItem5, DataItem6, DataItem7, DataItem8, DataItem9, DataItem10,
             DataItem11, DataItem12, DataItem13, DataItem14, DataItem15, DataItem16, DataItem17, DataItem18, DataItem19,
             DataItem20, DataItem21, DataItem22, DataItem23, DataItem24, DataItem25, DataItem26, DataItem27, DataItem28, DataItem29,
             DataItem30, DataItem31, DataItem32, DataItem33, DataItem34, DataItem35, DataItem36, DataItem37, DataItem38, DataItem39,
             DataItem40, DataItem41, DataItem42, DataItem43, DataItem44, DataItem45, DataItem46, DataItem47, DataItem48];
 
-        }
-
-        public void DataItem1(ref int k, byte[] body) // I021/010 Data Source Identification
+        public static void DataItem1(ref AsterixMessage message, ref int k, byte[] body) // I021/010 Data Source Identification
         {
             byte SAC = body[k];
             byte SIC = body[k + 1];
@@ -43,7 +34,7 @@ namespace AsterixParser
 
             k += 2;
         }
-        public void DataItem2(ref int k, byte[] body)
+        public static void DataItem2(ref AsterixMessage message, ref int k, byte[] body)
         {
             TargetReportDescriptor021 targetReportDescriptor021 = new TargetReportDescriptor021();
             List<string> TargetReport = [];
@@ -166,27 +157,27 @@ namespace AsterixParser
             message.targetReportDescriptor021 = targetReportDescriptor021;
         }
 
-        public static void DataItem3(ref int k, byte[] body)
+        public static void DataItem3(ref AsterixMessage message, ref int k, byte[] body)
         {
             k += 2;
         }
 
-        public static void DataItem4(ref int k, byte[] body)
+        public static void DataItem4(ref AsterixMessage message, ref int k, byte[] body)
         {
             k++;
         }
 
-        public static void DataItem5(ref int k, byte[] body)
+        public static void DataItem5(ref AsterixMessage message, ref int k, byte[] body)
         {
             k += 3;
         }
 
-        public static void DataItem6(ref int k, byte[] body)
+        public static void DataItem6(ref AsterixMessage message, ref int k, byte[] body)
         {
             k += 6;
         }
 
-        public void DataItem7(ref int k, byte[] body) // I021/131 High-Resolution Position in WGS-84 Co-ordinates
+        public static void DataItem7(ref AsterixMessage message, ref int k, byte[] body) // I021/131 High-Resolution Position in WGS-84 Co-ordinates
         {
             int lat_i = (body[k] << 24) | (body[k + 1] << 16) | (body[k + 2] << 8) | body[k + 3]; // Composem el integer de latitud
             int lon_i = (body[k + 4] << 24) | (body[k + 5] << 16) | (body[k + 6] << 8) | body[k + 7]; // Composem el integer de longitud
@@ -202,22 +193,22 @@ namespace AsterixParser
             k += 8;
         }
 
-        public static void DataItem8(ref int k, byte[] body)
+        public static void DataItem8(ref AsterixMessage message, ref int k, byte[] body)
         {
             k += 3;
         }
 
-        public static void DataItem9(ref int k, byte[] body)
+        public static void DataItem9(ref AsterixMessage message, ref int k, byte[] body)
         {
             k += 2;
         }
 
-        public static void DataItem10(ref int k, byte[] body)
+        public static void DataItem10(ref AsterixMessage message, ref int k, byte[] body)
         {
             k += 2;
         }
 
-        public void DataItem11(ref int k, byte[] body) // I021/080 Target Address
+        public static void DataItem11(ref AsterixMessage message, ref int k, byte[] body) // I021/080 Target Address
         {
             //byte[] address = { body[k], body[k + 1], body[k + 2] };
             //string hexAddress = BitConverter.ToString(address).Replace("-", "");
@@ -227,7 +218,7 @@ namespace AsterixParser
             k += 3; // 3 octets
         }
 
-        public void DataItem12(ref int k, byte[] body)
+        public static void DataItem12(ref AsterixMessage message, ref int k, byte[] body)
         {
             int date = (body[k + 2] | body[k + 1] << 8 | (body[k] << 16));
             float seconds = date / 128f;
@@ -237,27 +228,27 @@ namespace AsterixParser
             k += 3;
         }
 
-        public static void DataItem13(ref int k, byte[] body)
+        public static void DataItem13(ref AsterixMessage message, ref int k, byte[] body)
         {
             k += 4;
         }
 
-        public static void DataItem14(ref int k, byte[] body)
+        public static void DataItem14(ref AsterixMessage message, ref int k, byte[] body)
         {
             k += 3;
         }
 
-        public static void DataItem15(ref int k, byte[] body)
+        public static void DataItem15(ref AsterixMessage message, ref int k, byte[] body)
         {
             k += 4;
         }
 
-        public static void DataItem16(ref int k, byte[] body)
+        public static void DataItem16(ref AsterixMessage message, ref int k, byte[] body)
         {
             k += 2;
         }
 
-        public static void DataItem17(ref int k, byte[] body)
+        public static void DataItem17(ref AsterixMessage message, ref int k, byte[] body)
         {
 
             if ((body[k] >> 0 & 1) == 1)
@@ -272,12 +263,12 @@ namespace AsterixParser
             k += 1;
         }
 
-        public static void DataItem18(ref int k, byte[] body)
+        public static void DataItem18(ref AsterixMessage message, ref int k, byte[] body)
         {
             k += 1;
         }
 
-        public void DataItem19(ref int k, byte[] body) // I021/070 Mode 3/A Code
+        public static void DataItem19(ref AsterixMessage message, ref int k, byte[] body) // I021/070 Mode 3/A Code
         {
 
             ushort raw = (ushort)(body[k + 1] | (body[k] << 8));
@@ -290,12 +281,12 @@ namespace AsterixParser
             k += 2;
         }
 
-        public static void DataItem20(ref int k, byte[] body)
+        public static void DataItem20(ref AsterixMessage message, ref int k, byte[] body)
         {
             k += 2;
         }
 
-        public void DataItem21(ref int k, byte[] body)
+        public static void DataItem21(ref AsterixMessage message, ref int k, byte[] body)
         {
 
             short FL_raw = (short)(body[k + 1] | (body[k] << 8));
@@ -304,37 +295,37 @@ namespace AsterixParser
             k += 2;
         }
 
-        public static void DataItem22(ref int k, byte[] body)
+        public static void DataItem22(ref AsterixMessage message, ref int k, byte[] body)
         {
             k += 2;
         }
 
-        public static void DataItem23(ref int k, byte[] body)
+        public static void DataItem23(ref AsterixMessage message, ref int k, byte[] body)
         {
             k += 1;
         }
 
-        public static void DataItem24(ref int k, byte[] body)
+        public static void DataItem24(ref AsterixMessage message, ref int k, byte[] body)
         {
             k += 2;
         }
 
-        public static void DataItem25(ref int k, byte[] body)
+        public static void DataItem25(ref AsterixMessage message, ref int k, byte[] body)
         {
             k += 2;
         }
 
-        public static void DataItem26(ref int k, byte[] body)
+        public static void DataItem26(ref AsterixMessage message, ref int k, byte[] body)
         {
             k += 4;
         }
 
-        public static void DataItem27(ref int k, byte[] body)
+        public static void DataItem27(ref AsterixMessage message, ref int k, byte[] body)
         {
             k += 2;
         }
 
-        public static void DataItem28(ref int k, byte[] body)
+        public static void DataItem28(ref AsterixMessage message, ref int k, byte[] body)
         {
             k += 3;
         }
@@ -350,7 +341,7 @@ namespace AsterixParser
             else
                 return ' ';
         }
-        public void DataItem29(ref int k, byte[] body)
+        public static void DataItem29(ref AsterixMessage message, ref int k, byte[] body)
         {
 
             byte[] id = { body[k], body[k + 1], body[k + 2], body[k + 3], body[k + 4], body[k + 5] };
@@ -373,12 +364,12 @@ namespace AsterixParser
             k += 6;
         }
 
-        public static void DataItem30(ref int k, byte[] body)
+        public static void DataItem30(ref AsterixMessage message, ref int k, byte[] body)
         {
             k += 1;
         }
 
-        public static void DataItem31(ref int k, byte[] body)
+        public static void DataItem31(ref AsterixMessage message, ref int k, byte[] body)
         {
 
             int dk = 0;
@@ -390,17 +381,17 @@ namespace AsterixParser
             k += dk;
         }
 
-        public static void DataItem32(ref int k, byte[] body)
+        public static void DataItem32(ref AsterixMessage message, ref int k, byte[] body)
         {
             k += 2;
         }
 
-        public static void DataItem33(ref int k, byte[] body)
+        public static void DataItem33(ref AsterixMessage message, ref int k, byte[] body)
         {
             k += 2;
         }
 
-        public static void DataItem34(ref int k, byte[] body)
+        public static void DataItem34(ref AsterixMessage message, ref int k, byte[] body)
         {
 
             int dk = 1;
@@ -417,46 +408,46 @@ namespace AsterixParser
             k += dk;
         }
 
-        public static void DataItem35(ref int k, byte[] body)
+        public static void DataItem35(ref AsterixMessage message, ref int k, byte[] body)
         {
             k += 1;
         }
 
-        public static void DataItem36(ref int k, byte[] body)
+        public static void DataItem36(ref AsterixMessage message, ref int k, byte[] body)
         {
             k += 1;
         }
 
-        public static void DataItem37(ref int k, byte[] body)
+        public static void DataItem37(ref AsterixMessage message, ref int k, byte[] body)
         {
 
             if ((body[k] >> 0 & 1) == 1) k += 1;
             k += 1;
         }
 
-        public static void DataItem38(ref int k, byte[] body)
+        public static void DataItem38(ref AsterixMessage message, ref int k, byte[] body)
         {
             k += 1;
         }
 
-        public static void DataItem39(ref int k, byte[] body)
+        public static void DataItem39(ref AsterixMessage message, ref int k, byte[] body)
         {
 
             byte REP = body[k];
             k += 1 + 8 * REP;
         }
 
-        public static void DataItem40(ref int k, byte[] body)
+        public static void DataItem40(ref AsterixMessage message, ref int k, byte[] body)
         {
             k += 7;
         }
 
-        public static void DataItem41(ref int k, byte[] body)
+        public static void DataItem41(ref AsterixMessage message, ref int k, byte[] body)
         {
             k += 1;
         }
 
-        public static void DataItem42(ref int k, byte[] body)
+        public static void DataItem42(ref AsterixMessage message, ref int k, byte[] body)
         {
             int dk = 0;
 
@@ -473,27 +464,27 @@ namespace AsterixParser
             k += dk;
         }
 
-        public static void DataItem43(ref int k, byte[] body)
+        public static void DataItem43(ref AsterixMessage message, ref int k, byte[] body)
         {
         }
 
-        public static void DataItem44(ref int k, byte[] body)
+        public static void DataItem44(ref AsterixMessage message, ref int k, byte[] body)
         {
         }
 
-        public static void DataItem45(ref int k, byte[] body)
+        public static void DataItem45(ref AsterixMessage message, ref int k, byte[] body)
         {
         }
 
-        public static void DataItem46(ref int k, byte[] body)
+        public static void DataItem46(ref AsterixMessage message, ref int k, byte[] body)
         {
         }
 
-        public static void DataItem47(ref int k, byte[] body)
+        public static void DataItem47(ref AsterixMessage message, ref int k, byte[] body)
         {
         }
 
-        public void DataItem48(ref int k, byte[] body)
+        public static void DataItem48(ref AsterixMessage message, ref int k, byte[] body)
         {
 
             int length = body[k];

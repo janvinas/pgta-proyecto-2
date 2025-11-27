@@ -12,20 +12,13 @@ namespace AsterixParser
 {
     internal class DataItemParser48
     {
-        private readonly AsterixMessage message;
 
         /*Jan decia de hacerlo asi:
         public Action[] functions = {}
         */
         //Para poner el valor de "k" y poderlo modificar se necesita poner ref y por lo cual crear el delegate 
-        public delegate void DelegateFunctions(ref int k, byte[] body);
-        public DelegateFunctions[] functions;
-        // las funciones deben definirse en el constructor porque son propiedades de la instancia (no estáticas)
-
-        public DataItemParser48(AsterixMessage message) {
-            this.message = message;
-
-            functions =
+        public delegate void DelegateFunctions(ref AsterixMessage message, ref int k, byte[] body);
+        public readonly static DelegateFunctions[] functions =
             [
                 DataItem1,
                 DataItem2,
@@ -49,9 +42,8 @@ namespace AsterixParser
                 DataItem20,
                 DataItem21
             ];
-        }
 
-        public void DataItem1(ref int k, byte[] body) // I048/010
+        public static void DataItem1(ref AsterixMessage message, ref int k, byte[] body) // I048/010
         {
             byte SAC = body[k];
             byte SIC = body[k + 1];
@@ -60,7 +52,7 @@ namespace AsterixParser
             k += 2;
         }
 
-        public void DataItem2(ref int k, byte[] body) //Comprobar si esta bien, ya que el primero que sale realmente en el de prueba no existe
+        public static void DataItem2(ref AsterixMessage message, ref int k, byte[] body) //Comprobar si esta bien, ya que el primero que sale realmente en el de prueba no existe
         {
             int date = (body[k + 2] | body[k + 1] << 8 | (body[k] << 16));
             float seconds = date/128f;
@@ -68,7 +60,7 @@ namespace AsterixParser
             k += 3;
         }
 
-        public void DataItem3(ref int k, byte[] body) // I048/020
+        public static void DataItem3(ref AsterixMessage message, ref int k, byte[] body) // I048/020
         {
             List<string> TargetReport = [];
 
@@ -218,7 +210,7 @@ namespace AsterixParser
 
         }
 
-        public void DataItem4(ref int k, byte[] body)
+        public static void DataItem4(ref AsterixMessage message, ref int k, byte[] body)
         {
             ushort rho_raw = (ushort)(body[k + 1] | (body[k] << 8));
             ushort theta_raw = (ushort)(body[k + 2] << 8 | body[k + 3]);
@@ -228,7 +220,7 @@ namespace AsterixParser
             k += 4;
         }
 
-        public void DataItem5(ref int k, byte[] body) // I048/070
+        public static void DataItem5(ref AsterixMessage message, ref int k, byte[] body) // I048/070
         {
             string Config = null;
             string V = null;
@@ -260,7 +252,7 @@ namespace AsterixParser
             k += 2;
         }
 
-        public void DataItem6(ref int k, byte[] body)
+        public static void DataItem6(ref AsterixMessage message, ref int k, byte[] body)
         {
             bool notValidated = ((body[k] >> 7) & 1) == 1;
             bool garbledCode = ((body[k] >> 6) & 1) == 1;
@@ -298,7 +290,7 @@ namespace AsterixParser
             return nSubfield;
         }
 
-        public void DataItem7(ref int k, byte[] body) // I048/130 Radar Plot Characteristics
+        public static void DataItem7(ref AsterixMessage message, ref int k, byte[] body) // I048/130 Radar Plot Characteristics
         {
             RadarPlotCharacteristics ch = new();
             int n;
@@ -367,14 +359,14 @@ namespace AsterixParser
             
         }
 
-        public void DataItem8(ref int k, byte[] body) // I048/220 Aircraft Address
+        public static void DataItem8(ref AsterixMessage message, ref int k, byte[] body) // I048/220 Aircraft Address
         {
             uint address = (uint)( body[k] << 16 | body[k+1] << 8 | body[k+2]);
             message.Address = address;
             k += 3; // 3 octets
         }
 
-        public char DecodificarChar6bit(int val)
+        public static char DecodificarChar6bit(int val)
         {
             if (val >= 1 && val <= 26)
                 return (char)('A' + val - 1);
@@ -386,7 +378,7 @@ namespace AsterixParser
                 return ' ';
         }
 
-        public void DataItem9(ref int k, byte[] body) // I048/240 Aircraft Identification
+        public static void DataItem9(ref AsterixMessage message, ref int k, byte[] body) // I048/240 Aircraft Identification
         {
             byte[] id = { body[k], body[k + 1], body[k + 2], body[k + 3], body[k + 4], body[k + 5] };
             ulong bits = 0; // Concatenar els 6 bytes en un nombre de 48 bits (ulong)
@@ -407,7 +399,7 @@ namespace AsterixParser
             k += 6; // 6 octets
         }
 
-        public void DataItem10(ref int k, byte[] body)
+        public static void DataItem10(ref AsterixMessage message, ref int k, byte[] body)
         {
             byte REP = body[k++];
             string BDSs = null;
@@ -615,7 +607,7 @@ namespace AsterixParser
             message.BDS = bds;
         }
 
-        public void DataItem11(ref int k, byte[] body) // I048/161 Track Number
+        public static void DataItem11(ref AsterixMessage message, ref int k, byte[] body) // I048/161 Track Number
         {
             ushort TrackNum = (ushort)(body[k + 1] | (body[k] << 8));
             TrackNum &= 0x0FFF;
@@ -623,12 +615,12 @@ namespace AsterixParser
             k += 2;
         }
 
-        public void DataItem12(ref int k, byte[] body)
+        public static void DataItem12(ref AsterixMessage message, ref int k, byte[] body)
         {
             k += 4;
         }
 
-        public void DataItem13(ref int k, byte[] body)
+        public static void DataItem13(ref AsterixMessage message, ref int k, byte[] body)
         {
             ushort GS_raw = (ushort)(body[k + 1] | (body[k] << 8));
             ushort Head_raw = (ushort)(body[k + 3] | (body[k + 2] << 8));
@@ -638,7 +630,7 @@ namespace AsterixParser
             k += 4;
         }
 
-        public void DataItem14(ref int k, byte[] body) // I048/170 Track Status
+        public static void DataItem14(ref AsterixMessage message, ref int k, byte[] body) // I048/170 Track Status
         {
             TrackStatus ts = new();
 
@@ -742,33 +734,33 @@ namespace AsterixParser
             message.TrackStatus = ts;
         }
 
-        public void DataItem15(ref int k, byte[] body)
+        public static void DataItem15(ref AsterixMessage message, ref int k, byte[] body)
         {
             k += 4;
         }
 
-        public void DataItem16(ref int k, byte[] body)
+        public static void DataItem16(ref AsterixMessage message, ref int k, byte[] body)
         {
             if (body[k] >> 1 == 1) k += 2;
             else k += 1;
         }
 
-        public void DataItem17(ref int k, byte[] body)
+        public static void DataItem17(ref AsterixMessage message, ref int k, byte[] body)
         {
             k += 2;
         }
 
-        public void DataItem18(ref int k, byte[] body)
+        public static void DataItem18(ref AsterixMessage message, ref int k, byte[] body)
         {
             k += 4;
         }
 
-        public void DataItem19(ref int k, byte[] body)
+        public static void DataItem19(ref AsterixMessage message, ref int k, byte[] body)
         {
             k += 2;
         }
 
-        public void DataItem20(ref int k, byte[] body)
+        public static void DataItem20(ref AsterixMessage message, ref int k, byte[] body)
         {
             int dk = 1; // Starts by 1 as it must jump the base octet
 
@@ -778,7 +770,7 @@ namespace AsterixParser
             k += dk;
         }
 
-        public void DataItem21(ref int k, byte[] body) // I048/230 Communications/ACAS Capability and Flight Status
+        public static void DataItem21(ref AsterixMessage message, ref int k, byte[] body) // I048/230 Communications/ACAS Capability and Flight Status
         {
             I048230 ch = new();
 

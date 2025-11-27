@@ -57,14 +57,13 @@ namespace AsterixParser
         public int DataItem(Queue<int> nFSPEC)
         {
             int error = 0;
-            var parser = new DataItemParser21(message);
 
             while (nFSPEC.Count > 0)
             {
                 int n = nFSPEC.Dequeue();
                 //Console.WriteLine(n);
                 //En un array de funciones le pasa el numero del DataField que quiere decodificar
-                parser.functions[n - 1](ref k, body);
+                DataItemParser21.functions[n - 1](ref message, ref k, body);
             }
 
             return error;
