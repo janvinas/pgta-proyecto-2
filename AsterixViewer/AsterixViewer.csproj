@@ -11,6 +11,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\antenna.png" />
     <None Remove="Resources\avion.png" />
     <None Remove="Resources\Welcome_image.jpg" />
   </ItemGroup>
@@ -27,6 +28,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Resources\antenna.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="Resources\avion.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
@@ -49,9 +53,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Resources\antenna.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Update="Resources\plane.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
