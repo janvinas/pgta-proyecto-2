@@ -34,22 +34,22 @@
             <ui:NavigationView.MenuItems>
 
                 <ui:NavigationViewItem
-                Content="Home"
+                Content="Inicio"
                 Icon="{ui:SymbolIcon Home24}"
                 TargetPageType="{x:Type tabs:StartTab}"/>
 
                 <ui:NavigationViewItem
-                Content="Open File"
+                Content="Cargar Archivo"
                 Icon="{ui:SymbolIcon FolderAdd24}"
                 Click="OpenFile_click"/>
 
                 <ui:NavigationViewItem
-                Content="Table"
+                Content="Tabla"
                 Icon="{ui:SymbolIcon DatabaseStack16}"
                 TargetPageType="{x:Type tabs:TableTab}"/>
 
                 <ui:NavigationViewItem
-                Content="Map"
+                Content="Mapa"
                 Icon="{ui:SymbolIcon Map24}"
                 TargetPageType="{x:Type tabs:MapTab}"/>
 
