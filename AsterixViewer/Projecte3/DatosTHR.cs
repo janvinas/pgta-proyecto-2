@@ -23,7 +23,7 @@ namespace AsterixViewer.Projecte3
         public bool pasaPorTHR;
         public string lat;
         public string lon;
-        public double distance2THR;
+        public string distance2THR;
     }
 
     internal class DatosTHR
@@ -224,8 +224,8 @@ namespace AsterixViewer.Projecte3
             int colAST_IAS = 21; 
             int colAST_IVVftpm = 24;
 
-            int colAST_posx = -2;
-            int colAST_posy = -1;
+            int colAST_posx = vuelosOrdenados[0].mensajesVuelo[0].Count - 2;
+            int colAST_posy = vuelosOrdenados[0].mensajesVuelo[0].Count - 1;
 
             CalcularPuntosTHR();
 
@@ -248,7 +248,8 @@ namespace AsterixViewer.Projecte3
             Point pointTHR_06R = new Point(THR_06R.U, THR_06R.V);
             Point pointTHR_24L = new Point(THR_24L.U, THR_24L.V);
 
-            double distance;
+            double distanceVal;
+            string distanceString;
             double distanceNext;
 
             foreach (Vuelo vuelo in vuelosOrdenados)
@@ -271,17 +272,17 @@ namespace AsterixViewer.Projecte3
                             for (int j = i; j < vuelo.mensajesVuelo.Count - 1; j++)
                             {
                                 pointMSGnext = new Point(Convert.ToDouble(vuelo.mensajesVuelo[j+1][colAST_posx]), Convert.ToDouble(vuelo.mensajesVuelo[j + 1][colAST_posy]));
-                                distance = CalcularDistanciaEntrePuntos(pointMSG,pointTHR_06R);
+                                distanceVal = CalcularDistanciaEntrePuntos(pointMSG,pointTHR_06R);
                                 distanceNext = CalcularDistanciaEntrePuntos(pointMSGnext, pointTHR_06R);
 
-                                if (distanceNext > distance)
+                                if (distanceNext > distanceVal)
                                 {
                                     thr_AltitudVelocidad.time = vuelo.mensajesVuelo[j][colAST_time];
                                     thr_AltitudVelocidad.IAS = vuelo.mensajesVuelo[j][colAST_IAS];
                                     thr_AltitudVelocidad.altitud = vuelo.mensajesVuelo[j][colAST_altitudeft];
                                     thr_AltitudVelocidad.lat = vuelo.mensajesVuelo[j][colAST_lat];
                                     thr_AltitudVelocidad.lon = vuelo.mensajesVuelo[j][colAST_lon];
-                                    thr_AltitudVelocidad.distance2THR = distance;
+                                    thr_AltitudVelocidad.distance2THR = distanceVal.ToString();
                                     break;
                                 }
                             }
@@ -304,17 +305,17 @@ namespace AsterixViewer.Projecte3
                             for (int j = i; j < vuelo.mensajesVuelo.Count - 1; j++)
                             {
                                 pointMSGnext = new Point(Convert.ToDouble(vuelo.mensajesVuelo[j + 1][colAST_posx]), Convert.ToDouble(vuelo.mensajesVuelo[j + 1][colAST_posy]));
-                                distance = CalcularDistanciaEntrePuntos(pointMSG, pointTHR_24L);
+                                distanceVal = CalcularDistanciaEntrePuntos(pointMSG, pointTHR_24L);
                                 distanceNext = CalcularDistanciaEntrePuntos(pointMSGnext, pointTHR_24L);
 
-                                if (distanceNext > distance)
+                                if (distanceNext > distanceVal)
                                 {
                                     thr_AltitudVelocidad.time = vuelo.mensajesVuelo[j][colAST_time];
                                     thr_AltitudVelocidad.IAS = vuelo.mensajesVuelo[j][colAST_IAS];
                                     thr_AltitudVelocidad.altitud = vuelo.mensajesVuelo[j][colAST_altitudeft];
                                     thr_AltitudVelocidad.lat = vuelo.mensajesVuelo[j][colAST_lat];
                                     thr_AltitudVelocidad.lon = vuelo.mensajesVuelo[j][colAST_lon];
-                                    thr_AltitudVelocidad.distance2THR = distance;
+                                    thr_AltitudVelocidad.distance2THR = distanceVal.ToString();
                                     break;
                                 }
                             }
