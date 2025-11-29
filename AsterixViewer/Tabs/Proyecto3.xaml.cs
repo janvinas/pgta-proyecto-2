@@ -177,21 +177,18 @@ namespace AsterixViewer.Tabs
             try
             {
                 LecturaArchivos lect = new LecturaArchivos();
-                datosAsterix = lect.LeerCsvASTERIX();
+                var resultado = lect.LeerCsvASTERIX();
 
-                DatosAsterixCargados = true; // Esto actualizará EstadoAsterix automáticamente
+                if (resultado == null)
+                    return;  // ← USUARIO CANCELÓ
 
-                OnPropertyChanged(nameof(Paso2Permitido));
-                OnPropertyChanged(nameof(InfoPaso2Visibility));
+                datosAsterix = resultado;
+                DatosAsterixCargados = true;
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
-                    $"Error al leer el archivo:\n{ex.Message}",
-                    "Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error
-                );
+                MessageBox.Show($"Error al leer el archivo:\n{ex.Message}",
+                    "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -202,46 +199,42 @@ namespace AsterixViewer.Tabs
             try
             {
                 LecturaArchivos lect = new LecturaArchivos();
-                listaPV = lect.LeerExcelPV();
+                var resultado = lect.LeerExcelPV();
 
+                if (resultado == null)
+                    return;  // ← CANCELADO
+
+                listaPV = resultado;
                 DatosPVCargados = true;
-
-                OnPropertyChanged(nameof(Paso2Permitido));
-                OnPropertyChanged(nameof(InfoPaso2Visibility));
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                MessageBox.Show(
-                    $"Error al leer el archivo:\n{ex.Message}",
-                    "Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error
-                );
+                MessageBox.Show($"Error al leer el archivo:\n{ex.Message}",
+                    "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+
 
         private void ClasificacionAeronaves_Click(object sender, RoutedEventArgs e)
         {
             try
             {
                 LecturaArchivos lect = new LecturaArchivos();
-                clasificacionAeronavesLoA = lect.LeerClasificacionAeronaves();
+                var resultado = lect.LeerClasificacionAeronaves();
 
+                if (resultado == null)
+                    return;  // ← CANCELADO
+
+                clasificacionAeronavesLoA = resultado;
                 ClasificacionCargada = true;
-
-                OnPropertyChanged(nameof(Paso2Permitido));
-                OnPropertyChanged(nameof(InfoPaso2Visibility));
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                MessageBox.Show(
-                    $"Error al leer el archivo:\n{ex.Message}",
-                    "Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error
-                );
+                MessageBox.Show($"Error al leer el archivo:\n{ex.Message}",
+                    "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+
 
         private void CalculosPreliminares_Click(object sender, RoutedEventArgs e)
         {
@@ -259,7 +252,7 @@ namespace AsterixViewer.Tabs
 
                     ClasificarDistintosVuelos();
                     // OrdenarVuelos();
-                    
+
                     CalcularTiempo05NMfromTHR();
 
                     calculosPreliminaresHechos = true;
@@ -272,13 +265,34 @@ namespace AsterixViewer.Tabs
                 catch
                 {
                     MessageBox.Show(
-                        $"Se deben leer todos los archivos apropiados!!",
+                        $"Lectura de archivos previos incorrecta, vuelva a realizarla",
                         "Error",
                         MessageBoxButton.OK,
                         MessageBoxImage.Error
                     );
+
+                    ResetearEstadosLectura();
                 }
             }
+        }
+
+        private void ResetearEstadosLectura()
+        {
+            DatosAsterixCargados = false;
+            DatosPVCargados = false;
+            ClasificacionCargada = false;
+
+            calculosPreliminaresHechos = false;
+            PreliminaresHechos = false;
+
+            datosAsterix.Clear();
+            listaPV.Clear();
+            vuelosOrdenados.Clear();
+
+            OnPropertyChanged(nameof(Paso2Permitido));
+            OnPropertyChanged(nameof(Paso3Permitido));
+            OnPropertyChanged(nameof(InfoPaso2Visibility));
+            OnPropertyChanged(nameof(InfoPaso3Visibility));
         }
 
         // Todas las llamadas necesarias para calcular las separciones entre despegues consecutivos

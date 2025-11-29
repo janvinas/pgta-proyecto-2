@@ -14,16 +14,15 @@ namespace AsterixViewer.Projecte3
 
         public List<List<string>> LeerCsvASTERIX()
         {
-            var resultado = new List<List<string>>();
-
             var dialog = new OpenFileDialog
             {
                 Filter = "Archivos CSV (*.csv)|*.csv|Todos los archivos (*.*)|*.*"
             };
 
             if (dialog.ShowDialog() != true)
-                return resultado;
+                return null;   // ← CLAVE
 
+            var resultado = new List<List<string>>();
             string path = dialog.FileName;
 
             foreach (string linea in File.ReadLines(path))
@@ -31,41 +30,32 @@ namespace AsterixViewer.Projecte3
                 if (string.IsNullOrWhiteSpace(linea))
                     continue;
 
-                string[] valores = linea.Split(';'); // Cambiar símbolo de separación si hace falta
+                string[] valores = linea.Split(';');
                 resultado.Add(new List<string>(valores));
             }
-
-            // MessageBox.Show("Datos Asterix leidos correctamente");
 
             return resultado;
         }
 
         public List<List<string>> LeerExcelPV()
         {
-            var datos = new List<List<string>>();
-
-            var dialog = new Microsoft.Win32.OpenFileDialog
+            var dialog = new OpenFileDialog
             {
                 Filter = "Archivos Excel (*.xlsx;*.xls)|*.xlsx;*.xls|Todos los archivos (*.*)|*.*"
             };
 
             if (dialog.ShowDialog() != true)
-                return datos;
+                return null;   // ← CLAVE
 
             string rutaExcel = dialog.FileName;
-
-            // ExcelDataReader necesita este registro para archivos .xlsx
             System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
 
-            datos = new List<List<string>>();
+            var datos = new List<List<string>>();
 
             using (var stream = File.Open(rutaExcel, FileMode.Open, FileAccess.Read))
             using (var reader = ExcelReaderFactory.CreateReader(stream))
             {
-                // Leer el contenido como DataSet
                 var dataSet = reader.AsDataSet();
-
-                // Tomamos la primera hoja
                 var tabla = dataSet.Tables[0];
 
                 for (int i = 0; i < tabla.Rows.Count; i++)
@@ -73,59 +63,43 @@ namespace AsterixViewer.Projecte3
                     var fila = new List<string>();
 
                     for (int j = 0; j < tabla.Columns.Count; j++)
-                    {
-                        var valor = tabla.Rows[i][j]?.ToString() ?? string.Empty;
-                        fila.Add(valor);
-                    }
+                        fila.Add(tabla.Rows[i][j]?.ToString() ?? string.Empty);
 
                     datos.Add(fila);
                 }
             }
-
-            // MessageBox.Show("Planes de vuelo leidos correctamente");
 
             return datos;
         }
 
         public ClasificacionAeronavesLoA LeerClasificacionAeronaves()
         {
-            ClasificacionAeronavesLoA clasificacionAeronavesLoA = new ClasificacionAeronavesLoA();
-
-            var dialog = new Microsoft.Win32.OpenFileDialog
+            var dialog = new OpenFileDialog
             {
                 Filter = "Archivos Excel (*.xlsx;*.xls)|*.xlsx;*.xls|Todos los archivos (*.*)|*.*"
             };
 
             if (dialog.ShowDialog() != true)
-                return clasificacionAeronavesLoA;
+                return null;   // ← CLAVE
 
-            string rutaExcel = dialog.FileName;
-
-            // ExcelDataReader necesita este registro para archivos .xlsx
+            var clasificacionAeronavesLoA = new ClasificacionAeronavesLoA();
             System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
 
-            var datos = new List<List<string>>();
-
-            using (var stream = File.Open(rutaExcel, FileMode.Open, FileAccess.Read))
+            using (var stream = File.Open(dialog.FileName, FileMode.Open, FileAccess.Read))
             using (var reader = ExcelReaderFactory.CreateReader(stream))
             {
-                // Leer el contenido como DataSet
                 var dataSet = reader.AsDataSet();
-
-                // Tomamos la primera hoja
                 var tabla = dataSet.Tables[0];
 
                 for (int i = 0; i < tabla.Rows.Count; i++)
                 {
                     var fila = tabla.Rows[i];
 
-                    // Si todas las columnas de interés están vacías, paramos
                     if (fila[0] == DBNull.Value && fila[1] == DBNull.Value &&
                         fila[2] == DBNull.Value && fila[3] == DBNull.Value &&
                         fila[4] == DBNull.Value)
                         break;
 
-                    // Añadimos solo si hay datos, evitando string vacío
                     string valor;
 
                     valor = fila[0]?.ToString();
@@ -145,10 +119,7 @@ namespace AsterixViewer.Projecte3
                 }
             }
 
-            // MessageBox.Show("Clasificacion aeronaves leido correctamente");
-
             return clasificacionAeronavesLoA;
         }
-
     }
 }
