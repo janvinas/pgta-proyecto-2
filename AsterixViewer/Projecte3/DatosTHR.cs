@@ -1,4 +1,5 @@
 ﻿using AsterixParser.Utils;
+using Esri.ArcGISRuntime.Mapping;
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
@@ -8,7 +9,7 @@ using System.Text;
 using System.Windows;
 using System.Windows.Interop;
 using Windows.UI.WebUI;
-using static AsterixViewer.Projecte3.DatosVirajes;
+using static AsterixViewer.Projecte3.CalculosEstereograficos;
 using static AsterixViewer.Tabs.Proyecto3;
 
 namespace AsterixViewer.Projecte3
@@ -112,18 +113,119 @@ namespace AsterixViewer.Projecte3
             return distancia;
         }
 
-        // PROBAR SI EL PUNTO QUE SE COGE ES EL MEJOR (MAS CERCANO AL THR)
-        public List<THRAltitudVelocidad> CalcularAltitudVelocidadTHR(List<List<string>> datosAsterix, List<Vuelo> vuelosOrdenados, 
-            List<THRAltitudVelocidad> listaTHRAltitudVelocidad)
+        private void Interpolar1segundo(List<Vuelo> vuelosOrdenados)
         {
+            // Definimos columnas para mayor flexibilidad
             int colAST_time = 3;
             int colAST_lat = 4;
             int colAST_lon = 5;
-            int colAST_altitudeft = 7;
+            int colAST_altitudft = 7;
+            int colAST_altitudm = 6;
             int colAST_IAS = 21;
+            int colAST_IVVftpm = 24;
+            int colAST_posx = -2; // penúltima posición
+            int colAST_posy = -1; // última posición
 
-            int colAST_posx = datosAsterix[0].Count - 2;
-            int colAST_posy = datosAsterix[0].Count - 1;
+            foreach (Vuelo vuelo in vuelosOrdenados)
+            {
+                var mensajesVueloInterpolados = new List<List<string>>();
+
+                for (int i = 0; i < vuelo.mensajesVuelo.Count - 1; i++)
+                {
+                    // Valores iniciales y finales
+                    double lat0 = double.Parse(vuelo.mensajesVuelo[i][colAST_lat]);
+                    double lat4 = double.Parse(vuelo.mensajesVuelo[i + 1][colAST_lat]);
+
+                    double lon0 = double.Parse(vuelo.mensajesVuelo[i][colAST_lon]);
+                    double lon4 = double.Parse(vuelo.mensajesVuelo[i + 1][colAST_lon]);
+
+                    double alt0 = double.Parse(vuelo.mensajesVuelo[i][colAST_altitudft]);
+                    double alt1, alt2, alt3;
+
+                    // Usamos IVV si está disponible
+                    if (vuelo.mensajesVuelo[i][colAST_IVVftpm] != "N/A")
+                    {
+                        double ivv = double.Parse(vuelo.mensajesVuelo[i][colAST_IVVftpm]);
+                        alt1 = alt0 + ivv / 60.0;
+                        alt2 = alt0 + ivv * 2.0 / 60.0;
+                        alt3 = alt0 + ivv * 3.0 / 60.0;
+                    }
+                    else
+                    {
+                        double alt4 = double.Parse(vuelo.mensajesVuelo[i + 1][colAST_altitudft]);
+                        alt1 = alt0 + (alt4 - alt0) * 0.25;
+                        alt2 = alt0 + (alt4 - alt0) * 0.5;
+                        alt3 = alt0 + (alt4 - alt0) * 0.75;
+                    }
+
+                    double ias0 = vuelo.mensajesVuelo[i][colAST_IAS] != "N/A" ? double.Parse(vuelo.mensajesVuelo[i][colAST_IAS]) : double.NaN;
+                    double ias4 = vuelo.mensajesVuelo[i + 1][colAST_IAS] != "N/A" ? double.Parse(vuelo.mensajesVuelo[i + 1][colAST_IAS]) : double.NaN;
+
+                    double posx0 = double.Parse(vuelo.mensajesVuelo[i][vuelo.mensajesVuelo[i].Count + colAST_posx]);
+                    double posx4 = double.Parse(vuelo.mensajesVuelo[i + 1][vuelo.mensajesVuelo[i + 1].Count + colAST_posx]);
+
+                    double posy0 = double.Parse(vuelo.mensajesVuelo[i][vuelo.mensajesVuelo[i].Count + colAST_posy]);
+                    double posy4 = double.Parse(vuelo.mensajesVuelo[i + 1][vuelo.mensajesVuelo[i + 1].Count + colAST_posy]);
+
+                    // Tiempo inicial en ms
+                    int t0 = int.Parse(vuelo.mensajesVuelo[i][colAST_time].Split(':')[0]) * 3600000 +
+                             int.Parse(vuelo.mensajesVuelo[i][colAST_time].Split(':')[1]) * 60000 +
+                             int.Parse(vuelo.mensajesVuelo[i][colAST_time].Split(':')[2]) * 1000 +
+                             int.Parse(vuelo.mensajesVuelo[i][colAST_time].Split(':')[3]);
+
+                    // Creamos los 4 mensajes (t0 + 3 interpolados)
+                    double[] altitudesFt = new double[] { alt0, alt1, alt2, alt3 };
+                    for (int j = 0; j <= 3; j++)
+                    {
+                        double factor = j * 0.25;
+                        double lat = lat0 + (lat4 - lat0) * factor;
+                        double lon = lon0 + (lon4 - lon0) * factor;
+                        double altFt = altitudesFt[j];
+                        double altM = altFt / 3.28084;
+                        double ias = double.IsNaN(ias0) || double.IsNaN(ias4) ? double.NaN : ias0 + (ias4 - ias0) * factor;
+
+                        double posx = posx0 + (posx4 - posx0) * factor;
+                        double posy = posy0 + (posy4 - posy0) * factor;
+
+                        // Tiempo
+                        int t = t0 + j * 1000;
+                        string timeStr = $"{t / 3600000:00}:{(t / 60000) % 60:00}:{(t / 1000) % 60:00}:{t % 1000:000}";
+
+                        var msgTemp = new List<string>
+                        {
+                            timeStr,                   // Time
+                            lat.ToString(),            // LAT
+                            lon.ToString(),            // LON
+                            altFt.ToString(),          // Altitud ft
+                            altM.ToString(),           // Altitud m
+                            double.IsNaN(ias) ? "N/A" : ias.ToString(), // IAS
+                            posx.ToString(),           // posX interpolado
+                            posy.ToString()            // posY interpolado
+                        };
+
+                        mensajesVueloInterpolados.Add(msgTemp);
+                    }
+                }
+
+                vuelo.mensajesVueloInterpolados = mensajesVueloInterpolados;
+            }
+        }
+
+        public List<THRAltitudVelocidad> CalcularAltitudVelocidadTHR(List<List<string>> datosAsterix, List<Vuelo> vuelosOrdenados, 
+            List<THRAltitudVelocidad> listaTHRAltitudVelocidad)
+        {
+            // Interpolar1segundo(vuelosOrdenados);
+
+            int colAST_time = 3; 
+            int colAST_lat = 4; 
+            int colAST_lon = 5; 
+            int colAST_altitudeft = 7;
+            int colAST_altitudm = 6; 
+            int colAST_IAS = 21; 
+            int colAST_IVVftpm = 24;
+
+            int colAST_posx = -2;
+            int colAST_posy = -1;
 
             CalcularPuntosTHR();
 

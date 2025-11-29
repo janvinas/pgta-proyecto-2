@@ -34,6 +34,7 @@ using static AsterixViewer.Projecte3.DistanciasSonometro;
 using static AsterixViewer.Projecte3.LecturaArchivos;
 using static AsterixViewer.Projecte3.PerdidasSeparacion;
 using static AsterixViewer.Projecte3.VelocidadesDespegue;
+using static AsterixViewer.Projecte3.CalculosEstereograficos;
 using static AsterixViewer.Tabs.Proyecto3;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
@@ -67,16 +68,17 @@ namespace AsterixViewer.Tabs
         // Clase Vuelo, cada despegue es una instancia, contiene el codigo del avion y la lista de mensajes Asterix que le corresponden
         public class Vuelo
         {
-            public string codigoVuelo { get; set; }
-            public string horaPV { get; set; }
-            public string estela { get; set; }
-            public string pistadesp {  get; set; }
-            public string tipo_aeronave { get; set; }
-            public string sid { get; set; }
-            public string motorizacion { get; set; }
-            public string ATOT { get; set; }
-            public string timeDEP_05NM { get; set; }
-            public List<List<string>> mensajesVuelo { get; set; } = new List<List<string>>();
+            public string codigoVuelo;
+            public string horaPV;
+            public string estela;
+            public string pistadesp;
+            public string tipo_aeronave;
+            public string sid;
+            public string motorizacion;
+            public string ATOT;
+            public string timeDEP_05NM;
+            public List<List<string>> mensajesVuelo = new List<List<string>>();
+            public List<List<string>> mensajesVueloInterpolados = new List<List<string>>();
         }
 
         // Lista de todos los vuelos ya ordenados y filtrados
@@ -172,39 +174,73 @@ namespace AsterixViewer.Tabs
         {
             datosAsterix.Clear();
 
-            LecturaArchivos lect = new LecturaArchivos();
-            datosAsterix = lect.LeerCsvASTERIX();
+            try
+            {
+                LecturaArchivos lect = new LecturaArchivos();
+                datosAsterix = lect.LeerCsvASTERIX();
 
-            DatosAsterixCargados = true; // Esto actualizará EstadoAsterix automáticamente
+                DatosAsterixCargados = true; // Esto actualizará EstadoAsterix automáticamente
 
-            OnPropertyChanged(nameof(Paso2Permitido));
-            OnPropertyChanged(nameof(InfoPaso2Visibility));
+                OnPropertyChanged(nameof(Paso2Permitido));
+                OnPropertyChanged(nameof(InfoPaso2Visibility));
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Error al leer el archivo:\n{ex.Message}",
+                    "Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
+            }
         }
 
         public void Planvuelo_click(object sender, RoutedEventArgs e)
         {
             listaPV.Clear();
 
-            LecturaArchivos lect = new LecturaArchivos();
-            listaPV = lect.LeerExcelPV();
+            try
+            {
+                LecturaArchivos lect = new LecturaArchivos();
+                listaPV = lect.LeerExcelPV();
 
-            DatosPVCargados = true;
+                DatosPVCargados = true;
 
-            OnPropertyChanged(nameof(EstadoPV));
-            OnPropertyChanged(nameof(Paso2Permitido));
-            OnPropertyChanged(nameof(InfoPaso2Visibility));
+                OnPropertyChanged(nameof(Paso2Permitido));
+                OnPropertyChanged(nameof(InfoPaso2Visibility));
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show(
+                    $"Error al leer el archivo:\n{ex.Message}",
+                    "Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
+            }
         }
 
         private void ClasificacionAeronaves_Click(object sender, RoutedEventArgs e)
         {
-            LecturaArchivos lect = new LecturaArchivos();
-            clasificacionAeronavesLoA = lect.LeerClasificacionAeronaves();
+            try
+            {
+                LecturaArchivos lect = new LecturaArchivos();
+                clasificacionAeronavesLoA = lect.LeerClasificacionAeronaves();
 
-            ClasificacionCargada = true;
+                ClasificacionCargada = true;
 
-            OnPropertyChanged(nameof(EstadoClasificacion));
-            OnPropertyChanged(nameof(Paso2Permitido));
-            OnPropertyChanged(nameof(InfoPaso2Visibility));
+                OnPropertyChanged(nameof(Paso2Permitido));
+                OnPropertyChanged(nameof(InfoPaso2Visibility));
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show(
+                    $"Error al leer el archivo:\n{ex.Message}",
+                    "Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
+            }
         }
 
         private void CalculosPreliminares_Click(object sender, RoutedEventArgs e)
@@ -217,7 +253,9 @@ namespace AsterixViewer.Tabs
                     FiltroDeparturesLEBL();
 
                     DefinirPosicionesEstereograficasPuntosfijos();
-                    CalcularPosicionesEstereograficas();
+
+                    CalculosEstereograficos calc = new CalculosEstereograficos();
+                    datosAsterix = calc.CalcularPosicionesEstereograficasMatriz(datosAsterix);
 
                     ClasificarDistintosVuelos();
                     // OrdenarVuelos();
@@ -568,48 +606,6 @@ namespace AsterixViewer.Tabs
             coords_geocentric = tma.change_geodesic2geocentric(coords_geodesic);
             coords_system_cartesian = tma.change_geocentric2system_cartesian(coords_geocentric);
             DVOR_BCN = tma.change_system_cartesian2stereographic(coords_system_cartesian);
-        }
-
-        private void CalcularPosicionesEstereograficas()
-        {
-            GeoUtils geo = new GeoUtils();
-            CoordinatesWGS84 centro_tma = GeoUtils.LatLonStringBoth2Radians("41:06:56.5600N 01:41:33.0100E", 6368942.808);
-            GeoUtils tma = new GeoUtils(Math.Sqrt(geo.E2), geo.A, centro_tma);
-            double rt = 6356752.3142;
-
-            for (int i = 0; i < datosAsterix.Count; i++)
-            {
-                CoordinatesUVH coords_stereographic = ObtenerCoordsEstereograficas(datosAsterix[i]);
-                datosAsterix[i].Add(coords_stereographic.U.ToString());
-                datosAsterix[i].Add(coords_stereographic.V.ToString());
-            }
-        }
-
-        /// <summary>
-        /// Función que devuelve las coordenadas Estereográficas de un mensaje Asterix CAT48 que contenga - LAT, LON y ALT -
-        /// </summary>
-        /// <param name="msg"> Mensaje Asterix del cual extrae las coordenadas Estereográficas </param>
-        /// <returns></returns>
-        private CoordinatesUVH ObtenerCoordsEstereograficas(List<string> msg)
-        {
-            // Adaptar valores segun fichero que estamos leyendo
-            int LATcol = 4;     // Posición de columna en que se encuentra la variable LAT[º]
-            int LONcol = 5;     // Posición de columna en que se encuentra la variable LON[º]
-            int ALTcol = 6;     // Posición de columna en que se encuentra la variable Alt[m]
-
-            // Se definen las variables
-            GeoUtils geo = new GeoUtils();
-            CoordinatesWGS84 centro_tma = GeoUtils.LatLonStringBoth2Radians("41:06:56.5600N 01:41:33.0100E", 6368942.808);
-            GeoUtils tma = new GeoUtils(Math.Sqrt(geo.E2), geo.A, centro_tma);
-            double rt = 6356752.3142;
-
-            CoordinatesWGS84 coords_geodesic = new CoordinatesWGS84(msg[LATcol], msg[LONcol], Convert.ToDouble(msg[ALTcol]) + rt);
-            CoordinatesXYZ coords_geocentric = tma.change_geodesic2geocentric(coords_geodesic);
-            CoordinatesXYZ coords_system_cartesian = tma.change_geocentric2system_cartesian(coords_geocentric);
-
-            CoordinatesUVH coordsUVH = tma.change_system_cartesian2stereographic(coords_system_cartesian);
-
-            return coordsUVH;
         }
 
         // HAY QUE REDEFINIR ESTA FUNCION ENTERA
