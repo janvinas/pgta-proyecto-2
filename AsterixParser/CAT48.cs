@@ -11,30 +11,24 @@ namespace AsterixParser
 {
     internal class CAT48(byte[] body, AsterixMessage message)
     {
+        // The list is defined statically because it's much faster to clear it than to generate a new one.
+        // This has the downside that the reader cannot run concurrently.
+        private static List<int> nFSPEC = new List<int>(20);
+
         public int CAT48Reader(int i, ushort length) 
         {
-            int error = 0;
-
-            Queue<int> vFSPEC = FSPECReader();
-
-            int errorDI = DataItem(vFSPEC);
-
-
-            return error;
+            nFSPEC.Clear();
+            FSPECReader();
+            return DataItem();
         }
 
         int k = 0; //Byte en el que estas del body (como un punto de libro)
 
-        public Queue<int> FSPECReader()
+        public void FSPECReader()
         {
             int error = 0;
 
             bool fx = true;
-
-            //vFSPEC es la vector de bits de FSPEC de mida variable (seguro que hay mejor manera)
-            Queue<int> vFSPEC = new Queue<int>();
-            //nFSPEC es la vector de numeros de FSPEC aparecen de FSPEC(seguro que hay mejor manera)
-            Queue<int> nFSPEC = new Queue<int>();
 
             int FRN = 1;
 
@@ -43,8 +37,7 @@ namespace AsterixParser
                 for (int i = 7; i > 0; i--)
                 {
                     int v = (b >> i) & 1;
-                    if(v == 1) nFSPEC.Enqueue(FRN);
-                    vFSPEC.Enqueue(v);
+                    if(v == 1) nFSPEC.Add(FRN);
                     FRN++;
                 }
 
@@ -52,19 +45,14 @@ namespace AsterixParser
                 if (bit == 0) fx = false;
                 k++;
             }
-            
-            return nFSPEC;
         }
 
-        public int DataItem(Queue<int> nFSPEC)
+        public int DataItem()
         {
             int error = 0;
             
-            while (nFSPEC.Count > 0)
+            foreach (int n in nFSPEC)
             { 
-                int n = nFSPEC.Dequeue();
-                //Console.WriteLine(n);
-                //En un array de funciones le pasa el numero del DataField que quiere decodificar
                 DataItemParser48.functions[n-1](ref message, ref k, body); 
             }
 

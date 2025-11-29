@@ -91,8 +91,7 @@ namespace AsterixParser
                     byte[] body = new byte[length - 3];
                     Array.Copy(file, i + 3, body, 0, length - 3);
 
-                    AsterixMessage message = null;
-                    int error = 0;
+                    AsterixMessage? message = null;
                     switch (cat)
                     {
                         case 21:
@@ -102,7 +101,7 @@ namespace AsterixParser
                                     Cat = CAT.CAT021
                                 };
                                 var CAT021 = new CAT21(body,message);
-                                error = CAT021.CAT21Reader(i, length);
+                                CAT021.CAT21Reader(i, length);
                                 break;
                             }
                         case 48:
@@ -112,11 +111,11 @@ namespace AsterixParser
                                     Cat = CAT.CAT048
                                 };
                                 var CAT048 = new CAT48(body, message);
-                                error = CAT048.CAT48Reader(i, length);
+                                CAT048.CAT48Reader(i, length);
                                 break;
                             }
                     }
-                    if (error == 0 && message != null) messages.Add(message);
+                    if (message != null) messages.Add(message);
                     if (message?.Address is uint address && message?.Latitude != null && message?.Longitude != null)
                     {
                         if(message.BDS != null && message.BDS.BARO != null && message.FlightLevel?.flightLevel * 100 <= 6000)

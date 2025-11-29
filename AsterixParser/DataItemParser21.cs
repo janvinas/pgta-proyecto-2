@@ -36,8 +36,8 @@ namespace AsterixParser
         }
         public static void DataItem2(ref AsterixMessage message, ref int k, byte[] body)
         {
-            TargetReportDescriptor021 targetReportDescriptor021 = new TargetReportDescriptor021();
-            List<string> TargetReport = [];
+            TargetReportDescriptor021 targetReportDescriptor021 = new();
+            List<string> TargetReport = new(15);
 
             // --- Primary subfield ---
             byte primary = body[k];
