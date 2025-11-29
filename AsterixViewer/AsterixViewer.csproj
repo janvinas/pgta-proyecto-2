@@ -8,12 +8,17 @@
     <UseWPF>true</UseWPF>
     <StartupObject>AsterixViewer.App</StartupObject>
 	<RuntimeIdentifier>win-x64</RuntimeIdentifier>
+	<ApplicationIcon>asterixparser.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
     <None Remove="Resources\antenna.png" />
     <None Remove="Resources\avion.png" />
     <None Remove="Resources\Welcome_image.jpg" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="asterixparser.ico" />
   </ItemGroup>
 
   <ItemGroup>
