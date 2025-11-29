@@ -23,8 +23,8 @@
         <DataGrid x:Name="DataGrid" Grid.Column="0" IsReadOnly="True" AutoGenerateColumns="False" CanUserAddRows="False">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="CAT" Binding="{Binding Cat, StringFormat={}{0}, TargetNullValue='Unknown'}"/>
-                <DataGridTextColumn Header="SIC" Binding="{Binding SIC}"/>
                 <DataGridTextColumn Header="SAC" Binding="{Binding SAC}"/>
+                <DataGridTextColumn Header="SIC" Binding="{Binding SIC}"/>
                 <DataGridTextColumn Header="Time" Binding="{Binding TimeOfDay, Converter={StaticResource TimeConverter}}"/>
                 <DataGridTemplateColumn Header="TRD">
                     <DataGridTemplateColumn.CellTemplate>

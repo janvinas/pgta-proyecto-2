@@ -55,7 +55,7 @@ namespace AsterixViewer
                 var result = await Parser.ParseFileAsync(data, progress);
                 ((App)Application.Current).DataStore.Messages = result.messages;
                 ((App)Application.Current).DataStore.Flights = result.flights;
-                NavigationView.Navigate(typeof(MapTab));
+                NavigationView.Navigate(typeof(TableTab));
 
                 //FinishedLoadingFile?.Invoke(this, EventArgs.Empty);
             }

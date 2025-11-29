@@ -2,13 +2,15 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <StartupObject>AsterixViewer.App</StartupObject>
 	<RuntimeIdentifier>win-x64</RuntimeIdentifier>
 	<ApplicationIcon>asterixparser.ico</ApplicationIcon>
+	<AssemblyName>ASTERIXParser</AssemblyName>
+	<TargetName>ASTERIXParser</TargetName>
   </PropertyGroup>
 
   <ItemGroup>
@@ -25,11 +27,12 @@
     <PackageReference Include="Esri.ArcGISRuntime.WPF" Version="200.8.0" />
     <PackageReference Include="ExcelDataReader" Version="3.8.0" />
     <PackageReference Include="ExcelDataReader.DataSet" Version="3.8.0" />
+    <PackageReference Include="System.Drawing.Common" Version="10.0.0" />
     <PackageReference Include="WPF-UI" Version="4.0.3" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AsterixParser\AsterixParser.csproj" />
+    <ProjectReference Include="..\AsterixParser\AsterixParserLib.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -61,6 +64,10 @@
     <None Update="Resources\plane.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Properties\PublishProfiles\" />
   </ItemGroup>
 
 </Project>

@@ -116,126 +116,128 @@ namespace AsterixViewer
                     {
                         // Encabezado CSV
                         writer.WriteLine(
-                            "Cat;SIC;SAC;TimeOfDay;" +  // Initial info
+                            "Cat;SAC;SIC;TimeOfDay;" +  // Initial info
                             "LAT;LON;FL/Altitude;Altitude Corrected;" +    // LLA COORDS
-                            "TargetReportDescriptor;Distance;Azimuth;Mode3A;" +
+                            "TargetReportDescriptor;RHO;THETA;Mode3A;" +
                             "FL GarbledCode;FL CodeNotValidated;" +
                             "RPC SRL;RPC SSR;RPC SAM;RPC PRL;RPC PAM;RPC RPD;RPC APD;RPC SCO;RPC SCR;RPC RW;RPC AR;" +
-                            "Address;Identification;TrackNum;GS;Heading;" +
+                            "TA;TI;TrackNum;GS;Heading;" +
                             "TS CNF;TS RAD;TS DOU;TS MAH;TS CDM;TS TRE;TS GHO;TS SUP;TS TCC;" +
                             "I048230 COM;I048230 STAT;I048230 SI;I048230 MSSC;I048230 ARC;I048230 AIC;I048230 B1A;I048230 B1B;" +
                             "BPS;" +
-                            "BDS BDSs;BDS statusMCP;BDS MCP;BDS statusFMS;BDS FMS;BDS statusBARO;BDS BARO;BDS infoMCP;BDS VNAV;BDS ALTflag;" +
-                            "BDS APPR;BDS statusTarget;BDS TargetALT;BDS statusROLL;BDS ROLL;BDS statusTTA;BDS TTA;BDS statusGS;BDS GS;" +
-                            "BDS statusTAR;BDS TAR;BDS statusTAS;BDS TAS;BDS statusMH;BDS MH;BDS statusIAS;BDS IAS;BDS statusMACH;BDS MACH;" +
-                            "BDS statusBAROV;BDS BAROV;BDS statusIVV;BDS IVV"
+                            "BDS BDSs;BDS statusMCP;BDS MCP;BDS statusFMS;BDS FMS;BDS statusBARO;BP;BDS infoMCP;BDS VNAV;BDS ALTflag;" +
+                            "BDS APPR;BDS statusTarget;BDS TargetALT;BDS statusROLL;RA;BDS statusTTA;TTA;BDS statusGS;GS;" +
+                            "BDS statusTAR;TAR;BDS statusTAS;TAS;BDS statusMH;HDG;BDS statusIAS;IAS;BDS statusMACH;MACH;" +
+                            "BDS statusBAROV;BAR;BDS statusIVV;IVV"
                         );
+
+                        var c = CultureInfo.GetCultureInfo("es-ES");
 
                         // 5️⃣ Escribir cada fila (aquí solo de ejemplo)
                         foreach (AsterixMessage message in messages)
                         {
                             writer.WriteLine($"{message.Cat};" +
-                                $"{message.SIC};" +
                                 $"{message.SAC};" +
+                                $"{message.SIC};" +
                                 $"{TimeSpan.FromSeconds(message.TimeOfDay ?? 0).ToString(@"hh\:mm\:ss\:fff")};" +
 
                                 // LLA COORDINATES positions: [4;5;6]=[LAT;LON;Alt]
-                                $"{message.Latitude};" +
-                                $"{message.Longitude};" +
-                                $"{message.FlightLevel?.flightLevel};" +
-                                $"{message.QNHcorrection};" +
+                                $"{message.Latitude?.ToString(c) ?? "N/A"};" +
+                                $"{message.Longitude?.ToString(c) ?? "N/A"};" +
+                                $"{message.FlightLevel?.flightLevel?.ToString(c) ?? "N/A"};" +
+                                $"{message.QNHcorrection?.ToString(c) ?? "N/A"};" +
 
                                 // Report, Distance, Azimuth and Mode3A
                                 $"{(message.Cat == CAT.CAT021
                                         ? (message.TargetReportDescriptor021 != null ? string.Join(",", message.TargetReportDescriptor021) : "")
                                         : (message.TargetReportDescriptor048 != null ? string.Join(",", message.TargetReportDescriptor048) : "")
                                 )};" +
-                                $"{message.Distance};" +
-                                $"{message.Azimuth};" +
-                                $"{message.Mode3A};" +
+                                $"{message.Distance?.ToString(c) ?? "N/A"};" +
+                                $"{message.Azimuth?.ToString(c) ?? "N/A"};" +
+                                $"{(message.Mode3A != null ? Convert.ToString(message.Mode3A.Value, 8) : "N/A")};" +
 
                                 // FlightLevel other info
                                 $"{message.FlightLevel?.garbledCode};" +
                                 $"{message.FlightLevel?.codeNotValidated};" +
 
                                 // RadarPlotCharacteristics
-                                $"{message.RadarPlotCharacteristics?.SRL};" +
-                                $"{message.RadarPlotCharacteristics?.SSR};" +
-                                $"{message.RadarPlotCharacteristics?.SAM};" +
-                                $"{message.RadarPlotCharacteristics?.PRL};" +
-                                $"{message.RadarPlotCharacteristics?.PAM};" +
-                                $"{message.RadarPlotCharacteristics?.RPD};" +
-                                $"{message.RadarPlotCharacteristics?.APD};" +
-                                $"{message.RadarPlotCharacteristics?.SCO};" +
-                                $"{message.RadarPlotCharacteristics?.SCR};" +
-                                $"{message.RadarPlotCharacteristics?.RW};" +
-                                $"{message.RadarPlotCharacteristics?.AR};" +
+                                $"{message.RadarPlotCharacteristics?.SRL?.ToString(c) ?? "N/A"};" +
+                                $"{message.RadarPlotCharacteristics?.SSR?.ToString(c) ?? "N/A"};" +
+                                $"{message.RadarPlotCharacteristics?.SAM?.ToString(c) ?? "N/A"};" +
+                                $"{message.RadarPlotCharacteristics?.PRL?.ToString(c) ?? "N/A"};" +
+                                $"{message.RadarPlotCharacteristics?.PAM?.ToString(c) ?? "N/A"};" +
+                                $"{message.RadarPlotCharacteristics?.RPD?.ToString(c) ?? "N/A"};" +
+                                $"{message.RadarPlotCharacteristics?.APD?.ToString(c) ?? "N/A"};" +
+                                $"{message.RadarPlotCharacteristics?.SCO?.ToString(c) ?? "N/A"};" +
+                                $"{message.RadarPlotCharacteristics?.SCR?.ToString(c) ?? "N/A"};" +
+                                $"{message.RadarPlotCharacteristics?.RW?.ToString(c) ?? "N/A"};" +
+                                $"{message.RadarPlotCharacteristics?.AR?.ToString(c) ?? "N/A"};" +
 
                                 // Campos principales
-                                $"{message.Address};" +
-                                $"{message.Identification};" +
-                                $"{message.TrackNum};" +
-                                $"{message.GS};" +
-                                $"{message.Heading};" +
+                                $"{message.Address?.ToString("X6") ?? "N/A"};" +
+                                $"{message.Identification ?? "N/A"};" +
+                                $"{message.TrackNum?.ToString(c) ?? "N/A"};" +
+                                $"{message.GS?.ToString(c) ?? "N/A"};" +
+                                $"{message.Heading?.ToString(c) ?? "N/A"};" +
 
                                 // TrackStatus
-                                $"{message.TrackStatus?.CNF};" +
-                                $"{message.TrackStatus?.RAD};" +
-                                $"{message.TrackStatus?.DOU};" +
-                                $"{message.TrackStatus?.MAH};" +
-                                $"{message.TrackStatus?.CDM};" +
-                                $"{message.TrackStatus?.TRE};" +
-                                $"{message.TrackStatus?.GHO};" +
-                                $"{message.TrackStatus?.SUP};" +
-                                $"{message.TrackStatus?.TCC};" +
+                                $"{message.TrackStatus?.CNF ?? "N/A"};" +
+                                $"{message.TrackStatus?.RAD ?? "N/A"};" +
+                                $"{message.TrackStatus?.DOU ?? "N/A"};" +
+                                $"{message.TrackStatus?.MAH ?? "N/A"};" +
+                                $"{message.TrackStatus?.CDM ?? "N/A"};" +
+                                $"{message.TrackStatus?.TRE ?? "N/A"};" +
+                                $"{message.TrackStatus?.GHO ?? "N/A"};" +
+                                $"{message.TrackStatus?.SUP ?? "N/A"};" +
+                                $"{message.TrackStatus?.TCC ?? "N/A"};" +
 
                                 // I048230
                                 $"{message.I048230?.COM ?? ""};" +
                                 $"{message.I048230?.STAT ?? ""};" +
-                                $"{message.I048230?.SI};" +
-                                $"{message.I048230?.MSSC};" +
-                                $"{message.I048230?.ARC};" +
-                                $"{message.I048230?.AIC};" +
-                                $"{message.I048230?.B1A};" +
-                                $"{message.I048230?.B1B};" +
+                                $"{message.I048230?.SI ?? "N/A"};" +
+                                $"{message.I048230?.MSSC ?? "N/A"};" +
+                                $"{message.I048230?.ARC ?? "N/A"};" +
+                                $"{message.I048230?.AIC ?? "N/A"};" +
+                                $"{message.I048230?.B1A?.ToString(c) ?? "N/A"};" +
+                                $"{message.I048230?.B1B?.ToString(c) ?? "N/A"};" +
 
                                 // Velocidad
-                                $"{message.BPS};" +
+                                $"{message.BPS?.ToString(c) ?? "N/A"};" +
 
                                 // BDS
-                                $"{message.BDS?.BDSsCSV};" +
-                                $"{message.BDS?.statusMCP};" +
-                                $"{message.BDS?.MCP};" +
-                                $"{message.BDS?.statusFMS};" +
-                                $"{message.BDS?.FMS};" +
-                                $"{message.BDS?.statusBARO};" +
-                                $"{message.BDS?.BARO};" +
-                                $"{message.BDS?.infoMCP};" +
-                                $"{message.BDS?.VNAV};" +
-                                $"{message.BDS?.ALTflag};" +
-                                $"{message.BDS?.APPR};" +
-                                $"{message.BDS?.statusTarget};" +
-                                $"{message.BDS?.TargetALT};" +
-                                $"{message.BDS?.statusROLL};" +
-                                $"{message.BDS?.ROLL};" +
-                                $"{message.BDS?.statusTTA};" +
-                                $"{message.BDS?.TTA};" +
-                                $"{message.BDS?.statusGS};" +
-                                $"{message.BDS?.GS};" +
-                                $"{message.BDS?.statusTAR};" +
-                                $"{message.BDS?.TAR};" +
-                                $"{message.BDS?.statusTAS};" +
-                                $"{message.BDS?.TAS};" +
-                                $"{message.BDS?.statusMH};" +
-                                $"{message.BDS?.MH};" +
-                                $"{message.BDS?.statusIAS};" +
-                                $"{message.BDS?.IAS};" +
-                                $"{message.BDS?.statusMACH};" +
-                                $"{message.BDS?.MACH};" +
-                                $"{message.BDS?.statusBAROV};" +
-                                $"{message.BDS?.BAROV};" +
-                                $"{message.BDS?.statusIVV};" +
-                                $"{message.BDS?.IVV};"
+                                $"{message.BDS?.BDSsCSV ?? "N/A"};" +
+                                $"{message.BDS?.statusMCP?.ToString(c) ?? "N/A"};" +
+                                $"{message.BDS?.MCP?.ToString(c) ?? "N/A"};" +
+                                $"{message.BDS?.statusFMS?.ToString(c) ?? "N/A"};" +
+                                $"{message.BDS?.FMS?.ToString(c) ?? "N/A"};" +
+                                $"{message.BDS?.statusBARO?.ToString(c) ?? "N/A"};" +
+                                $"{message.BDS?.BARO?.ToString(c) ?? "N/A"};" +
+                                $"{message.BDS?.infoMCP?.ToString(c) ?? "N/A"};" +
+                                $"{message.BDS?.VNAV?.ToString(c) ?? "N/A"};" +
+                                $"{message.BDS?.ALTflag?.ToString(c) ?? "N/A"};" +
+                                $"{message.BDS?.APPR?.ToString(c) ?? "N/A"};" +
+                                $"{message.BDS?.statusTarget?.ToString(c) ?? "N/A"};" +
+                                $"{message.BDS?.TargetALT ?? "N/A"};" +
+                                $"{message.BDS?.statusROLL?.ToString(c) ?? "N/A"};" +
+                                $"{message.BDS?.ROLL?.ToString(c) ?? "N/A"};" +
+                                $"{message.BDS?.statusTTA?.ToString(c) ?? "N/A"};" +
+                                $"{message.BDS?.TTA?.ToString(c) ?? "N/A"};" +
+                                $"{message.BDS?.statusGS?.ToString(c) ?? "N/A"};" +
+                                $"{message.BDS?.GS?.ToString(c) ?? "N/A"};" +
+                                $"{message.BDS?.statusTAR?.ToString(c) ?? "N/A"};" +
+                                $"{message.BDS?.TAR?.ToString(c) ?? "N/A"};" +
+                                $"{message.BDS?.statusTAS?.ToString(c) ?? "N/A"};" +
+                                $"{message.BDS?.TAS?.ToString(c) ?? "N/A"};" +
+                                $"{message.BDS?.statusMH?.ToString(c) ?? "N/A"};" +
+                                $"{message.BDS?.MH?.ToString(c) ?? "N/A"};" +
+                                $"{message.BDS?.statusIAS?.ToString(c) ?? "N/A"};" +
+                                $"{message.BDS?.IAS?.ToString(c) ?? "N/A"};" +
+                                $"{message.BDS?.statusMACH?.ToString(c) ?? "N/A"};" +
+                                $"{message.BDS?.MACH?.ToString(c) ?? "N/A"};" +
+                                $"{message.BDS?.statusBAROV?.ToString(c) ?? "N/A"};" +
+                                $"{message.BDS?.BAROV?.ToString(c) ?? "N/A"};" +
+                                $"{message.BDS?.statusIVV?.ToString(c) ?? "N/A"};" +
+                                $"{message.BDS?.IVV?.ToString(c) ?? "N/A"};"
                             );
                         }
                     }
