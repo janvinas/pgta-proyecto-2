@@ -59,15 +59,22 @@
                     </WrapPanel>
 
                     <WrapPanel Margin="0 10 0 0">
-                        <Button Content="Cargar Datos ASTERIX" Margin="5"
-                            Click="DatosAsterix_Click"
-                            MaxWidth="300"/>
-                        <Button Content="Cargar Planes de Vuelo" Margin="5"
-                            Click="Planvuelo_click"
-                            MaxWidth="300"/>
-                        <Button Content="Cargar Clasificación Aeronaves" Margin="5"
-                            Click="ClasificacionAeronaves_Click"
-                            MaxWidth="300"/>
+                        <Button Content="Cargar Datos ASTERIX" 
+                                Width="250" Margin="5"
+                                Click="DatosAsterix_Click"
+                                MaxWidth="300"/>
+                        <Button Content="Concatenar Datos ASTERIX" 
+                                Width="250" Margin="5"
+                                Click="ConcatenarDatosAsterix_Click"
+                                MaxWidth="300"/>
+                        <Button Content="Cargar Planes de Vuelo" 
+                                Width="250" Margin="5"
+                                Click="Planvuelo_click"
+                                MaxWidth="300"/>
+                        <Button Content="Cargar Clasificación Aeronaves" 
+                                Width="250" Margin="5"
+                                Click="ClasificacionAeronaves_Click"
+                                MaxWidth="300"/>
                     </WrapPanel>
                 </StackPanel>
             </GroupBox>

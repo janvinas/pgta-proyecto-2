@@ -68,7 +68,7 @@ namespace AsterixViewer.Projecte3
                     indexInicioViraje = 0;
 
                     // Que el heading inicial no sea N/A
-                    if (vuelo.mensajesVuelo[0][colAST_HDG] != "N/A") headingInicial = Convert.ToDouble(vuelo.mensajesVuelo[0][colAST_HDG]);
+                    if (vuelo.mensajesVuelo[0][colAST_HDG] != "N/A" && vuelo.mensajesVuelo[0][colAST_HDG] != "NV") headingInicial = Convert.ToDouble(vuelo.mensajesVuelo[0][colAST_HDG]);
                     else headingInicial = headingIntended_24L;
 
                     if (Math.Abs(headingIntended_24L - headingInicial) > 10)    // Si el heading inicial no se parece al heading inicial de la 24L -> algo falla
@@ -81,19 +81,19 @@ namespace AsterixViewer.Projecte3
                     for (int i = 1; i < vuelo.mensajesVuelo.Count; i++)
                     {
                         // Que el heaing no sean N/A
-                        if (vuelo.mensajesVuelo[i][colAST_HDG] != "N/A")
+                        if (vuelo.mensajesVuelo[i][colAST_HDG] != "N/A" && vuelo.mensajesVuelo[0][colAST_HDG] != "NV")
                         {
                             heading = Convert.ToDouble(vuelo.mensajesVuelo[i][colAST_HDG]);
 
                             // Que el heading anterior no sea N/A, si lo es -> heading anterior es heading inicial para comparar
-                            if (vuelo.mensajesVuelo[i - 1][colAST_HDG] == "N/A") heading_prev = headingInicial;
+                            if (vuelo.mensajesVuelo[i - 1][colAST_HDG] == "N/A" && vuelo.mensajesVuelo[0][colAST_HDG] != "NV") heading_prev = headingInicial;
                             else heading_prev = Convert.ToDouble(vuelo.mensajesVuelo[i - 1][colAST_HDG]);
 
                             if (heading < heading_prev && heading < headingInicial && Math.Abs(heading - headingInicial) > 3)     // El heading en la salida de 24L se va a valores mas negativos (mas pequeños)
                             {
                                 for (int j = i + 1; j < Math.Min(vuelo.mensajesVuelo.Count, i + 5); j++)
                                 {
-                                    if (vuelo.mensajesVuelo[j][colAST_HDG] == "N/A") continue;
+                                    if (vuelo.mensajesVuelo[j][colAST_HDG] == "N/A" && vuelo.mensajesVuelo[0][colAST_HDG] != "NV") continue;
 
                                     heading_aux = Convert.ToDouble(vuelo.mensajesVuelo[j][colAST_HDG]);
                                     if (Math.Abs(headingInicial - heading_aux) > 10)           // Diferencia de mas de 10 con la inicial -> encontrado

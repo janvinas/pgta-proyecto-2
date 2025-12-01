@@ -187,7 +187,31 @@ namespace AsterixViewer.Tabs
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error al leer el archivo:\n{ex.Message}",
+                MessageBox.Show($"Error al leer datos ASTERIX:\n{ex.Message}",
+                    "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+        private void ConcatenarDatosAsterix_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                LecturaArchivos lect = new LecturaArchivos();
+                var resultado = lect.LeerCsvASTERIX();
+
+                if (resultado == null)
+                    return;  // ← USUARIO CANCELÓ
+
+                if (datosAsterix != null && datosAsterix.Count > 0)
+                {
+                    resultado = lect.ConcatenarDatosAsterix(datosAsterix, resultado);
+                }
+
+                datosAsterix = resultado;
+                DatosAsterixCargados = true;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error al concatenar datos:\n{ex.Message}",
                     "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
