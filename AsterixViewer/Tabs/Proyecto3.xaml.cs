@@ -37,6 +37,7 @@ using static AsterixViewer.Projecte3.VelocidadesDespegue;
 using static AsterixViewer.Projecte3.CalculosEstereograficos;
 using static AsterixViewer.Tabs.Proyecto3;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Collections.ObjectModel;
 
 namespace AsterixViewer.Tabs
 {
@@ -99,10 +100,44 @@ namespace AsterixViewer.Tabs
         //
         List<THRAltitudVelocidad> listaTHRAltitudVelocidad = new List<THRAltitudVelocidad>();
 
+        // Colección para mostrar periodos leídos en la UI
+        public ObservableCollection<string> PeriodosAsterix { get; } = new ObservableCollection<string>();
+
+        // Interno: estructura para agrupar intervalos y filenames
+        private class PeriodoInfo
+        {
+            public TimeSpan Start;
+            public TimeSpan End;
+            public HashSet<string> FileNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        }
+
+        private readonly List<PeriodoInfo> _periodos = new List<PeriodoInfo>();
+
+        private const double PeriodoItemHeight = 20.0;    // debe coincidir con Height en ItemContainerStyle
+        private const double PeriodoVerticalPadding = 8.0;
+        private const int PeriodoMaxVisible = 3;
+
+        private double _periodosHeight = PeriodoItemHeight + PeriodoVerticalPadding;
+        public double PeriodosHeight
+        {
+            get => _periodosHeight;
+            set
+            {
+                if (Math.Abs(_periodosHeight - value) > 0.1)
+                {
+                    _periodosHeight = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
         public Proyecto3()
         {
             InitializeComponent();
             DataContext = this;
+
+            // Inicializar altura según estado inicial (sin items)
+            RefreshPeriodosCollection();
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -173,17 +208,26 @@ namespace AsterixViewer.Tabs
         private void DatosAsterix_Click(object sender, RoutedEventArgs e)
         {
             datosAsterix.Clear();
+            _periodos.Clear();
+            PeriodosAsterix.Clear();
+
+            // Recalcular altura tras limpiar
+            RefreshPeriodosCollection();
 
             try
             {
                 LecturaArchivos lect = new LecturaArchivos();
                 var resultado = lect.LeerCsvASTERIX();
 
-                if (resultado == null)
+                if (resultado.data == null)
                     return;  // ← USUARIO CANCELÓ
 
-                datosAsterix = resultado;
+                datosAsterix = resultado.data;
                 DatosAsterixCargados = true;
+
+                // Añadir periodo leído con filename
+                if (TryGetTimeRangeFromDatos(resultado.data, out TimeSpan tStart, out TimeSpan tEnd))
+                    AddPeriodo(tStart, tEnd, System.IO.Path.GetFileName(resultado.filePath));
             }
             catch (Exception ex)
             {
@@ -198,15 +242,24 @@ namespace AsterixViewer.Tabs
                 LecturaArchivos lect = new LecturaArchivos();
                 var resultado = lect.LeerCsvASTERIX();
 
-                if (resultado == null)
+                if (resultado.data == null)
                     return;  // ← USUARIO CANCELÓ
 
+                // registrar periodo del archivo recién leído (antes de concatenar)
+                if (TryGetTimeRangeFromDatos(resultado.data, out TimeSpan sNew, out TimeSpan eNew))
+                    AddPeriodo(sNew, eNew, System.IO.Path.GetFileName(resultado.filePath));
+
+                // Concatenar datos
                 if (datosAsterix != null && datosAsterix.Count > 0)
                 {
-                    resultado = lect.ConcatenarDatosAsterix(datosAsterix, resultado);
+                    var concatenado = lect.ConcatenarDatosAsterix(datosAsterix, resultado.data);
+                    datosAsterix = concatenado;
+                }
+                else
+                {
+                    datosAsterix = resultado.data;
                 }
 
-                datosAsterix = resultado;
                 DatosAsterixCargados = true;
             }
             catch (Exception ex)
@@ -216,7 +269,126 @@ namespace AsterixViewer.Tabs
             }
         }
 
-        public void Planvuelo_click(object sender, RoutedEventArgs e)
+        // Helper: parsear tiempo ASTERIX formato esperado "HH:MM:SS:ms" (ms opcional)
+        private bool TryParseAstTime(string s, out TimeSpan ts)
+        {
+            ts = default;
+            if (string.IsNullOrWhiteSpace(s)) return false;
+            var parts = s.Trim().Split(':');
+            if (parts.Length < 3) return false;
+
+            if (!int.TryParse(parts[0], out int hh)) return false;
+            if (!int.TryParse(parts[1], out int mm)) return false;
+            if (!int.TryParse(parts[2], out int ss)) return false;
+            int ms = 0;
+            if (parts.Length >= 4) int.TryParse(parts[3], out ms);
+
+            try
+            {
+                long totalMs = hh * 3600L * 1000L + mm * 60L * 1000L + ss * 1000L + ms;
+                ts = TimeSpan.FromMilliseconds(totalMs);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        // Nuevo: devuelve start/end si hay times válidos
+        private bool TryGetTimeRangeFromDatos(List<List<string>> datos, out TimeSpan start, out TimeSpan end)
+        {
+            start = default;
+            end = default;
+
+            if (datos == null || datos.Count == 0) return false;
+            int colAST_time = 3;
+            List<TimeSpan> times = new List<TimeSpan>();
+
+            // Si hay cabecera intenta saltarla comprobando contenido de la primera fila
+            int startIdx = 0;
+            if (datos.Count > 0 && datos[0].Count > colAST_time && !TimeSpan.TryParse(datos[0][colAST_time], out _))
+            {
+                // probable cabecera -> empezar en 1
+                startIdx = 1;
+            }
+
+            for (int i = startIdx; i < datos.Count; i++)
+            {
+                if (datos[i].Count <= colAST_time) continue;
+                if (TryParseAstTime(datos[i][colAST_time], out TimeSpan ts)) times.Add(ts);
+            }
+
+            if (times.Count == 0) return false;
+
+            start = times.Min();
+            end = times.Max();
+            return true;
+        }
+
+        // Añade un periodo y lo agrupa/mezcla con intervalos contiguos o solapados
+        private void AddPeriodo(TimeSpan start, TimeSpan end, string filename)
+        {
+            if (end < start)
+            {
+                var tmp = start; start = end; end = tmp;
+            }
+
+            // Tolerancia para considerar "contiguo" (1 ms)
+            var tol = TimeSpan.FromMilliseconds(1);
+
+            // buscar intervalos que intersecten o sean contiguos
+            var toMerge = _periodos.Where(p => !(p.End + tol < start || p.Start - tol > end)).ToList();
+
+            if (toMerge.Count == 0)
+            {
+                var pi = new PeriodoInfo { Start = start, End = end };
+                pi.FileNames.Add(filename);
+                _periodos.Add(pi);
+            }
+            else
+            {
+                // fusionar con todos los encontrados
+                var newStart = toMerge.Min(p => p.Start);
+                var newEnd = toMerge.Max(p => p.End);
+                newStart = newStart < start ? newStart : start;
+                newEnd = newEnd > end ? newEnd : end;
+
+                var mergedNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                foreach (var m in toMerge) foreach (var fn in m.FileNames) mergedNames.Add(fn);
+                mergedNames.Add(filename);
+
+                // eliminar antiguos
+                foreach (var m in toMerge) _periodos.Remove(m);
+
+                // añadir fusionado
+                var merged = new PeriodoInfo { Start = newStart, End = newEnd, FileNames = mergedNames };
+                _periodos.Add(merged);
+            }
+
+            // mantener orden cronológico
+            _periodos.Sort((a, b) => a.Start.CompareTo(b.Start));
+
+            RefreshPeriodosCollection();
+        }
+
+        private void RefreshPeriodosCollection()
+        {
+            PeriodosAsterix.Clear();
+            foreach (var p in _periodos)
+            {
+                var files = string.Join(", ", p.FileNames);
+                var display = $"{p.Start.ToString(@"hh\:mm\:ss\.fff")} → {p.End.ToString(@"hh\:mm\:ss\.fff")}   [{files}]";
+                PeriodosAsterix.Add(display);
+            }
+
+            // Calcular altura basada en número de items visibles (ObservableCollection.Count refleja lo mostrado)
+            int count = Math.Max(1, PeriodosAsterix.Count);
+            int visible = Math.Min(count, PeriodoMaxVisible);
+            PeriodosHeight = visible * PeriodoItemHeight + PeriodoVerticalPadding;
+        }
+
+        private void Planvuelo_click(object sender, RoutedEventArgs e)
         {
             listaPV.Clear();
 
@@ -844,7 +1016,6 @@ namespace AsterixViewer.Tabs
                 }
                 else
                 {
-                    MessageBox.Show("Exportación cancelada por el usuario.");
                 }
             }
             catch (Exception ex)
@@ -893,7 +1064,6 @@ namespace AsterixViewer.Tabs
                 }
                 else
                 {
-                    MessageBox.Show("Exportación cancelada por el usuario.");
                 }
             }
             catch (Exception ex)

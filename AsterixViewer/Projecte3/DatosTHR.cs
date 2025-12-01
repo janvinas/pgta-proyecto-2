@@ -376,7 +376,6 @@ namespace AsterixViewer.Projecte3
                 }
                 else
                 {
-                    MessageBox.Show("Exportación cancelada por el usuario.");
                 }
             }
             catch (Exception ex)

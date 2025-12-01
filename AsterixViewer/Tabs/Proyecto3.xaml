@@ -22,6 +22,8 @@
         </Style>
 
         <local:EstadoAsterixConverter x:Key="EstadoAsterixConverter"/>
+        <!-- Conversor que ajusta la altura según número de líneas -->
+        <local:CountToHeightConverter x:Key="CountToHeightConverter"/>
     </UserControl.Resources>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto">
@@ -76,6 +78,37 @@
                                 Click="ClasificacionAeronaves_Click"
                                 MaxWidth="300"/>
                     </WrapPanel>
+
+                    <!-- Lista de periodos colocada debajo de los botones;
+                         altura dinámica: inicia para 1 línea y crece hasta 3 líneas antes de necesitar scrollear -->
+                    <StackPanel Margin="0 10 0 0" HorizontalAlignment="Stretch">
+                        <TextBlock Text="Periodos leídos (archivo - intervalo):"
+                                   Foreground="White"
+                                   Margin="0,2,0,6"
+                                   FontWeight="Bold"/>
+                        <ListBox ItemsSource="{Binding PeriodosAsterix}"
+                                 HorizontalAlignment="Stretch"
+                                 Background="Transparent"
+                                 Foreground="White"
+                                 BorderThickness="0"
+                                 Padding="4"
+                                 ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                 Height="{Binding PeriodosHeight}"
+                                 Focusable="False"
+                                 SelectionMode="Single">
+                            <ListBox.ItemContainerStyle>
+                                <Style TargetType="ListBoxItem">
+                                    <Setter Property="Height" Value="20"/>
+                                    <Setter Property="VerticalContentAlignment" Value="Center"/>
+                                    <Setter Property="Background" Value="Transparent"/>
+                                    <Setter Property="BorderThickness" Value="0"/>
+                                    <Setter Property="Focusable" Value="False"/>
+                                    <Setter Property="IsHitTestVisible" Value="False"/>
+                                </Style>
+                            </ListBox.ItemContainerStyle>
+                        </ListBox>
+                    </StackPanel>
+
                 </StackPanel>
             </GroupBox>
 

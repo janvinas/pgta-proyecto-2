@@ -12,7 +12,8 @@ namespace AsterixViewer.Projecte3
     internal class LecturaArchivos
     {
 
-        public List<List<string>> LeerCsvASTERIX()
+        // Ahora devuelve también la ruta del fichero seleccionado
+        public (List<List<string>> data, string filePath) LeerCsvASTERIX()
         {
             var dialog = new OpenFileDialog
             {
@@ -20,7 +21,7 @@ namespace AsterixViewer.Projecte3
             };
 
             if (dialog.ShowDialog() != true)
-                return null;   // ← CLAVE
+                return (null, null);   // ← CLAVE: usuario canceló
 
             var resultado = new List<List<string>>();
             string path = dialog.FileName;
@@ -34,7 +35,7 @@ namespace AsterixViewer.Projecte3
                 resultado.Add(new List<string>(valores));
             }
 
-            return resultado;
+            return (resultado, path);
         }
 
         public List<List<string>> ConcatenarDatosAsterix(List<List<string>> previo, List<List<string>> posterior)
@@ -86,7 +87,7 @@ namespace AsterixViewer.Projecte3
                 var fila = posterior[i];
                 int tPosterior = ParseAsterixTime(fila[colAST_time]);
 
-                // ⚠ REGRA NUEVA:
+                // ⚠ REGLA NUEVA:
                 // Si el tiempo es igual, comprobar si la ID también coincide
                 if (tPosterior == tiempoFinalPrevio)
                 {
