@@ -211,313 +211,196 @@ namespace AsterixViewer.Projecte3
                 vuelo.mensajesVueloInterpolados = mensajesVueloInterpolados;
             }
         }
+        private void RellenarIAS(THRAltitudVelocidad thr, List<List<string>> mensajes, int index, int colIAS)
+        {
+            string ias = mensajes[index][colIAS];
 
-        public List<THRAltitudVelocidad> CalcularAltitudVelocidadTHR(List<List<string>> datosAsterix, List<Vuelo> vuelosOrdenados, 
-            List<THRAltitudVelocidad> listaTHRAltitudVelocidad)
+            if (ias != "N/A")
+            {
+                thr.IAS = ias;
+                thr.IAScorrespondance = "0";
+                return;
+            }
+
+            int total = mensajes.Count;
+
+            for (int offset = 1; offset < total; offset++)
+            {
+                int adelante = index + offset;
+                if (adelante < total && mensajes[adelante][colIAS] != "N/A")
+                {
+                    thr.IAS = mensajes[adelante][colIAS];
+                    thr.IAScorrespondance = $"+{offset}";
+                    return;
+                }
+
+                int atras = index - offset;
+                if (atras >= 0 && mensajes[atras][colIAS] != "N/A")
+                {
+                    thr.IAS = mensajes[atras][colIAS];
+                    thr.IAScorrespondance = $"-{offset}";
+                    return;
+                }
+            }
+        }
+
+        private int BuscarMinimoDistancia(List<List<string>> mensajes, int start, Point thr, int colX, int colY)
+        {
+            int indexMin = start;
+            double minDistance = CalcularDistanciaEntrePuntos(
+                new Point(Convert.ToDouble(mensajes[start][colX]), Convert.ToDouble(mensajes[start][colY])),
+                thr
+            );
+
+            int consecutivosAumento = 0;
+            const int maxConsecutivos = 4;
+
+            for (int j = start + 1; j < mensajes.Count; j++)
+            {
+                Point p = new Point(
+                    Convert.ToDouble(mensajes[j][colX]),
+                    Convert.ToDouble(mensajes[j][colY])
+                );
+
+                double d = CalcularDistanciaEntrePuntos(p, thr);
+
+                if (d < minDistance)
+                {
+                    minDistance = d;
+                    indexMin = j;
+                    consecutivosAumento = 0;
+                }
+                else
+                {
+                    consecutivosAumento++;
+                    if (consecutivosAumento >= maxConsecutivos)
+                        break;
+                }
+            }
+
+            return indexMin;
+        }
+
+        public List<THRAltitudVelocidad> CalcularAltitudVelocidadTHR( List<List<string>> datosAsterix, List<Vuelo> vuelosOrdenados, List<THRAltitudVelocidad> listaTHRAltitudVelocidad)
         {
             bool interpol = true;
 
             CalcularPuntosTHR();
 
+            // Zonas
             List<Point> zona24L = new List<Point>
             {
-                new Point(THR_24L_1b.U, THR_24L_1b.V), new Point(THR_24L_2c.U, THR_24L_2c.V),
-                new Point(THR_24L_4c.U, THR_24L_4c.V), new Point(THR_24L_3b.U, THR_24L_3b.V)
+                new Point(THR_24L_1b.U, THR_24L_1b.V),
+                new Point(THR_24L_2c.U, THR_24L_2c.V),
+                new Point(THR_24L_4c.U, THR_24L_4c.V),
+                new Point(THR_24L_3b.U, THR_24L_3b.V)
             };
 
             List<Point> zona06R = new List<Point>
             {
-                new Point(THR_06R_1b.U, THR_06R_1b.V), new Point(THR_06R_2c.U, THR_06R_2c.V),
-                new Point(THR_06R_4c.U, THR_06R_4c.V), new Point(THR_06R_3b.U, THR_06R_3b.V)
+                new Point(THR_06R_1b.U, THR_06R_1b.V),
+                new Point(THR_06R_2c.U, THR_06R_2c.V),
+                new Point(THR_06R_4c.U, THR_06R_4c.V),
+                new Point(THR_06R_3b.U, THR_06R_3b.V)
             };
 
-            bool dentroZona;
-
-            Point pointMSG;
-            Point pointMSGnext;
             Point pointTHR_06R = new Point(THR_06R.U, THR_06R.V);
             Point pointTHR_24L = new Point(THR_24L.U, THR_24L.V);
 
-            double distanceVal;
-            double distanceNext;
-
+            // Columnas interpolado / no interpolado
+            int colTime, colLat, colLon, colAlt, colIAS, colX, colY;
 
             if (interpol)
             {
                 Interpolar1segundo(vuelosOrdenados);
 
-                int colAST_time = 0;
-                int colAST_lat = 1;
-                int colAST_lon = 2;
-                int colAST_altitudeft = 3;
-                int colAST_altitudm = 4;
-                int colAST_IAS = 5;
-                int colAST_posx = 6;
-                int colAST_posy = 7;
-
-                foreach (Vuelo vuelo in vuelosOrdenados)
-                {
-                    THRAltitudVelocidad thr_AltitudVelocidad = new THRAltitudVelocidad();
-                    thr_AltitudVelocidad.vuelo = vuelo;
-
-                    // Selección de zona y THR según pista
-                    List<Point> zonaDeteccion;
-                    Point puntoTHR;
-
-                    if (vuelo.pistadesp == "LEBL-24L")
-                    {
-                        zonaDeteccion = zona06R;
-                        puntoTHR = pointTHR_06R;
-                    }
-                    else if (vuelo.pistadesp == "LEBL-06R")
-                    {
-                        zonaDeteccion = zona24L;
-                        puntoTHR = pointTHR_24L;
-                    }
-                    else
-                    {
-                        // En caso de pista desconocida
-                        thr_AltitudVelocidad.pasaPorTHR = false;
-                        listaTHRAltitudVelocidad.Add(thr_AltitudVelocidad);
-                        continue;
-                    }
-
-                    bool encontrado = false;
-
-                    for (int i = 0; i < vuelo.mensajesVueloInterpolados.Count; i++)
-                    {
-                        pointMSG = new Point(
-                            Convert.ToDouble(vuelo.mensajesVueloInterpolados[i][colAST_posx]),
-                            Convert.ToDouble(vuelo.mensajesVueloInterpolados[i][colAST_posy])
-                        );
-
-                        if (PuntoEnZonaDeteccion(pointMSG, zonaDeteccion))
-                        {
-                            // ==========================
-                            // 1. Buscar punto más cercano
-                            // ==========================
-                            int indexMin = i;
-                            double minDistance = CalcularDistanciaEntrePuntos(pointMSG, puntoTHR);
-
-                            int consecutivosAumento = 0;
-                            const int maxConsecutivos = 4;
-
-                            for (int j = i + 1; j < vuelo.mensajesVueloInterpolados.Count; j++)
-                            {
-                                Point p = new Point(
-                                    Convert.ToDouble(vuelo.mensajesVueloInterpolados[j][colAST_posx]),
-                                    Convert.ToDouble(vuelo.mensajesVueloInterpolados[j][colAST_posy])
-                                );
-
-                                double d = CalcularDistanciaEntrePuntos(p, puntoTHR);
-
-                                if (d < minDistance)
-                                {
-                                    minDistance = d;
-                                    indexMin = j;
-                                    consecutivosAumento = 0;
-                                }
-                                else
-                                {
-                                    consecutivosAumento++;
-                                    if (consecutivosAumento >= maxConsecutivos)
-                                        break;
-                                }
-                            }
-
-                            // ==========================
-                            // 2. Rellenar datos
-                            // ==========================
-                            int jmin = indexMin;
-
-                            thr_AltitudVelocidad.time = vuelo.mensajesVueloInterpolados[jmin][colAST_time];
-
-                            // IAS
-                            string ias = vuelo.mensajesVueloInterpolados[jmin][colAST_IAS];
-                            if (ias != "N/A")
-                            {
-                                thr_AltitudVelocidad.IAS = ias;
-                                thr_AltitudVelocidad.IAScorrespondance = "0";
-                            }
-                            else
-                            {
-                                int total = vuelo.mensajesVueloInterpolados.Count;
-
-                                for (int offset = 1; offset < total; offset++)
-                                {
-                                    int adelante = jmin + offset;
-                                    if (adelante < total &&
-                                        vuelo.mensajesVueloInterpolados[adelante][colAST_IAS] != "N/A")
-                                    {
-                                        thr_AltitudVelocidad.IAS = vuelo.mensajesVueloInterpolados[adelante][colAST_IAS];
-                                        thr_AltitudVelocidad.IAScorrespondance = $"+{offset}";
-                                        break;
-                                    }
-
-                                    int atras = jmin - offset;
-                                    if (atras >= 0 &&
-                                        vuelo.mensajesVueloInterpolados[atras][colAST_IAS] != "N/A")
-                                    {
-                                        thr_AltitudVelocidad.IAS = vuelo.mensajesVueloInterpolados[atras][colAST_IAS];
-                                        thr_AltitudVelocidad.IAScorrespondance = $"-{offset}";
-                                        break;
-                                    }
-                                }
-                            }
-
-                            // Resto de datos
-                            thr_AltitudVelocidad.altitud = vuelo.mensajesVueloInterpolados[jmin][colAST_altitudeft];
-                            thr_AltitudVelocidad.lat = vuelo.mensajesVueloInterpolados[jmin][colAST_lat];
-                            thr_AltitudVelocidad.lon = vuelo.mensajesVueloInterpolados[jmin][colAST_lon];
-                            thr_AltitudVelocidad.distance2THR = minDistance.ToString();
-
-                            encontrado = true;
-                            break;
-                        }
-                    }
-
-                    thr_AltitudVelocidad.pasaPorTHR = encontrado;
-                    listaTHRAltitudVelocidad.Add(thr_AltitudVelocidad);
-                }
+                colTime = 0;
+                colLat = 1;
+                colLon = 2;
+                colAlt = 3;
+                colIAS = 5;
+                colX = 6;
+                colY = 7;
             }
-
             else
             {
-                int colAST_time = 3;
-                int colAST_lat = 4;
-                int colAST_lon = 5;
-                int colAST_altitudeft = 7;
-                int colAST_altitudm = 6;
-                int colAST_IAS = 21;
+                colTime = 3;
+                colLat = 4;
+                colLon = 5;
+                colAlt = 7;
+                colIAS = 21;
 
-                int colAST_posx = vuelosOrdenados[0].mensajesVuelo[0].Count - 2;
-                int colAST_posy = vuelosOrdenados[0].mensajesVuelo[0].Count - 1;
+                colX = vuelosOrdenados[0].mensajesVuelo[0].Count - 2;
+                colY = colX + 1;
+            }
 
-                foreach (Vuelo vuelo in vuelosOrdenados)
+            foreach (Vuelo vuelo in vuelosOrdenados)
+            {
+                THRAltitudVelocidad thr = new THRAltitudVelocidad();
+                thr.vuelo = vuelo;
+
+                // Zona y THR según pista
+                List<Point> zonaDeteccion;
+                Point puntoTHR;
+
+                if (vuelo.pistadesp == "LEBL-24L")
                 {
-                    THRAltitudVelocidad thr_AltitudVelocidad = new THRAltitudVelocidad();
-                    thr_AltitudVelocidad.vuelo = vuelo;
-
-                    // Selección de zona y THR según pista
-                    List<Point> zonaDeteccion;
-                    Point puntoTHR;
-
-                    if (vuelo.pistadesp == "LEBL-24L")
-                    {
-                        zonaDeteccion = zona06R;
-                        puntoTHR = pointTHR_06R;
-                    }
-                    else if (vuelo.pistadesp == "LEBL-06R")
-                    {
-                        zonaDeteccion = zona24L;
-                        puntoTHR = pointTHR_24L;
-                    }
-                    else
-                    {
-                        thr_AltitudVelocidad.pasaPorTHR = false;
-                        listaTHRAltitudVelocidad.Add(thr_AltitudVelocidad);
-                        continue;
-                    }
-
-                    bool encontrado = false;
-
-                    for (int i = 0; i < vuelo.mensajesVuelo.Count; i++)
-                    {
-                        pointMSG = new Point(
-                            Convert.ToDouble(vuelo.mensajesVuelo[i][colAST_posx]),
-                            Convert.ToDouble(vuelo.mensajesVuelo[i][colAST_posy])
-                        );
-
-                        if (PuntoEnZonaDeteccion(pointMSG, zonaDeteccion))
-                        {
-                            // ==========================
-                            // 1. Buscar punto más cercano real
-                            // ==========================
-                            int indexMin = i;
-                            double minDistance = CalcularDistanciaEntrePuntos(pointMSG, puntoTHR);
-
-                            int consecutivosAumento = 0;
-                            const int maxConsecutivos = 3;
-
-                            for (int j = i + 1; j < vuelo.mensajesVuelo.Count; j++)
-                            {
-                                Point p = new Point(
-                                    Convert.ToDouble(vuelo.mensajesVuelo[j][colAST_posx]),
-                                    Convert.ToDouble(vuelo.mensajesVuelo[j][colAST_posy])
-                                );
-
-                                double d = CalcularDistanciaEntrePuntos(p, puntoTHR);
-
-                                if (d < minDistance)
-                                {
-                                    minDistance = d;
-                                    indexMin = j;
-                                    consecutivosAumento = 0;
-                                }
-                                else
-                                {
-                                    consecutivosAumento++;
-                                    if (consecutivosAumento >= maxConsecutivos)
-                                        break;
-                                }
-                            }
-
-                            // ==========================
-                            // 2. Rellenar datos en thr_AltitudVelocidad
-                            // ==========================
-                            int jmin = indexMin;
-
-                            thr_AltitudVelocidad.time = vuelo.mensajesVuelo[jmin][colAST_time];
-
-                            // IAS
-                            string ias = vuelo.mensajesVuelo[jmin][colAST_IAS];
-                            if (ias != "N/A")
-                            {
-                                thr_AltitudVelocidad.IAS = ias;
-                                thr_AltitudVelocidad.IAScorrespondance = "0";
-                            }
-                            else
-                            {
-                                int total = vuelo.mensajesVuelo.Count;
-
-                                for (int offset = 1; offset < total; offset++)
-                                {
-                                    int adelante = jmin + offset;
-                                    if (adelante < total &&
-                                        vuelo.mensajesVuelo[adelante][colAST_IAS] != "N/A")
-                                    {
-                                        thr_AltitudVelocidad.IAS =
-                                            vuelo.mensajesVuelo[adelante][colAST_IAS];
-                                        thr_AltitudVelocidad.IAScorrespondance = $"+{offset}";
-                                        break;
-                                    }
-
-                                    int atras = jmin - offset;
-                                    if (atras >= 0 &&
-                                        vuelo.mensajesVuelo[atras][colAST_IAS] != "N/A")
-                                    {
-                                        thr_AltitudVelocidad.IAS =
-                                            vuelo.mensajesVuelo[atras][colAST_IAS];
-                                        thr_AltitudVelocidad.IAScorrespondance = $"-{offset}";
-                                        break;
-                                    }
-                                }
-                            }
-
-                            // Restos de datos
-                            thr_AltitudVelocidad.altitud = vuelo.mensajesVuelo[jmin][colAST_altitudeft];
-                            thr_AltitudVelocidad.lat = vuelo.mensajesVuelo[jmin][colAST_lat];
-                            thr_AltitudVelocidad.lon = vuelo.mensajesVuelo[jmin][colAST_lon];
-                            thr_AltitudVelocidad.distance2THR = minDistance.ToString();
-
-                            encontrado = true;
-                            break;
-                        }
-                    }
-
-                    thr_AltitudVelocidad.pasaPorTHR = encontrado;
-                    listaTHRAltitudVelocidad.Add(thr_AltitudVelocidad);
+                    zonaDeteccion = zona06R;
+                    puntoTHR = pointTHR_06R;
                 }
+                else if (vuelo.pistadesp == "LEBL-06R")
+                {
+                    zonaDeteccion = zona24L;
+                    puntoTHR = pointTHR_24L;
+                }
+                else
+                {
+                    thr.pasaPorTHR = false;
+                    listaTHRAltitudVelocidad.Add(thr);
+                    continue;
+                }
+
+                List<List<string>> mensajes =
+                    interpol ? vuelo.mensajesVueloInterpolados : vuelo.mensajesVuelo;
+
+                bool encontrado = false;
+
+                // BUSCA ENTRADA EN ZONA
+                for (int i = 0; i < mensajes.Count; i++)
+                {
+                    Point p = new Point(
+                        Convert.ToDouble(mensajes[i][colX]),
+                        Convert.ToDouble(mensajes[i][colY])
+                    );
+
+                    if (PuntoEnZonaDeteccion(p, zonaDeteccion))
+                    {
+                        // BUSCA MÍNIMO EN ZONA
+                        int jmin = BuscarMinimoDistancia(mensajes, i, puntoTHR, colX, colY);
+
+                        // RELLENAR DATOS
+                        thr.time = mensajes[jmin][colTime];
+                        thr.altitud = mensajes[jmin][colAlt];
+                        thr.lat = mensajes[jmin][colLat];
+                        thr.lon = mensajes[jmin][colLon];
+
+                        double distanciaMin = CalcularDistanciaEntrePuntos(
+                            new Point(Convert.ToDouble(mensajes[jmin][colX]),
+                                      Convert.ToDouble(mensajes[jmin][colY])),
+                            puntoTHR);
+
+                        thr.distance2THR = distanciaMin.ToString();
+
+                        // IAS cercana
+                        RellenarIAS(thr, mensajes, jmin, colIAS);
+
+                        encontrado = true;
+                        break;
+                    }
+                }
+
+                thr.pasaPorTHR = encontrado;
+                listaTHRAltitudVelocidad.Add(thr);
             }
 
             GuardarNoInterpolaciones(vuelosOrdenados);
@@ -525,6 +408,7 @@ namespace AsterixViewer.Projecte3
 
             return listaTHRAltitudVelocidad;
         }
+
 
         public void GuardarAltitudVelocidadTHR(List<THRAltitudVelocidad> listaTHRAltitudVelocidad)
         {
