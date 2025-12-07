@@ -236,13 +236,13 @@ namespace AsterixViewer.Projecte3
                     // ✍️ Escribir el archivo (CSV con extensión XLSX)
                     using (var writer1 = new StreamWriter(filePath1, false, Encoding.UTF8))
                     {
-                        writer1.WriteLine("Callsign;ATOT;SID;Estela;Tipo Aeronave;Runway;IAS850ft;time850ft;altitudTomada850ft;IAS1500ft;time1500ft;altitudTomada1500ft;IAS3500ft;time3500ft;altitudTomada3500ft;" +
+                        writer1.WriteLine("IdentificacionDESP;Callsign;ATOT;SID;Estela;Tipo Aeronave;Runway;IAS850ft;time850ft;altitudTomada850ft;IAS1500ft;time1500ft;altitudTomada1500ft;IAS3500ft;time3500ft;altitudTomada3500ft;" +
                             "IAScorrespondance850ft;IAScorrespondance1500ft;IAScorrespondance3500ft");
                         foreach (IASaltitudes iasAltitudes in listaVelocidadesIASDespegue)
                         {
                             try
                             {
-                                writer1.WriteLine(iasAltitudes.vuelo.codigoVuelo + ";" + iasAltitudes.vuelo.ATOT + ";" + iasAltitudes.vuelo.sid + ";" +
+                                writer1.WriteLine(iasAltitudes.vuelo.identificadorDeparture + ";" + iasAltitudes.vuelo.codigoVuelo + ";" + iasAltitudes.vuelo.ATOT + ";" + iasAltitudes.vuelo.sid + ";" +
                                     iasAltitudes.vuelo.estela + ";" + iasAltitudes.vuelo.tipo_aeronave + ";" + iasAltitudes.vuelo.pistadesp + ";" +
                                     iasAltitudes.data850ft.IAS + ";" + iasAltitudes.data850ft.Time + ";" + iasAltitudes.data850ft.Altura + ";" +
                                     iasAltitudes.data1500ft.IAS + ";" + iasAltitudes.data1500ft.Time + ";" + iasAltitudes.data1500ft.Altura + ";" +

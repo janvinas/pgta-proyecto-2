@@ -173,12 +173,12 @@ namespace AsterixViewer.Projecte3
                     // ✍️ Escribir el archivo (CSV con extensión XLSX)
                     using (var writer1 = new StreamWriter(filePath1, false, Encoding.UTF8))
                     {
-                        writer1.WriteLine("Callsign;ATOT;Latitud;Longitud;Tiempo Inicio Viraje;RA;HDG;TTA;Altitud;SID;Tipo Aeronave;Estela;Atraviesa Radial 234;Radial DVOR que atraviesa viraje");
+                        writer1.WriteLine("IdentificacionDESP;Callsign;ATOT;Latitud;Longitud;Tiempo Inicio Viraje;RA;HDG;TTA;Altitud;SID;Tipo Aeronave;Estela;Atraviesa Radial 234;Radial DVOR que atraviesa viraje");
                         foreach (DatosViraje viraje in listaVirajes)
                         {
                             try
                             {
-                                writer1.WriteLine(viraje.vuelo.codigoVuelo + ";" + viraje.vuelo.ATOT + ";" + viraje.lat + ";" + viraje.lon + ";" + viraje.time + ";" +
+                                writer1.WriteLine(viraje.vuelo.identificadorDeparture + ";" + viraje.vuelo.codigoVuelo + ";" + viraje.vuelo.ATOT + ";" + viraje.lat + ";" + viraje.lon + ";" + viraje.time + ";" +
                                     viraje.RA + ";" + viraje.HDG + ";" + viraje.TTA + ";" + viraje.altitud + ";" + viraje.vuelo.sid + ";" +
                                     viraje.vuelo.tipo_aeronave + ";" + viraje.vuelo.estela + ";" + viraje.atraviesaRadial234 + ";" + viraje.radialDVOR);
                             }

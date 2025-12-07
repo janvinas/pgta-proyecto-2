@@ -430,13 +430,13 @@ namespace AsterixViewer.Projecte3
                     // ✍️ Escribir el archivo (CSV con extensión XLSX)
                     using (var writer1 = new StreamWriter(filePath1, false, Encoding.UTF8))
                     {
-                        writer1.WriteLine("Callsign;ATOT;SID;Estela;Tipo Aeronave;Runway;IAS en THR;Altitud en THR;Time en THR;" +
+                        writer1.WriteLine("IdentificacionDESP;Callsign;ATOT;SID;Estela;Tipo Aeronave;Runway;IAS en THR;Altitud en THR;Time en THR;" +
                             "Pasa por la zona definida de THR?;LAT;LON;Distancia a THR;Correspondencia IAS");
                         foreach (THRAltitudVelocidad thr in listaTHRAltitudVelocidad)
                         {
                             try
                             {
-                                writer1.WriteLine(thr.vuelo.codigoVuelo + ";" + thr.vuelo.ATOT + ";" + thr.vuelo.sid + ";" + thr.vuelo.estela + ";" +
+                                writer1.WriteLine(thr.vuelo.identificadorDeparture + ";" + thr.vuelo.codigoVuelo + ";" + thr.vuelo.ATOT + ";" + thr.vuelo.sid + ";" + thr.vuelo.estela + ";" +
                                     thr.vuelo.tipo_aeronave + ";" + thr.vuelo.pistadesp + ";" + thr.IAS + ";" + thr.altitud + ";" + thr.time + ";" + 
                                     thr.pasaPorTHR + ";" + thr.lat + ";" + thr.lon + ";" + thr.distance2THR + ";" + thr.IAScorrespondance);
                             }
@@ -467,6 +467,7 @@ namespace AsterixViewer.Projecte3
             }
         }
 
+        /*
         public void GuardarNoInterpolaciones(List<Vuelo> vuelosOrdenados)
         {
             // csv como nos piden
@@ -602,5 +603,7 @@ namespace AsterixViewer.Projecte3
                 );
             }
         }
+        */
+
     }
 }

@@ -95,12 +95,12 @@ namespace AsterixViewer.Projecte3
                     // ✍️ Escribir el archivo (CSV con extensión XLSX)
                     using (var writer1 = new StreamWriter(filePath1, false, Encoding.UTF8))
                     {
-                        writer1.WriteLine("Callsign;ATOT;Time DEP 0,5NM THR;SID;Estela;Tipo Aeronave;Distancia Minima al Sonometro;Tiempo de Deteccion de Distancia Minima");
+                        writer1.WriteLine("IdentificacionDESP;Callsign;ATOT;Time DEP 0,5NM THR;SID;Estela;Tipo Aeronave;Distancia Minima al Sonometro;Tiempo de Deteccion de Distancia Minima");
                         foreach (DistanciaMinimaSonometro distMinSonometro in listaDistanciasMinimasSonometro)
                         {
                             try
                             {
-                                writer1.WriteLine(distMinSonometro.vuelo.codigoVuelo + ";" + distMinSonometro.vuelo.ATOT + ";" +
+                                writer1.WriteLine(distMinSonometro.vuelo.identificadorDeparture + ";" + distMinSonometro.vuelo.codigoVuelo + ";" + distMinSonometro.vuelo.ATOT + ";" +
                                     distMinSonometro.vuelo.timeDEP_05NM + ";" + distMinSonometro.vuelo.sid + ";" + distMinSonometro.vuelo.estela + ";" +
                                     distMinSonometro.vuelo.tipo_aeronave + ";" + distMinSonometro.distMinSonometro / 1852 + ";" +
                                     distMinSonometro.timeMinSonometro);
