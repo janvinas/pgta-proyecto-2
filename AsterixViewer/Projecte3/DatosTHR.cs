@@ -144,7 +144,7 @@ namespace AsterixViewer.Projecte3
                     double alt1, alt2, alt3;
 
                     // Usamos IVV si está disponible
-                    if (vuelo.mensajesVuelo[i][colAST_IVVftpm] != "N/A")
+                    if (vuelo.mensajesVuelo[i][colAST_IVVftpm] != "N/A" && vuelo.mensajesVuelo[i][colAST_IVVftpm] != "NV")
                     {
                         double ivv = double.Parse(vuelo.mensajesVuelo[i][colAST_IVVftpm]);
                         alt1 = alt0 + ivv / 60.0;
@@ -159,8 +159,8 @@ namespace AsterixViewer.Projecte3
                         alt3 = alt0 + (alt4 - alt0) * 0.75;
                     }
 
-                    double ias0 = vuelo.mensajesVuelo[i][colAST_IAS] != "N/A" ? double.Parse(vuelo.mensajesVuelo[i][colAST_IAS]) : double.NaN;
-                    double ias4 = vuelo.mensajesVuelo[i + 1][colAST_IAS] != "N/A" ? double.Parse(vuelo.mensajesVuelo[i + 1][colAST_IAS]) : double.NaN;
+                    double ias0 = (vuelo.mensajesVuelo[i][colAST_IAS] != "N/A" && vuelo.mensajesVuelo[i][colAST_IAS] != "NV") ? double.Parse(vuelo.mensajesVuelo[i][colAST_IAS]) : double.NaN;
+                    double ias4 = (vuelo.mensajesVuelo[i + 1][colAST_IAS] != "N/A" && vuelo.mensajesVuelo[i + 1][colAST_IAS] != "NV" ) ? double.Parse(vuelo.mensajesVuelo[i + 1][colAST_IAS]) : double.NaN;
 
                     double posx0 = double.Parse(vuelo.mensajesVuelo[i][vuelo.mensajesVuelo[i].Count + colAST_posx]);
                     double posx4 = double.Parse(vuelo.mensajesVuelo[i + 1][vuelo.mensajesVuelo[i + 1].Count + colAST_posx]);
@@ -199,7 +199,7 @@ namespace AsterixViewer.Projecte3
                             lon.ToString(),            // LON
                             altFt.ToString(),          // Altitud ft
                             altM.ToString(),           // Altitud m
-                            double.IsNaN(ias) ? "N/A" : ias.ToString(), // IAS
+                            (vuelo.mensajesVuelo[i][colAST_IAS] == "N/A" || vuelo.mensajesVuelo[i][colAST_IAS] == "NV" || double.IsNaN(ias)) ? "N/A" : ias.ToString(),      // IAS
                             posx.ToString(),           // posX interpolado
                             posy.ToString()            // posY interpolado
                         };
@@ -215,18 +215,7 @@ namespace AsterixViewer.Projecte3
         public List<THRAltitudVelocidad> CalcularAltitudVelocidadTHR(List<List<string>> datosAsterix, List<Vuelo> vuelosOrdenados, 
             List<THRAltitudVelocidad> listaTHRAltitudVelocidad)
         {
-            // Interpolar1segundo(vuelosOrdenados);
-
-            int colAST_time = 3; 
-            int colAST_lat = 4; 
-            int colAST_lon = 5; 
-            int colAST_altitudeft = 7;
-            int colAST_altitudm = 6; 
-            int colAST_IAS = 21; 
-            int colAST_IVVftpm = 24;
-
-            int colAST_posx = vuelosOrdenados[0].mensajesVuelo[0].Count - 2;
-            int colAST_posy = vuelosOrdenados[0].mensajesVuelo[0].Count - 1;
+            bool interpol = false;
 
             CalcularPuntosTHR();
 
@@ -250,146 +239,311 @@ namespace AsterixViewer.Projecte3
             Point pointTHR_24L = new Point(THR_24L.U, THR_24L.V);
 
             double distanceVal;
-            string distanceString;
             double distanceNext;
 
-            foreach (Vuelo vuelo in vuelosOrdenados)
+
+            if (interpol)
             {
-                THRAltitudVelocidad thr_AltitudVelocidad = new THRAltitudVelocidad();
-                thr_AltitudVelocidad.vuelo = vuelo;
+                Interpolar1segundo(vuelosOrdenados);
+                int colAST_time = 0;
+                int colAST_lat = 1;
+                int colAST_lon = 2;
+                int colAST_altitudeft = 3;
+                int colAST_altitudm = 4;
+                int colAST_IAS = 5;
 
-                dentroZona = false;
+                int colAST_posx = 6;
+                int colAST_posy = 7;
 
-                // Si despega por la 24L -> Pasa por THR_06R
-                if (vuelo.pistadesp == "LEBL-24L")
+                foreach (Vuelo vuelo in vuelosOrdenados)
                 {
-                    for(int i = 0; i < vuelo.mensajesVuelo.Count; i++)
+                    THRAltitudVelocidad thr_AltitudVelocidad = new THRAltitudVelocidad();
+                    thr_AltitudVelocidad.vuelo = vuelo;
+
+                    dentroZona = false;
+
+                    // Si despega por la 24L -> Pasa por THR_06R
+                    if (vuelo.pistadesp == "LEBL-24L")
                     {
-                        pointMSG = new Point(Convert.ToDouble(vuelo.mensajesVuelo[i][colAST_posx]), Convert.ToDouble(vuelo.mensajesVuelo[i][colAST_posy]));
-                        dentroZona = PuntoEnZonaDeteccion(pointMSG, zona06R);
-
-                        if (dentroZona)
+                        for (int i = 0; i < vuelo.mensajesVueloInterpolados.Count; i++)
                         {
-                            for (int j = i; j < vuelo.mensajesVuelo.Count - 1; j++)
+                            pointMSG = new Point(Convert.ToDouble(vuelo.mensajesVueloInterpolados[i][colAST_posx]), Convert.ToDouble(vuelo.mensajesVueloInterpolados[i][colAST_posy]));
+                            dentroZona = PuntoEnZonaDeteccion(pointMSG, zona06R);
+
+                            if (dentroZona)
                             {
-                                pointMSGnext = new Point(Convert.ToDouble(vuelo.mensajesVuelo[j+1][colAST_posx]), Convert.ToDouble(vuelo.mensajesVuelo[j + 1][colAST_posy]));
-                                distanceVal = CalcularDistanciaEntrePuntos(pointMSG,pointTHR_06R);
-                                distanceNext = CalcularDistanciaEntrePuntos(pointMSGnext, pointTHR_06R);
-
-                                if (distanceNext > distanceVal)
+                                for (int j = i; j < vuelo.mensajesVueloInterpolados.Count - 1; j++)
                                 {
-                                    thr_AltitudVelocidad.time = vuelo.mensajesVuelo[j][colAST_time];
-                                    if (vuelo.mensajesVuelo[j][colAST_IAS] != "N/A")
-                                    {
-                                        thr_AltitudVelocidad.IAS = vuelo.mensajesVuelo[j][colAST_IAS];
-                                        thr_AltitudVelocidad.IAScorrespondance = "0";
-                                    }
-                                    else
-                                    {
-                                        // Todo esto es para mirar donde queda la IAS más cercana no "N/A"
-                                        int max = vuelo.mensajesVuelo.Count;
-                                        int maxOffset = Math.Min(j, max - j);
+                                    pointMSGnext = new Point(Convert.ToDouble(vuelo.mensajesVueloInterpolados[j + 1][colAST_posx]), Convert.ToDouble(vuelo.mensajesVueloInterpolados[j + 1][colAST_posy]));
+                                    distanceVal = CalcularDistanciaEntrePuntos(pointMSG, pointTHR_06R);
+                                    distanceNext = CalcularDistanciaEntrePuntos(pointMSGnext, pointTHR_06R);
 
-                                        for (int offset = 1; offset <= maxOffset; offset++)
+                                    if (distanceNext > distanceVal)
+                                    {
+                                        thr_AltitudVelocidad.time = vuelo.mensajesVueloInterpolados[j][colAST_time];
+                                        if (vuelo.mensajesVueloInterpolados[j][colAST_IAS] != "N/A")
                                         {
-                                            // mirar hacia adelante
-                                            int adelante = j + offset;
-                                            if (vuelo.mensajesVuelo[adelante][colAST_IAS] != "N/A")
-                                            {
-                                                thr_AltitudVelocidad.IAS = vuelo.mensajesVuelo[adelante][colAST_IAS];
-                                                thr_AltitudVelocidad.IAScorrespondance = $"+{offset}";
-                                                break;
-                                            }
+                                            thr_AltitudVelocidad.IAS = vuelo.mensajesVueloInterpolados[j][colAST_IAS];
+                                            thr_AltitudVelocidad.IAScorrespondance = "0";
+                                        }
+                                        else
+                                        {
+                                            // Todo esto es para mirar donde queda la IAS más cercana no "N/A"
+                                            int max = vuelo.mensajesVueloInterpolados.Count;
+                                            int maxOffset = Math.Min(j, max - j);
 
-                                            // mirar hacia atrás
-                                            int atras = j - offset;
-                                            if (vuelo.mensajesVuelo[atras][colAST_IAS] != "N/A")
+                                            for (int offset = 1; offset <= maxOffset; offset++)
                                             {
-                                                thr_AltitudVelocidad.IAS = vuelo.mensajesVuelo[atras][colAST_IAS];
-                                                thr_AltitudVelocidad.IAScorrespondance = $"-{offset}";
-                                                break;
+                                                // mirar hacia adelante
+                                                int adelante = j + offset;
+                                                if (vuelo.mensajesVueloInterpolados[adelante][colAST_IAS] != "N/A")
+                                                {
+                                                    thr_AltitudVelocidad.IAS = vuelo.mensajesVueloInterpolados[adelante][colAST_IAS];
+                                                    thr_AltitudVelocidad.IAScorrespondance = $"+{offset}";
+                                                    break;
+                                                }
+
+                                                // mirar hacia atrás
+                                                int atras = j - offset;
+                                                if (vuelo.mensajesVueloInterpolados[atras][colAST_IAS] != "N/A")
+                                                {
+                                                    thr_AltitudVelocidad.IAS = vuelo.mensajesVueloInterpolados[atras][colAST_IAS];
+                                                    thr_AltitudVelocidad.IAScorrespondance = $"-{offset}";
+                                                    break;
+                                                }
                                             }
                                         }
+                                        thr_AltitudVelocidad.altitud = vuelo.mensajesVueloInterpolados[j][colAST_altitudeft];
+                                        thr_AltitudVelocidad.lat = vuelo.mensajesVueloInterpolados[j][colAST_lat];
+                                        thr_AltitudVelocidad.lon = vuelo.mensajesVueloInterpolados[j][colAST_lon];
+                                        thr_AltitudVelocidad.distance2THR = distanceVal.ToString();
+                                        break;
                                     }
-                                    thr_AltitudVelocidad.altitud = vuelo.mensajesVuelo[j][colAST_altitudeft];
-                                    thr_AltitudVelocidad.lat = vuelo.mensajesVuelo[j][colAST_lat];
-                                    thr_AltitudVelocidad.lon = vuelo.mensajesVuelo[j][colAST_lon];
-                                    thr_AltitudVelocidad.distance2THR = distanceVal.ToString();
-                                    break;
                                 }
-                            }
 
-                            break;
+                                break;
+                            }
                         }
                     }
-                }
 
-                // Si despega por la 06R -> Pasa por THR_24L
-                else if (vuelo.pistadesp == "LEBL-06R")
-                {
-                    for (int i = 0; i < vuelo.mensajesVuelo.Count; i++)
+                    // Si despega por la 06R -> Pasa por THR_24L
+                    else if (vuelo.pistadesp == "LEBL-06R")
                     {
-                        pointMSG = new Point(Convert.ToDouble(vuelo.mensajesVuelo[i][colAST_posx]), Convert.ToDouble(vuelo.mensajesVuelo[i][colAST_posy]));
-                        dentroZona = PuntoEnZonaDeteccion(pointMSG, zona24L);
-
-                        if (dentroZona)
+                        for (int i = 0; i < vuelo.mensajesVueloInterpolados.Count; i++)
                         {
-                            for (int j = i; j < vuelo.mensajesVuelo.Count - 1; j++)
+                            pointMSG = new Point(Convert.ToDouble(vuelo.mensajesVueloInterpolados[i][colAST_posx]), Convert.ToDouble(vuelo.mensajesVueloInterpolados[i][colAST_posy]));
+                            dentroZona = PuntoEnZonaDeteccion(pointMSG, zona24L);
+
+                            if (dentroZona)
                             {
-                                pointMSGnext = new Point(Convert.ToDouble(vuelo.mensajesVuelo[j + 1][colAST_posx]), Convert.ToDouble(vuelo.mensajesVuelo[j + 1][colAST_posy]));
-                                distanceVal = CalcularDistanciaEntrePuntos(pointMSG, pointTHR_24L);
-                                distanceNext = CalcularDistanciaEntrePuntos(pointMSGnext, pointTHR_24L);
-
-                                if (distanceNext > distanceVal)
+                                for (int j = i; j < vuelo.mensajesVueloInterpolados.Count - 1; j++)
                                 {
-                                    thr_AltitudVelocidad.time = vuelo.mensajesVuelo[j][colAST_time];
-                                    if (vuelo.mensajesVuelo[j][colAST_IAS] != "N/A")
-                                    {
-                                        thr_AltitudVelocidad.IAS = vuelo.mensajesVuelo[j][colAST_IAS];
-                                        thr_AltitudVelocidad.IAScorrespondance = "0";
-                                    }
-                                    else
-                                    {
-                                        // Todo esto es para mirar donde queda la IAS más cercana no "N/A"
-                                        int max = vuelo.mensajesVuelo.Count;
-                                        int maxOffset = Math.Min(j, max - j);
+                                    pointMSGnext = new Point(Convert.ToDouble(vuelo.mensajesVueloInterpolados[j + 1][colAST_posx]), Convert.ToDouble(vuelo.mensajesVueloInterpolados[j + 1][colAST_posy]));
+                                    distanceVal = CalcularDistanciaEntrePuntos(pointMSG, pointTHR_24L);
+                                    distanceNext = CalcularDistanciaEntrePuntos(pointMSGnext, pointTHR_24L);
 
-                                        for (int offset = 1; offset <= maxOffset; offset++)
+                                    if (distanceNext > distanceVal)
+                                    {
+                                        thr_AltitudVelocidad.time = vuelo.mensajesVueloInterpolados[j][colAST_time];
+                                        if (vuelo.mensajesVueloInterpolados[j][colAST_IAS] != "N/A")
                                         {
-                                            // mirar hacia adelante
-                                            int adelante = j + offset;
-                                            if (vuelo.mensajesVuelo[adelante][colAST_IAS] != "N/A")
-                                            {
-                                                thr_AltitudVelocidad.IAS = vuelo.mensajesVuelo[adelante][colAST_IAS];
-                                                thr_AltitudVelocidad.IAScorrespondance = $"+{offset}";
-                                                break;
-                                            }
+                                            thr_AltitudVelocidad.IAS = vuelo.mensajesVueloInterpolados[j][colAST_IAS];
+                                            thr_AltitudVelocidad.IAScorrespondance = "0";
+                                        }
+                                        else
+                                        {
+                                            // Todo esto es para mirar donde queda la IAS más cercana no "N/A"
+                                            int max = vuelo.mensajesVueloInterpolados.Count;
+                                            int maxOffset = Math.Min(j, max - j);
 
-                                            // mirar hacia atrás
-                                            int atras = j - offset;
-                                            if (vuelo.mensajesVuelo[atras][colAST_IAS] != "N/A")
+                                            for (int offset = 1; offset <= maxOffset; offset++)
                                             {
-                                                thr_AltitudVelocidad.IAS = vuelo.mensajesVuelo[atras][colAST_IAS];
-                                                thr_AltitudVelocidad.IAScorrespondance = $"-{offset}";
-                                                break;
+                                                // mirar hacia adelante
+                                                int adelante = j + offset;
+                                                if (vuelo.mensajesVueloInterpolados[adelante][colAST_IAS] != "N/A")
+                                                {
+                                                    thr_AltitudVelocidad.IAS = vuelo.mensajesVueloInterpolados[adelante][colAST_IAS];
+                                                    thr_AltitudVelocidad.IAScorrespondance = $"+{offset}";
+                                                    break;
+                                                }
+
+                                                // mirar hacia atrás
+                                                int atras = j - offset;
+                                                if (vuelo.mensajesVueloInterpolados[atras][colAST_IAS] != "N/A")
+                                                {
+                                                    thr_AltitudVelocidad.IAS = vuelo.mensajesVueloInterpolados[atras][colAST_IAS];
+                                                    thr_AltitudVelocidad.IAScorrespondance = $"-{offset}";
+                                                    break;
+                                                }
                                             }
                                         }
+                                        thr_AltitudVelocidad.altitud = vuelo.mensajesVueloInterpolados[j][colAST_altitudeft];
+                                        thr_AltitudVelocidad.lat = vuelo.mensajesVueloInterpolados[j][colAST_lat];
+                                        thr_AltitudVelocidad.lon = vuelo.mensajesVueloInterpolados[j][colAST_lon];
+                                        thr_AltitudVelocidad.distance2THR = distanceVal.ToString();
+                                        break;
                                     }
-                                    thr_AltitudVelocidad.altitud = vuelo.mensajesVuelo[j][colAST_altitudeft];
-                                    thr_AltitudVelocidad.lat = vuelo.mensajesVuelo[j][colAST_lat];
-                                    thr_AltitudVelocidad.lon = vuelo.mensajesVuelo[j][colAST_lon];
-                                    thr_AltitudVelocidad.distance2THR = distanceVal.ToString();
-                                    break;
                                 }
-                            }
 
-                            break;
+                                break;
+                            }
                         }
                     }
-                }
 
-                thr_AltitudVelocidad.pasaPorTHR = dentroZona;
-                listaTHRAltitudVelocidad.Add(thr_AltitudVelocidad);
+                    thr_AltitudVelocidad.pasaPorTHR = dentroZona;
+                    listaTHRAltitudVelocidad.Add(thr_AltitudVelocidad);
+                }
+            }
+            else
+            {
+                int colAST_time = 3;
+                int colAST_lat = 4;
+                int colAST_lon = 5;
+                int colAST_altitudeft = 7;
+                int colAST_altitudm = 6;
+                int colAST_IAS = 21;
+
+                int colAST_posx = vuelosOrdenados[0].mensajesVuelo[0].Count - 2;
+                int colAST_posy = vuelosOrdenados[0].mensajesVuelo[0].Count - 1;
+
+                foreach (Vuelo vuelo in vuelosOrdenados)
+                {
+                    THRAltitudVelocidad thr_AltitudVelocidad = new THRAltitudVelocidad();
+                    thr_AltitudVelocidad.vuelo = vuelo;
+
+                    dentroZona = false;
+
+                    // Si despega por la 24L -> Pasa por THR_06R
+                    if (vuelo.pistadesp == "LEBL-24L")
+                    {
+                        for (int i = 0; i < vuelo.mensajesVuelo.Count; i++)
+                        {
+                            pointMSG = new Point(Convert.ToDouble(vuelo.mensajesVuelo[i][colAST_posx]), Convert.ToDouble(vuelo.mensajesVuelo[i][colAST_posy]));
+                            dentroZona = PuntoEnZonaDeteccion(pointMSG, zona06R);
+
+                            if (dentroZona)
+                            {
+                                for (int j = i; j < vuelo.mensajesVuelo.Count - 1; j++)
+                                {
+                                    pointMSGnext = new Point(Convert.ToDouble(vuelo.mensajesVuelo[j + 1][colAST_posx]), Convert.ToDouble(vuelo.mensajesVuelo[j + 1][colAST_posy]));
+                                    distanceVal = CalcularDistanciaEntrePuntos(pointMSG, pointTHR_06R);
+                                    distanceNext = CalcularDistanciaEntrePuntos(pointMSGnext, pointTHR_06R);
+
+                                    if (distanceNext > distanceVal)
+                                    {
+                                        thr_AltitudVelocidad.time = vuelo.mensajesVuelo[j][colAST_time];
+                                        if (vuelo.mensajesVuelo[j][colAST_IAS] != "N/A")
+                                        {
+                                            thr_AltitudVelocidad.IAS = vuelo.mensajesVuelo[j][colAST_IAS];
+                                            thr_AltitudVelocidad.IAScorrespondance = "0";
+                                        }
+                                        else
+                                        {
+                                            // Todo esto es para mirar donde queda la IAS más cercana no "N/A"
+                                            int max = vuelo.mensajesVuelo.Count;
+                                            int maxOffset = Math.Min(j, max - j);
+
+                                            for (int offset = 1; offset <= maxOffset; offset++)
+                                            {
+                                                // mirar hacia adelante
+                                                int adelante = j + offset;
+                                                if (vuelo.mensajesVuelo[adelante][colAST_IAS] != "N/A")
+                                                {
+                                                    thr_AltitudVelocidad.IAS = vuelo.mensajesVuelo[adelante][colAST_IAS];
+                                                    thr_AltitudVelocidad.IAScorrespondance = $"+{offset}";
+                                                    break;
+                                                }
+
+                                                // mirar hacia atrás
+                                                int atras = j - offset;
+                                                if (vuelo.mensajesVuelo[atras][colAST_IAS] != "N/A")
+                                                {
+                                                    thr_AltitudVelocidad.IAS = vuelo.mensajesVuelo[atras][colAST_IAS];
+                                                    thr_AltitudVelocidad.IAScorrespondance = $"-{offset}";
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                        thr_AltitudVelocidad.altitud = vuelo.mensajesVuelo[j][colAST_altitudeft];
+                                        thr_AltitudVelocidad.lat = vuelo.mensajesVuelo[j][colAST_lat];
+                                        thr_AltitudVelocidad.lon = vuelo.mensajesVuelo[j][colAST_lon];
+                                        thr_AltitudVelocidad.distance2THR = distanceVal.ToString();
+                                        break;
+                                    }
+                                }
+
+                                break;
+                            }
+                        }
+                    }
+
+                    // Si despega por la 06R -> Pasa por THR_24L
+                    else if (vuelo.pistadesp == "LEBL-06R")
+                    {
+                        for (int i = 0; i < vuelo.mensajesVuelo.Count; i++)
+                        {
+                            pointMSG = new Point(Convert.ToDouble(vuelo.mensajesVuelo[i][colAST_posx]), Convert.ToDouble(vuelo.mensajesVuelo[i][colAST_posy]));
+                            dentroZona = PuntoEnZonaDeteccion(pointMSG, zona24L);
+
+                            if (dentroZona)
+                            {
+                                for (int j = i; j < vuelo.mensajesVuelo.Count - 1; j++)
+                                {
+                                    pointMSGnext = new Point(Convert.ToDouble(vuelo.mensajesVuelo[j + 1][colAST_posx]), Convert.ToDouble(vuelo.mensajesVuelo[j + 1][colAST_posy]));
+                                    distanceVal = CalcularDistanciaEntrePuntos(pointMSG, pointTHR_24L);
+                                    distanceNext = CalcularDistanciaEntrePuntos(pointMSGnext, pointTHR_24L);
+
+                                    if (distanceNext > distanceVal)
+                                    {
+                                        thr_AltitudVelocidad.time = vuelo.mensajesVuelo[j][colAST_time];
+                                        if (vuelo.mensajesVuelo[j][colAST_IAS] != "N/A")
+                                        {
+                                            thr_AltitudVelocidad.IAS = vuelo.mensajesVuelo[j][colAST_IAS];
+                                            thr_AltitudVelocidad.IAScorrespondance = "0";
+                                        }
+                                        else
+                                        {
+                                            // Todo esto es para mirar donde queda la IAS más cercana no "N/A"
+                                            int max = vuelo.mensajesVuelo.Count;
+                                            int maxOffset = Math.Min(j, max - j);
+
+                                            for (int offset = 1; offset <= maxOffset; offset++)
+                                            {
+                                                // mirar hacia adelante
+                                                int adelante = j + offset;
+                                                if (vuelo.mensajesVuelo[adelante][colAST_IAS] != "N/A")
+                                                {
+                                                    thr_AltitudVelocidad.IAS = vuelo.mensajesVuelo[adelante][colAST_IAS];
+                                                    thr_AltitudVelocidad.IAScorrespondance = $"+{offset}";
+                                                    break;
+                                                }
+
+                                                // mirar hacia atrás
+                                                int atras = j - offset;
+                                                if (vuelo.mensajesVuelo[atras][colAST_IAS] != "N/A")
+                                                {
+                                                    thr_AltitudVelocidad.IAS = vuelo.mensajesVuelo[atras][colAST_IAS];
+                                                    thr_AltitudVelocidad.IAScorrespondance = $"-{offset}";
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                        thr_AltitudVelocidad.altitud = vuelo.mensajesVuelo[j][colAST_altitudeft];
+                                        thr_AltitudVelocidad.lat = vuelo.mensajesVuelo[j][colAST_lat];
+                                        thr_AltitudVelocidad.lon = vuelo.mensajesVuelo[j][colAST_lon];
+                                        thr_AltitudVelocidad.distance2THR = distanceVal.ToString();
+                                        break;
+                                    }
+                                }
+
+                                break;
+                            }
+                        }
+                    }
+
+                    thr_AltitudVelocidad.pasaPorTHR = dentroZona;
+                    listaTHRAltitudVelocidad.Add(thr_AltitudVelocidad);
+                }
             }
 
             return listaTHRAltitudVelocidad;
