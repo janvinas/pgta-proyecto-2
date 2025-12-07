@@ -18,6 +18,7 @@ namespace AsterixViewer.Projecte3
     {
         public Vuelo vuelo;
         public string IAS;
+        public string IAScorrespondance;
         public string altitud;
         public string time;
         public bool pasaPorTHR;
@@ -278,7 +279,38 @@ namespace AsterixViewer.Projecte3
                                 if (distanceNext > distanceVal)
                                 {
                                     thr_AltitudVelocidad.time = vuelo.mensajesVuelo[j][colAST_time];
-                                    thr_AltitudVelocidad.IAS = vuelo.mensajesVuelo[j][colAST_IAS];
+                                    if (vuelo.mensajesVuelo[j][colAST_IAS] != "N/A")
+                                    {
+                                        thr_AltitudVelocidad.IAS = vuelo.mensajesVuelo[j][colAST_IAS];
+                                        thr_AltitudVelocidad.IAScorrespondance = "0";
+                                    }
+                                    else
+                                    {
+                                        // Todo esto es para mirar donde queda la IAS más cercana no "N/A"
+                                        int max = vuelo.mensajesVuelo.Count;
+                                        int maxOffset = Math.Min(j, max - j);
+
+                                        for (int offset = 1; offset <= maxOffset; offset++)
+                                        {
+                                            // mirar hacia adelante
+                                            int adelante = j + offset;
+                                            if (vuelo.mensajesVuelo[adelante][colAST_IAS] != "N/A")
+                                            {
+                                                thr_AltitudVelocidad.IAS = vuelo.mensajesVuelo[adelante][colAST_IAS];
+                                                thr_AltitudVelocidad.IAScorrespondance = $"+{offset}";
+                                                break;
+                                            }
+
+                                            // mirar hacia atrás
+                                            int atras = j - offset;
+                                            if (vuelo.mensajesVuelo[atras][colAST_IAS] != "N/A")
+                                            {
+                                                thr_AltitudVelocidad.IAS = vuelo.mensajesVuelo[atras][colAST_IAS];
+                                                thr_AltitudVelocidad.IAScorrespondance = $"-{offset}";
+                                                break;
+                                            }
+                                        }
+                                    }
                                     thr_AltitudVelocidad.altitud = vuelo.mensajesVuelo[j][colAST_altitudeft];
                                     thr_AltitudVelocidad.lat = vuelo.mensajesVuelo[j][colAST_lat];
                                     thr_AltitudVelocidad.lon = vuelo.mensajesVuelo[j][colAST_lon];
@@ -311,7 +343,38 @@ namespace AsterixViewer.Projecte3
                                 if (distanceNext > distanceVal)
                                 {
                                     thr_AltitudVelocidad.time = vuelo.mensajesVuelo[j][colAST_time];
-                                    thr_AltitudVelocidad.IAS = vuelo.mensajesVuelo[j][colAST_IAS];
+                                    if (vuelo.mensajesVuelo[j][colAST_IAS] != "N/A")
+                                    {
+                                        thr_AltitudVelocidad.IAS = vuelo.mensajesVuelo[j][colAST_IAS];
+                                        thr_AltitudVelocidad.IAScorrespondance = "0";
+                                    }
+                                    else
+                                    {
+                                        // Todo esto es para mirar donde queda la IAS más cercana no "N/A"
+                                        int max = vuelo.mensajesVuelo.Count;
+                                        int maxOffset = Math.Min(j, max - j);
+
+                                        for (int offset = 1; offset <= maxOffset; offset++)
+                                        {
+                                            // mirar hacia adelante
+                                            int adelante = j + offset;
+                                            if (vuelo.mensajesVuelo[adelante][colAST_IAS] != "N/A")
+                                            {
+                                                thr_AltitudVelocidad.IAS = vuelo.mensajesVuelo[adelante][colAST_IAS];
+                                                thr_AltitudVelocidad.IAScorrespondance = $"+{offset}";
+                                                break;
+                                            }
+
+                                            // mirar hacia atrás
+                                            int atras = j - offset;
+                                            if (vuelo.mensajesVuelo[atras][colAST_IAS] != "N/A")
+                                            {
+                                                thr_AltitudVelocidad.IAS = vuelo.mensajesVuelo[atras][colAST_IAS];
+                                                thr_AltitudVelocidad.IAScorrespondance = $"-{offset}";
+                                                break;
+                                            }
+                                        }
+                                    }
                                     thr_AltitudVelocidad.altitud = vuelo.mensajesVuelo[j][colAST_altitudeft];
                                     thr_AltitudVelocidad.lat = vuelo.mensajesVuelo[j][colAST_lat];
                                     thr_AltitudVelocidad.lon = vuelo.mensajesVuelo[j][colAST_lon];
@@ -353,14 +416,14 @@ namespace AsterixViewer.Projecte3
                     using (var writer1 = new StreamWriter(filePath1, false, Encoding.UTF8))
                     {
                         writer1.WriteLine("Callsign;ATOT;SID;Estela;Tipo Aeronave;Runway;IAS en THR;Altitud en THR;Time en THR;" +
-                            "Pasa por la zona definida de THR?;LAT;LON;Distancia a THR");
+                            "Pasa por la zona definida de THR?;LAT;LON;Distancia a THR;Correspondencia IAS");
                         foreach (THRAltitudVelocidad thr in listaTHRAltitudVelocidad)
                         {
                             try
                             {
                                 writer1.WriteLine(thr.vuelo.codigoVuelo + ";" + thr.vuelo.ATOT + ";" + thr.vuelo.sid + ";" + thr.vuelo.estela + ";" +
                                     thr.vuelo.tipo_aeronave + ";" + thr.vuelo.pistadesp + ";" + thr.IAS + ";" + thr.altitud + ";" + thr.time + ";" + 
-                                    thr.pasaPorTHR + ";" + thr.lat + ";" + thr.lon + ";" + thr.distance2THR);
+                                    thr.pasaPorTHR + ";" + thr.lat + ";" + thr.lon + ";" + thr.distance2THR + ";" + thr.IAScorrespondance);
                             }
                             catch { }
                         }

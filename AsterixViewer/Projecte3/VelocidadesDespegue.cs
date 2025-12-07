@@ -13,8 +13,10 @@ namespace AsterixViewer.Projecte3
         public class DatosAltitud
         {
             public string IAS;
+            public string IAScorrespondance;
             public string Time;
             public string Altura;
+
         }
 
         public class IASaltitudes
@@ -61,7 +63,39 @@ namespace AsterixViewer.Projecte3
                         if (Math.Abs(valorHft_prev - target_altitude) < Math.Abs(valorHft - target_altitude)) index = i - 1;
                         else index = i;
 
-                        iasAltitudes.data850ft.IAS = vuelo.mensajesVuelo[index][colIAS];
+                        if (vuelo.mensajesVuelo[index][colIAS] != "N/A")
+                        {
+                            iasAltitudes.data850ft.IAS = vuelo.mensajesVuelo[index][colIAS];
+                            iasAltitudes.data850ft.IAScorrespondance = "0";
+                        }
+                        else
+                        {
+                            // Todo esto es para mirar donde queda la IAS más cercana no "N/A"
+                            int max = vuelo.mensajesVuelo.Count;
+                            int maxOffset = Math.Min(index, max - index);
+
+                            for (int offset = 1; offset <= maxOffset; offset++)
+                            {
+                                // mirar hacia adelante
+                                int adelante = index + offset;
+                                if (vuelo.mensajesVuelo[adelante][colIAS] != "N/A")
+                                {
+                                    iasAltitudes.data850ft.IAS = vuelo.mensajesVuelo[adelante][colIAS];
+                                    iasAltitudes.data850ft.IAScorrespondance = $"+{offset}";
+                                    break;
+                                }
+
+                                // mirar hacia atrás
+                                int atras = index - offset;
+                                if (vuelo.mensajesVuelo[atras][colIAS] != "N/A")
+                                {
+                                    iasAltitudes.data850ft.IAS = vuelo.mensajesVuelo[atras][colIAS];
+                                    iasAltitudes.data850ft.IAScorrespondance = $"-{offset}";
+                                    break;
+                                }
+                            }
+                        }
+
                         iasAltitudes.data850ft.Time = vuelo.mensajesVuelo[index][colTIME];
                         iasAltitudes.data850ft.Altura = vuelo.mensajesVuelo[index][colHft];
 
@@ -83,7 +117,39 @@ namespace AsterixViewer.Projecte3
                         if (Math.Abs(valorHft_prev - target_altitude) < Math.Abs(valorHft - target_altitude)) index = j - 1;
                         else index = j;
 
-                        iasAltitudes.data1500ft.IAS = vuelo.mensajesVuelo[index][colIAS];
+                        if (vuelo.mensajesVuelo[index][colIAS] != "N/A")
+                        {
+                            iasAltitudes.data1500ft.IAS = vuelo.mensajesVuelo[index][colIAS];
+                            iasAltitudes.data1500ft.IAScorrespondance = "0";
+                        }
+                        else
+                        {
+                            // Todo esto es para mirar donde queda la IAS más cercana no "N/A"
+                            int max = vuelo.mensajesVuelo.Count;
+                            int maxOffset = Math.Min(index, max - index);
+
+                            for (int offset = 1; offset <= maxOffset; offset++)
+                            {
+                                // mirar hacia adelante
+                                int adelante = index + offset;
+                                if (vuelo.mensajesVuelo[adelante][colIAS] != "N/A")
+                                {
+                                    iasAltitudes.data1500ft.IAS = vuelo.mensajesVuelo[adelante][colIAS];
+                                    iasAltitudes.data1500ft.IAScorrespondance = $"+{offset}";
+                                    break;
+                                }
+
+                                // mirar hacia atrás
+                                int atras = index - offset;
+                                if (vuelo.mensajesVuelo[atras][colIAS] != "N/A")
+                                {
+                                    iasAltitudes.data1500ft.IAS = vuelo.mensajesVuelo[atras][colIAS];
+                                    iasAltitudes.data1500ft.IAScorrespondance = $"-{offset}";
+                                    break;
+                                }
+                            }
+                        }
+
                         iasAltitudes.data1500ft.Time = vuelo.mensajesVuelo[index][colTIME];
                         iasAltitudes.data1500ft.Altura = vuelo.mensajesVuelo[index][colHft];
 
@@ -104,7 +170,39 @@ namespace AsterixViewer.Projecte3
                         if (Math.Abs(valorHft_prev - target_altitude) < Math.Abs(valorHft - target_altitude)) index = k - 1;
                         else index = k;
 
-                        iasAltitudes.data3500ft.IAS = vuelo.mensajesVuelo[index][colIAS];
+                        if (vuelo.mensajesVuelo[index][colIAS] != "N/A")
+                        {
+                            iasAltitudes.data3500ft.IAS = vuelo.mensajesVuelo[index][colIAS];
+                            iasAltitudes.data3500ft.IAScorrespondance = "0";
+                        }
+                        else
+                        {
+                            // Todo esto es para mirar donde queda la IAS más cercana no "N/A"
+                            int max = vuelo.mensajesVuelo.Count;
+                            int maxOffset = Math.Min(index, max - index);
+
+                            for (int offset = 1; offset <= maxOffset; offset++)
+                            {
+                                // mirar hacia adelante
+                                int adelante = index + offset;
+                                if (vuelo.mensajesVuelo[adelante][colIAS] != "N/A")
+                                {
+                                    iasAltitudes.data3500ft.IAS = vuelo.mensajesVuelo[adelante][colIAS];
+                                    iasAltitudes.data3500ft.IAScorrespondance = $"+{offset}";
+                                    break;
+                                }
+
+                                // mirar hacia atrás
+                                int atras = index - offset;
+                                if (vuelo.mensajesVuelo[atras][colIAS] != "N/A")
+                                {
+                                    iasAltitudes.data3500ft.IAS = vuelo.mensajesVuelo[atras][colIAS];
+                                    iasAltitudes.data3500ft.IAScorrespondance = $"-{offset}";
+                                    break;
+                                }
+                            }
+                        }
+
                         iasAltitudes.data3500ft.Time = vuelo.mensajesVuelo[index][colTIME];
                         iasAltitudes.data3500ft.Altura = vuelo.mensajesVuelo[index][colHft];
 
@@ -138,7 +236,8 @@ namespace AsterixViewer.Projecte3
                     // ✍️ Escribir el archivo (CSV con extensión XLSX)
                     using (var writer1 = new StreamWriter(filePath1, false, Encoding.UTF8))
                     {
-                        writer1.WriteLine("Callsign;ATOT;SID;Estela;Tipo Aeronave;Runway;IAS850ft;time850ft;altitudTomada850ft;IAS1500ft;time1500ft;altitudTomada1500ft;IAS3500ft;time3500ft;altitudTomada3500ft");
+                        writer1.WriteLine("Callsign;ATOT;SID;Estela;Tipo Aeronave;Runway;IAS850ft;time850ft;altitudTomada850ft;IAS1500ft;time1500ft;altitudTomada1500ft;IAS3500ft;time3500ft;altitudTomada3500ft;" +
+                            "IAScorrespondance850ft;IAScorrespondance1500ft;IAScorrespondance3500ft");
                         foreach (IASaltitudes iasAltitudes in listaVelocidadesIASDespegue)
                         {
                             try
@@ -147,7 +246,8 @@ namespace AsterixViewer.Projecte3
                                     iasAltitudes.vuelo.estela + ";" + iasAltitudes.vuelo.tipo_aeronave + ";" + iasAltitudes.vuelo.pistadesp + ";" +
                                     iasAltitudes.data850ft.IAS + ";" + iasAltitudes.data850ft.Time + ";" + iasAltitudes.data850ft.Altura + ";" +
                                     iasAltitudes.data1500ft.IAS + ";" + iasAltitudes.data1500ft.Time + ";" + iasAltitudes.data1500ft.Altura + ";" +
-                                    iasAltitudes.data3500ft.IAS + ";" + iasAltitudes.data3500ft.Time + ";" + iasAltitudes.data3500ft.Altura);
+                                    iasAltitudes.data3500ft.IAS + ";" + iasAltitudes.data3500ft.Time + ";" + iasAltitudes.data3500ft.Altura + ";" + 
+                                    iasAltitudes.data850ft.IAScorrespondance + ";" + iasAltitudes.data1500ft.IAScorrespondance + ";" + iasAltitudes.data3500ft.IAScorrespondance);
                             }
                             catch { }
                         }
