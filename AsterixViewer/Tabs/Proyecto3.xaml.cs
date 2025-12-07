@@ -69,6 +69,7 @@ namespace AsterixViewer.Tabs
         // Clase Vuelo, cada despegue es una instancia, contiene el codigo del avion y la lista de mensajes Asterix que le corresponden
         public class Vuelo
         {
+            public string identificadorDeparture;
             public string codigoVuelo;
             public string horaPV;
             public string estela;
@@ -845,6 +846,7 @@ namespace AsterixViewer.Tabs
                 Vuelo vuelo = new Vuelo();
                 vuelo.codigoVuelo = planVuelo[colPV_callsign];
 
+                vuelo.identificadorDeparture = planVuelo[0];
                 vuelo.horaPV = planVuelo[4];
                 vuelo.tipo_aeronave = planVuelo[6];
                 vuelo.estela = planVuelo[7];
