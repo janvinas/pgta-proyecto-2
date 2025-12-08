@@ -403,8 +403,8 @@ namespace AsterixViewer.Projecte3
                 listaTHRAltitudVelocidad.Add(thr);
             }
 
-            GuardarNoInterpolaciones(vuelosOrdenados);
-            GuardarInterpolaciones(vuelosOrdenados);
+            // GuardarNoInterpolaciones(vuelosOrdenados);
+            // GuardarInterpolaciones(vuelosOrdenados);
 
             return listaTHRAltitudVelocidad;
         }
