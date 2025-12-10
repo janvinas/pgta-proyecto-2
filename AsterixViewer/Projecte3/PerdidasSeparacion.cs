@@ -100,6 +100,7 @@ namespace AsterixViewer.Projecte3
 
             int N = 20;
 
+            // Itero cada vuelo
             for (int i = 0; i < vuelosOrdenados.Count - 1; i++)
             {
                 Vuelo vuelo1 = vuelosOrdenados[i];
@@ -110,6 +111,8 @@ namespace AsterixViewer.Projecte3
                 distanciasDespeguesConsecutivos.vuelo2 = vuelo2;
 
                 int numberOfIteratedMSGvuelo1 = 0;
+
+                // Iterar sobre todos los mensajes Asterix para encontrar las posiciones del vuelo1
                 for (int j = 0; j < datosAsterix.Count - 1; j++)
                 {
                     if (datosAsterix[j][TIcol] == vuelo1.codigoVuelo)

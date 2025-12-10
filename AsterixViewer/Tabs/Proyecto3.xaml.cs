@@ -637,6 +637,8 @@ namespace AsterixViewer.Tabs
 
                     // ------------ QUE HACER CON NITBA ------------
                     var puntosdeseados = new HashSet<string> { "OLOXO" , "NATPI" , "MOPAS" , "GRAUS" , "LOBAR" , "MAMUK" , "REBUL" , "VIBOK" , "DUQQI" , "DUNES" , "LARPA" , "LOTOS" , "SENIA" , "DALIN" , "AGENA" , "DIPES"};
+                    
+                    // Cuando el texto de la SID sale tal cual
                     while (!encontrado1)
                     {
                         if (puntosdeseados.Contains(puntos[puntos.Length - j - 1]))
@@ -675,6 +677,8 @@ namespace AsterixViewer.Tabs
                             break;
                         }
                     }
+
+                    // Cuando la SID sale entre paréntesis
                     while (!encontrado2)
                     {
                         List<string> puntos2 = new List<string>();
@@ -747,6 +751,7 @@ namespace AsterixViewer.Tabs
             int ti = -1;
             int indicative = -1;
             int rmv = 0;
+
             for (int i = 0; i < datosAsterix[0].Count; i++)
             {
                 if (datosAsterix[0][i] == "TI")
@@ -949,11 +954,9 @@ namespace AsterixViewer.Tabs
             foreach (Vuelo vuelo in vuelosOrdenados)
             {
                 condicion05NMvuelo = false;
-                int numberOfIteratedMSGvuelo = 0;
 
                 for (int j = 0; j < vuelo.mensajesVuelo.Count - 1; j++)
                 {
-                    numberOfIteratedMSGvuelo++;
                     posVuelo = new Point(Convert.ToDouble(vuelo.mensajesVuelo[j][Xcol]), Convert.ToDouble(vuelo.mensajesVuelo[j][Ycol]));
                     posVuelo_siguienteMSG = new Point(Convert.ToDouble(vuelo.mensajesVuelo[j+1][Xcol]), Convert.ToDouble(vuelo.mensajesVuelo[j+1][Ycol]));
 

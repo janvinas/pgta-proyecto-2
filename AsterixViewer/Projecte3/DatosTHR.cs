@@ -360,8 +360,7 @@ namespace AsterixViewer.Projecte3
                     continue;
                 }
 
-                List<List<string>> mensajes =
-                    interpol ? vuelo.mensajesVueloInterpolados : vuelo.mensajesVuelo;
+                List<List<string>> mensajes = interpol ? vuelo.mensajesVueloInterpolados : vuelo.mensajesVuelo;
 
                 bool encontrado = false;
 
@@ -385,8 +384,7 @@ namespace AsterixViewer.Projecte3
                         thr.lon = mensajes[jmin][colLon];
 
                         double distanciaMin = CalcularDistanciaEntrePuntos(
-                            new Point(Convert.ToDouble(mensajes[jmin][colX]),
-                                      Convert.ToDouble(mensajes[jmin][colY])),
+                            new Point(Convert.ToDouble(mensajes[jmin][colX]), Convert.ToDouble(mensajes[jmin][colY])),
                             puntoTHR);
 
                         thr.distance2THR = distanciaMin.ToString();
