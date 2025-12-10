@@ -58,6 +58,9 @@ namespace AsterixViewer.Projecte3
             double radialDVOR;
             double angle = 234;
 
+            double variacionMinima = 2;
+            double variacionMinimaExtra = 3;
+
             foreach (Vuelo vuelo in vuelosOrdenados)
             {
                 if (vuelo.pistadesp == "LEBL-24L")
@@ -88,7 +91,7 @@ namespace AsterixViewer.Projecte3
                             if (vuelo.mensajesVuelo[i - 1][colAST_HDG] == "N/A" && vuelo.mensajesVuelo[0][colAST_HDG] != "NV") heading_prev = headingInicial;
                             else heading_prev = Convert.ToDouble(vuelo.mensajesVuelo[i - 1][colAST_HDG]);
 
-                            if (heading < heading_prev && heading < headingInicial && Math.Abs(heading - headingInicial) > 2)     // El heading en la salida de 24L se va a valores mas negativos (mas pequeños)
+                            if (heading < heading_prev && heading < headingInicial && Math.Abs(heading - headingInicial) > variacionMinima)     // El heading en la salida de 24L se va a valores mas negativos (mas pequeños)
                             {
                                 for (int j = i + 1; j < Math.Min(vuelo.mensajesVuelo.Count, i + 5); j++)
                                 {
@@ -101,7 +104,7 @@ namespace AsterixViewer.Projecte3
                                         break;
                                     }
                                     else if (heading_aux > heading) break;                      // Si algno de los siguientes headings se acerca mas al inicial -> no es este
-                                    else if (Math.Abs(heading - heading_aux) < 2) break;        // Si la diferencia con el siguiente es muy baja, aun no es
+                                    else if (Math.Abs(heading - heading_aux) < variacionMinima) break;        // Si la diferencia con el siguiente es muy baja, aun no es
                                 }
 
                                 if (indexInicioViraje != 0)
@@ -109,13 +112,13 @@ namespace AsterixViewer.Projecte3
                                     // Comprobar si existe RA y TTA, si existen -> comprobar si es valido
                                     if (vuelo.mensajesVuelo[indexInicioViraje][colAST_RA] != "N/A")
                                     {
-                                        if (Math.Abs(Convert.ToDouble(vuelo.mensajesVuelo[indexInicioViraje][colAST_RA])) < 3) continue;
+                                        if (Math.Abs(Convert.ToDouble(vuelo.mensajesVuelo[indexInicioViraje][colAST_RA])) < variacionMinimaExtra) continue;
                                     }
                                     else break;
 
                                     if (vuelo.mensajesVuelo[indexInicioViraje][colAST_TTA] != "N/A")
                                     {
-                                        if (Math.Abs(Convert.ToDouble(vuelo.mensajesVuelo[indexInicioViraje][colAST_TTA]) - headingIntended_24L) < 3) break;
+                                        if (Math.Abs(Convert.ToDouble(vuelo.mensajesVuelo[indexInicioViraje][colAST_TTA]) - headingIntended_24L) < variacionMinimaExtra) break;
                                     }
                                     else break;
 
