@@ -32,7 +32,7 @@ namespace AsterixParser
 
             int FRN = 1;
 
-            while (fx || FRN > 22) {
+            while (fx || FRN > 29) {
                 byte b = body[k];
                 for (int i = 7; i > 0; i--)
                 {

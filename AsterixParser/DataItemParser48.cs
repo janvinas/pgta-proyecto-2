@@ -40,7 +40,12 @@ namespace AsterixParser
                 DataItem18,
                 DataItem19,
                 DataItem20,
-                DataItem21
+                DataItem21,
+                DataItem22,
+                DataItem23,
+                DataItem24,
+                DataItem25,
+                DataItem26
             ];
 
         public static void DataItem1(ref AsterixMessage message, ref int k, byte[] body) // I048/010
@@ -883,5 +888,26 @@ namespace AsterixParser
             k += 2;
             message.I048230 = ch;
         }
+        public static void DataItem22(ref AsterixMessage message, ref int k, byte[] body)
+        {
+            k += 7;
+        }
+        public static void DataItem23(ref AsterixMessage message, ref int k, byte[] body)
+        {
+            k += 1;
+        }
+        public static void DataItem24(ref AsterixMessage message, ref int k, byte[] body)
+        {
+            k += 2;
+        }
+        public static void DataItem25(ref AsterixMessage message, ref int k, byte[] body)
+        {
+            k += 1;
+        }
+        public static void DataItem26(ref AsterixMessage message, ref int k, byte[] body)
+        {
+            k += 2;
+        }
+
     }
 }
