@@ -12,16 +12,15 @@ namespace AsterixViewer.Projecte3
     {
         public class DatosAltitud
         {
-            public string IAS;
-            public string IAScorrespondance;
-            public string Time;
-            public string Altura;
-
+            public string IAS = "";
+            public string IAScorrespondance = "";
+            public string Time = "";
+            public string Altura = "";
         }
 
         public class IASaltitudes
         {
-            public Vuelo vuelo;
+            public Vuelo vuelo = new Vuelo();
             public DatosAltitud data850ft = new DatosAltitud();
             public DatosAltitud data1500ft = new DatosAltitud();
             public DatosAltitud data3500ft = new DatosAltitud();

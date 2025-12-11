@@ -16,30 +16,30 @@ namespace AsterixViewer.Projecte3
 {
     public class THRAltitudVelocidad
     {
-        public Vuelo vuelo;
-        public string IAS;
-        public string IAScorrespondance;
-        public string altitud;
-        public string time;
+        public Vuelo vuelo = new Vuelo();
+        public string IAS = "";
+        public string IAScorrespondance = "";
+        public string altitud = "";
+        public string time = "";
         public bool pasaPorTHR;
-        public string lat;
-        public string lon;
-        public string distance2THR;
+        public string lat = "";
+        public string lon = "";
+        public string distance2THR = "";
     }
 
     internal class DatosTHR
     {
-        CoordinatesUVH THR_24L;
-        CoordinatesUVH THR_24L_1b;
-        CoordinatesUVH THR_24L_2c;
-        CoordinatesUVH THR_24L_3b;
-        CoordinatesUVH THR_24L_4c;
+        CoordinatesUVH THR_24L = new CoordinatesUVH();
+        CoordinatesUVH THR_24L_1b = new CoordinatesUVH();
+        CoordinatesUVH THR_24L_2c = new CoordinatesUVH();
+        CoordinatesUVH THR_24L_3b = new CoordinatesUVH();
+        CoordinatesUVH THR_24L_4c = new CoordinatesUVH();
 
-        CoordinatesUVH THR_06R;
-        CoordinatesUVH THR_06R_1b;
-        CoordinatesUVH THR_06R_2c;
-        CoordinatesUVH THR_06R_3b;
-        CoordinatesUVH THR_06R_4c;
+        CoordinatesUVH THR_06R = new CoordinatesUVH();
+        CoordinatesUVH THR_06R_1b = new CoordinatesUVH();
+        CoordinatesUVH THR_06R_2c = new CoordinatesUVH();
+        CoordinatesUVH THR_06R_3b = new CoordinatesUVH();
+        CoordinatesUVH THR_06R_4c = new CoordinatesUVH();
 
         private CoordinatesUVH CalcularCoordenadasUVH(string coords_LatLon)
         {
@@ -48,7 +48,7 @@ namespace AsterixViewer.Projecte3
             GeoUtils tma = new GeoUtils(Math.Sqrt(geo.E2), geo.A, centro_tma);
             double rt = 6356752.3142;
 
-            CoordinatesWGS84 coords_geodesic = GeoUtils.LatLonStringBoth2Radians(coords_LatLon, 8 * 0.3048);
+            CoordinatesWGS84 coords_geodesic = GeoUtils.LatLonStringBoth2Radians(coords_LatLon, 8 * 0.3048 + rt);
             CoordinatesXYZ coords_geocentric = tma.change_geodesic2geocentric(coords_geodesic);
             CoordinatesXYZ coords_system_cartesian = tma.change_geocentric2system_cartesian(coords_geocentric);
             CoordinatesUVH coordsUVH = tma.change_system_cartesian2stereographic(coords_system_cartesian);
@@ -121,7 +121,6 @@ namespace AsterixViewer.Projecte3
             int colAST_lat = 4;
             int colAST_lon = 5;
             int colAST_altitudft = 7;
-            int colAST_altitudm = 6;
             int colAST_IAS = 21;
             int colAST_IVVftpm = 24;
             int colAST_posx = -2; // penúltima posición
@@ -348,16 +347,10 @@ namespace AsterixViewer.Projecte3
                     zonaDeteccion = zona06R;
                     puntoTHR = pointTHR_06R;
                 }
-                else if (vuelo.pistadesp == "LEBL-06R")
+                else
                 {
                     zonaDeteccion = zona24L;
                     puntoTHR = pointTHR_24L;
-                }
-                else
-                {
-                    thr.pasaPorTHR = false;
-                    listaTHRAltitudVelocidad.Add(thr);
-                    continue;
                 }
 
                 List<List<string>> mensajes = interpol ? vuelo.mensajesVueloInterpolados : vuelo.mensajesVuelo;

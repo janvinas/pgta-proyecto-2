@@ -13,14 +13,14 @@ namespace AsterixViewer.Projecte3
     {
         public class DatosViraje
         {
-            public Vuelo vuelo;
-            public string lat;
-            public string lon;
-            public string altitud;
-            public string time;
-            public string RA;
-            public string HDG;
-            public string TTA;
+            public Vuelo vuelo = new Vuelo();
+            public string lat = "";
+            public string lon = "";
+            public string altitud = "";
+            public string time = "";
+            public string RA = "";
+            public string HDG = "";
+            public string TTA = "";
             public bool atraviesaRadial234;
             public double radialDVOR;
         }

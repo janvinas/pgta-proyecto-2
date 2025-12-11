@@ -38,6 +38,7 @@ using static AsterixViewer.Projecte3.CalculosEstereograficos;
 using static AsterixViewer.Tabs.Proyecto3;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using System.Collections.ObjectModel;
+using Windows.UI.WebUI;
 
 namespace AsterixViewer.Tabs
 {
@@ -69,16 +70,16 @@ namespace AsterixViewer.Tabs
         // Clase Vuelo, cada despegue es una instancia, contiene el codigo del avion y la lista de mensajes Asterix que le corresponden
         public class Vuelo
         {
-            public string identificadorDeparture;
-            public string codigoVuelo;
-            public string horaPV;
-            public string estela;
-            public string pistadesp;
-            public string tipo_aeronave;
-            public string sid;
-            public string motorizacion;
-            public string ATOT;
-            public string timeDEP_05NM;
+            public string identificadorDeparture = "";
+            public string codigoVuelo = "";
+            public string horaPV = "";
+            public string estela = "";
+            public string pistadesp = "";
+            public string tipo_aeronave = "";
+            public string sid = "";
+            public string motorizacion = "";
+            public string ATOT = "";
+            public string timeDEP_05NM = "";
             public List<List<string>> mensajesVuelo = new List<List<string>>();
             public List<List<string>> mensajesVueloInterpolados = new List<List<string>>();
         }
@@ -87,7 +88,7 @@ namespace AsterixViewer.Tabs
         List<Vuelo> vuelosOrdenados = new List<Vuelo>();                
 
         // Lista de conjuntos de distancias de despegues consecutivos
-        List<DistanciasDespeguesConsecutivos> listaConjuntosDistanciasDespeguesConsecutivos = new List<DistanciasDespeguesConsecutivos>();
+        List<ConjuntoDespeguesConsecutivos> listaConjuntosDistanciasDespeguesConsecutivos = new List<ConjuntoDespeguesConsecutivos>();
 
         // Lista de datos de distancias minimas de vuelos respecto sonometro
         List<DistanciaMinimaSonometro> listaDistanciasMinimasSonometro = new List<DistanciaMinimaSonometro>();
@@ -800,25 +801,25 @@ namespace AsterixViewer.Tabs
             double rt = 6356752.3142;
 
             // Calcular Estereograficas de THR_24L
-            CoordinatesWGS84 coords_geodesic = GeoUtils.LatLonStringBoth2Radians("41:17:31.99N 02:06:11.81E", 8 * 0.3048);
+            CoordinatesWGS84 coords_geodesic = GeoUtils.LatLonStringBoth2Radians("41:17:31.99N 02:06:11.81E", 8 * 0.3048 + rt);
             CoordinatesXYZ coords_geocentric = tma.change_geodesic2geocentric(coords_geodesic);
             CoordinatesXYZ coords_system_cartesian = tma.change_geocentric2system_cartesian(coords_geocentric);
             THR_24L = tma.change_system_cartesian2stereographic(coords_system_cartesian);
 
             // Calcular Estereograficas de THR_06R
-            coords_geodesic = GeoUtils.LatLonStringBoth2Radians("41:16:56.32N 02:04:27.66E", 8 * 0.3048);
+            coords_geodesic = GeoUtils.LatLonStringBoth2Radians("41:16:56.32N 02:04:27.66E", 8 * 0.3048 + rt);
             coords_geocentric = tma.change_geodesic2geocentric(coords_geodesic);
             coords_system_cartesian = tma.change_geocentric2system_cartesian(coords_geocentric);
             THR_06R = tma.change_system_cartesian2stereographic(coords_system_cartesian);
 
             // Calcular Estereograficas de Sonometro
-            coords_geodesic = GeoUtils.LatLonStringBoth2Radians("41:16:19.00N 02:02:52.00E", 8 * 0.3048);
+            coords_geodesic = GeoUtils.LatLonStringBoth2Radians("41:16:19.00N 02:02:52.00E", 8 * 0.3048 + rt);
             coords_geocentric = tma.change_geodesic2geocentric(coords_geodesic);
             coords_system_cartesian = tma.change_geocentric2system_cartesian(coords_geocentric);
             sonometro = tma.change_system_cartesian2stereographic(coords_system_cartesian);
 
             // Calcular Estereograficas de DVOR BCN
-            coords_geodesic = GeoUtils.LatLonStringBoth2Radians("41:18:25.60N 02:06:28.10E", 8 * 0.3048);
+            coords_geodesic = GeoUtils.LatLonStringBoth2Radians("41:18:25.60N 02:06:28.10E", 8 * 0.3048 + rt);
             coords_geocentric = tma.change_geodesic2geocentric(coords_geodesic);
             coords_system_cartesian = tma.change_geocentric2system_cartesian(coords_geocentric);
             DVOR_BCN = tma.change_system_cartesian2stereographic(coords_system_cartesian);

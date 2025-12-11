@@ -15,9 +15,11 @@ namespace AsterixViewer.Projecte3
         // Clase de distancias minimas de cada vuelo respecto al sonometro
         public class DistanciaMinimaSonometro
         {
-            public Vuelo vuelo { get; set; }
-            public double distMinSonometro { get; set; }
-            public string timeMinSonometro { get; set; }
+            public Vuelo vuelo = new Vuelo();
+            public double distMinSonometro;
+            public string timeMinSonometro = "";
+            public string Lat = "";
+            public string Lon = "";
         }
 
         private double CalcularDistanciaEntrePuntos(Point punto1, Point punto2)
@@ -35,7 +37,10 @@ namespace AsterixViewer.Projecte3
         {
             int Xcol = datosAsterix[1].Count - 2;
             int Ycol = datosAsterix[1].Count - 1;
-            int Timecol = 3;
+            int colAST_time = 3;
+            int colAST_lat = 4;
+            int colAST_lon = 5;
+
             Point posSonometro = new Point(sonometro.U, sonometro.V);
             Point posVuelo;
 
@@ -43,23 +48,26 @@ namespace AsterixViewer.Projecte3
             double distMin;
             string timeMin;
 
+            int index = 0;
+
             foreach (Vuelo vuelo in vuelosOrdenados)
             {
                 if (vuelo.pistadesp == "LEBL-24L")
                 {
                     posVuelo = new Point(Convert.ToDouble(vuelo.mensajesVuelo[0][Xcol]), Convert.ToDouble(vuelo.mensajesVuelo[0][Ycol]));
                     distMin = CalcularDistanciaEntrePuntos(posVuelo, posSonometro);
-                    timeMin = vuelo.mensajesVuelo[0][Timecol];
+                    timeMin = vuelo.mensajesVuelo[0][colAST_time];
 
-                    foreach (List<string> MSG in vuelo.mensajesVuelo)
+                    for (int i = 1; i < vuelo.mensajesVuelo.Count; i++)
                     {
-                        posVuelo = new Point(Convert.ToDouble(MSG[Xcol]), Convert.ToDouble(MSG[Ycol]));
+                        posVuelo = new Point(Convert.ToDouble(vuelo.mensajesVuelo[i][Xcol]), Convert.ToDouble(vuelo.mensajesVuelo[i][Ycol]));
                         dist = CalcularDistanciaEntrePuntos(posVuelo, posSonometro);
 
                         if (dist < distMin)
                         {
                             distMin = dist;
-                            timeMin = MSG[Timecol];
+                            timeMin = vuelo.mensajesVuelo[i][colAST_time];
+                            index = i;
                         }
                     }
 
@@ -67,6 +75,8 @@ namespace AsterixViewer.Projecte3
                     distanciaMinima.vuelo = vuelo;
                     distanciaMinima.distMinSonometro = distMin;
                     distanciaMinima.timeMinSonometro = timeMin;
+                    distanciaMinima.Lat = vuelo.mensajesVuelo[index][colAST_lat];
+                    distanciaMinima.Lon = vuelo.mensajesVuelo[index][colAST_lon];
 
                     listaDistanciasMinimasSonometro.Add(distanciaMinima);
                 }
@@ -95,7 +105,8 @@ namespace AsterixViewer.Projecte3
                     // ✍️ Escribir el archivo (CSV con extensión XLSX)
                     using (var writer1 = new StreamWriter(filePath1, false, Encoding.UTF8))
                     {
-                        writer1.WriteLine("IdentificacionDESP;Callsign;ATOT;Time DEP 0,5NM THR;SID;Estela;Tipo Aeronave;Distancia Minima al Sonometro;Tiempo de Deteccion de Distancia Minima");
+                        writer1.WriteLine("IdentificacionDESP;Callsign;ATOT;Time DEP 0,5NM THR;SID;Estela;Tipo Aeronave;Distancia Minima al Sonometro;" +
+                            "Tiempo de Deteccion de Distancia Minima;Latitud;Longitud");
                         foreach (DistanciaMinimaSonometro distMinSonometro in listaDistanciasMinimasSonometro)
                         {
                             try
@@ -103,7 +114,7 @@ namespace AsterixViewer.Projecte3
                                 writer1.WriteLine(distMinSonometro.vuelo.identificadorDeparture + ";" + distMinSonometro.vuelo.codigoVuelo + ";" + distMinSonometro.vuelo.ATOT + ";" +
                                     distMinSonometro.vuelo.timeDEP_05NM + ";" + distMinSonometro.vuelo.sid + ";" + distMinSonometro.vuelo.estela + ";" +
                                     distMinSonometro.vuelo.tipo_aeronave + ";" + distMinSonometro.distMinSonometro / 1852 + ";" +
-                                    distMinSonometro.timeMinSonometro);
+                                    distMinSonometro.timeMinSonometro + ";" + distMinSonometro.Lat + ";" + distMinSonometro.Lon);
                             }
                             catch { }
                         }

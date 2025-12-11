@@ -13,13 +13,13 @@ namespace AsterixViewer.Projecte3
     internal class PerdidasSeparacion
     {
         // Clase que incluye el vuelo1 (precursor) y vuelo2 (posterior) y el listado de distancias en cada actualización radar
-        public class DistanciasDespeguesConsecutivos
+        public class ConjuntoDespeguesConsecutivos
         {
-            public Vuelo vuelo1 { get; set; }
-            public Vuelo vuelo2 { get; set; }
-            public List<string> listaDistancias { get; set; } = new List<string>();
-            public List<string> listaTiemposVuelo1 { get; set; } = new List<string>();
-            public List<string> listaTiemposVuelo2 { get; set; } = new List<string>();
+            public Vuelo vuelo1 = new Vuelo();
+            public Vuelo vuelo2 = new Vuelo();
+            public List<string> listaDistancias = new List<string>();
+            public List<string> listaTiemposVuelo1 = new List<string>();
+            public List<string> listaTiemposVuelo2 = new List<string>();
         }
 
         // Tabla que devuelve la minima separación entre dos vuelos según LoA
@@ -76,8 +76,8 @@ namespace AsterixViewer.Projecte3
             return distancia;
         }
 
-        public List<DistanciasDespeguesConsecutivos> CalcularDistanciasDespeguesConsecutivos(List<Vuelo> vuelosOrdenados, List<List<string>> datosAsterix,
-            CoordinatesUVH THR_24L, CoordinatesUVH THR_06R, List<DistanciasDespeguesConsecutivos> listaConjuntosDistanciasDespeguesConsecutivos)
+        public List<ConjuntoDespeguesConsecutivos> CalcularDistanciasDespeguesConsecutivos(List<Vuelo> vuelosOrdenados, List<List<string>> datosAsterix,
+            CoordinatesUVH THR_24L, CoordinatesUVH THR_06R, List<ConjuntoDespeguesConsecutivos> listaConjuntosDistanciasDespeguesConsecutivos)
         {
             int TIcol = 13;     // Posición de columna en que se encuentra la variable TI en csv datosAsterix
             int TIMEcol = 3;
@@ -106,7 +106,7 @@ namespace AsterixViewer.Projecte3
                 Vuelo vuelo1 = vuelosOrdenados[i];
                 Vuelo vuelo2 = vuelosOrdenados[i + 1];
 
-                DistanciasDespeguesConsecutivos distanciasDespeguesConsecutivos = new DistanciasDespeguesConsecutivos();
+                ConjuntoDespeguesConsecutivos distanciasDespeguesConsecutivos = new ConjuntoDespeguesConsecutivos();
                 distanciasDespeguesConsecutivos.vuelo1 = vuelo1;
                 distanciasDespeguesConsecutivos.vuelo2 = vuelo2;
 
@@ -167,7 +167,7 @@ namespace AsterixViewer.Projecte3
             else return false;
         }
 
-        private List<string> IncumplimientoEstela(DistanciasDespeguesConsecutivos conjunto, string distancia)
+        private List<string> IncumplimientoEstela(ConjuntoDespeguesConsecutivos conjunto, string distancia)
         {
             if (conjunto.vuelo1.estela == "Pesada" && conjunto.vuelo2.estela == "Pesada")
             {
@@ -210,7 +210,7 @@ namespace AsterixViewer.Projecte3
             }
         }
 
-        private List<string> IncumplimientoLoA(DistanciasDespeguesConsecutivos conjunto, string distancia)
+        private List<string> IncumplimientoLoA(ConjuntoDespeguesConsecutivos conjunto, string distancia)
         {
             SeparacionesLoA LoA = new SeparacionesLoA();
             List<string> g1 = new List<string>(["OLOXO", "NATPI", "MOPAS", "GRAUS", "LOBAR", "MAMUK", "REBUL", "VIBOK", "DUQQI"]);
@@ -249,7 +249,7 @@ namespace AsterixViewer.Projecte3
         }
 
         public void GuardarDistDESPConsecutivos(List<Vuelo> vuelosOrdenados, ClasificacionAeronavesLoA clasificacionAeronavesLoA,
-            List<DistanciasDespeguesConsecutivos> listaConjuntosDistanciasDespeguesConsecutivos)
+            List<ConjuntoDespeguesConsecutivos> listaConjuntosDistanciasDespeguesConsecutivos)
         {
             // csv como nos piden
             try
