@@ -197,19 +197,6 @@ namespace AsterixViewer.Projecte3
             else return ["N/A", conjunto.vuelo1.estela, conjunto.vuelo2.estela];
         }
 
-        private void AñadirMotorizacion(List<Vuelo> vuelosOrdenados, ClasificacionAeronavesLoA clasificacionAeronavesLoA)
-        {
-            for (int i = 0; i < vuelosOrdenados.Count; i++)
-            {
-                if (clasificacionAeronavesLoA.HP.Contains(vuelosOrdenados[i].tipo_aeronave)) vuelosOrdenados[i].motorizacion = "HP";
-                else if (clasificacionAeronavesLoA.NR.Contains(vuelosOrdenados[i].tipo_aeronave)) vuelosOrdenados[i].motorizacion = "NR";
-                else if (clasificacionAeronavesLoA.LP.Contains(vuelosOrdenados[i].tipo_aeronave)) vuelosOrdenados[i].motorizacion = "LP";
-                else if (clasificacionAeronavesLoA.NRminus.Contains(vuelosOrdenados[i].tipo_aeronave)) vuelosOrdenados[i].motorizacion = "NR-";
-                else if (clasificacionAeronavesLoA.NRplus.Contains(vuelosOrdenados[i].tipo_aeronave)) vuelosOrdenados[i].motorizacion = "NR+";
-                else vuelosOrdenados[i].motorizacion = "R";
-            }
-        }
-
         private List<string> IncumplimientoLoA(ConjuntoDespeguesConsecutivos conjunto, string distancia)
         {
             SeparacionesLoA LoA = new SeparacionesLoA();
@@ -244,8 +231,10 @@ namespace AsterixViewer.Projecte3
             }
             else misma = "misma";
 
-            if (Convert.ToDouble(distancia) < LoA.ObtenerSeparacionLoA(conjunto.vuelo1.motorizacion, conjunto.vuelo2.motorizacion, misma)) return ["True", misma, Convert.ToString(LoA.ObtenerSeparacionLoA(conjunto.vuelo1.motorizacion, conjunto.vuelo2.motorizacion, misma) / 1852)];
-            else return ["False", misma, Convert.ToString(LoA.ObtenerSeparacionLoA(conjunto.vuelo1.motorizacion, conjunto.vuelo2.motorizacion, misma) / 1852)];
+            if (Convert.ToDouble(distancia) < LoA.ObtenerSeparacionLoA(conjunto.vuelo1.motorizacion, conjunto.vuelo2.motorizacion, misma)) 
+                return ["True", misma, Convert.ToString(LoA.ObtenerSeparacionLoA(conjunto.vuelo1.motorizacion, conjunto.vuelo2.motorizacion, misma) / 1852)];
+            else 
+                return ["False", misma, Convert.ToString(LoA.ObtenerSeparacionLoA(conjunto.vuelo1.motorizacion, conjunto.vuelo2.motorizacion, misma) / 1852)];
         }
 
         public void GuardarDistDESPConsecutivos(List<Vuelo> vuelosOrdenados, ClasificacionAeronavesLoA clasificacionAeronavesLoA,
@@ -269,15 +258,18 @@ namespace AsterixViewer.Projecte3
                     // ✍️ Escribir el archivo (CSV con extensión XLSX)
                     using (var writer2 = new StreamWriter(filePath2, false, Encoding.UTF8))
                     {
-                        writer2.WriteLine("Avion precedente;Avion posterior;Hora de activación PV;ToD zona TWR;Distancia zona TWR;ToD mínima distancia zona TMA;Mínima distancia zona TMA;Inc. Radar TMA;Inc. Radar TWR;Inc Estela TMA;Inc. Estela TWR;Inc LoA;Min distancia según LoA;Misma SID/Distinta SID;Estela precedente;Estela posterior;Motor precedente;Motor posterior;SID precedente;SID posterior;Modelo precedente;Modelo posterior;Runway DEP");
+                        writer2.WriteLine("Avion precedente;Avion posterior;Hora de activación PV;ToD zona TWR;Distancia zona TWR;" +
+                            "ToD mínima distancia zona TMA;Mínima distancia zona TMA;Inc. Radar TMA;Inc. Radar TWR;Inc Estela TMA;" +
+                            "Inc. Estela TWR;Inc LoA;Min distancia según LoA;Misma SID/Distinta SID;Estela precedente;Estela posterior;" +
+                            "Motor precedente;Motor posterior;SID precedente;SID posterior;Modelo precedente;Modelo posterior;Runway DEP");
                         foreach (var conjunto in listaConjuntosDistanciasDespeguesConsecutivos)
                         {
                             int minimadistanciaTMA = 1;
-                            AñadirMotorizacion(vuelosOrdenados, clasificacionAeronavesLoA);
                             for (int i = 1; i < conjunto.listaDistancias.Count; i++)
                             {
                                 if (Convert.ToDouble(conjunto.listaDistancias[i]) < Convert.ToDouble(conjunto.listaDistancias[i - 1])) minimadistanciaTMA = i;
                             }
+
                             try
                             {
                                 writer2.WriteLine(conjunto.vuelo1.codigoVuelo + ";" + conjunto.vuelo2.codigoVuelo + ";" + conjunto.vuelo2.horaPV + ";" +

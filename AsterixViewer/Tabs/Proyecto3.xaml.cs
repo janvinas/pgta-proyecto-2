@@ -453,8 +453,9 @@ namespace AsterixViewer.Tabs
 
                     CalcularTiempo05NMfromTHR();
 
-                    calculosPreliminaresHechos = true;
+                    AñadirMotorizacion();
 
+                    calculosPreliminaresHechos = true;
                     PreliminaresHechos = true;
 
                     OnPropertyChanged(nameof(Paso3Permitido));
@@ -892,39 +893,6 @@ namespace AsterixViewer.Tabs
             }
         }
 
-        /// <summary>
-        /// Función que ordena los vuelos por hora de despegue (para luego comprobar distancias entre despegues de manera fácil)
-        /// </summary>
-        private void OrdenarVuelos()
-        {
-            int ATOTcol = 10;   // Posición de columna en que se encuentra la variable ATOT en excel PlanesVuelo
-            int TIcol = 1;      // Posición de columna en que se encuentra la variable TI en excel PlanesVuelo
-
-            List<List<string>> listaPVaux = listaPV;
-            listaPVaux.RemoveAt(0);
-            listaPVaux = listaPVaux.OrderBy(fila => TimeSpan.Parse(fila[ATOTcol].Insert(fila[ATOTcol].LastIndexOf(':'), ".").Remove(fila[ATOTcol].LastIndexOf(':'), 1)).TotalSeconds).ToList();
-
-            List<Vuelo> vuelosOrdenadosAux = new List<Vuelo>();
-            List<string> TA_usados = new List<string>();
-
-            foreach (List<string> msg in listaPVaux)
-            {
-                if (!TA_usados.Contains(msg[TIcol]))
-                {
-                    for (int i = 0; i < vuelosOrdenados.Count; i++)
-                    {
-                        if (vuelosOrdenados[i].codigoVuelo == msg[TIcol])
-                        {
-                            vuelosOrdenadosAux.Add(vuelosOrdenados[i]);
-                            TA_usados.Add(msg[TIcol]);
-                            break;
-                        }
-                    }
-                }
-            }
-            vuelosOrdenados = vuelosOrdenadosAux;
-        }
-
         private double CalcularDistanciaEntrePuntos(Point punto1, Point punto2)
         {
             double dx = punto2.X - punto1.X;
@@ -937,7 +905,6 @@ namespace AsterixViewer.Tabs
 
         private void CalcularTiempo05NMfromTHR()
         {
-            int TIcol = 13;     // Posición de columna en que se encuentra la variable TI en csv datosAsterix
             int TIMEcol = 3;
             int Xcol = datosAsterix[1].Count - 2;
             int Ycol = datosAsterix[1].Count - 1;
@@ -981,6 +948,20 @@ namespace AsterixViewer.Tabs
                         break;
                     }
                 }
+            }
+        }
+
+
+        private void AñadirMotorizacion()
+        {
+            foreach(Vuelo vuelo in vuelosOrdenados)
+            {
+                if (clasificacionAeronavesLoA.HP.Contains(vuelo.tipo_aeronave)) vuelo.motorizacion = "HP";
+                else if (clasificacionAeronavesLoA.NR.Contains(vuelo.tipo_aeronave)) vuelo.motorizacion = "NR";
+                else if (clasificacionAeronavesLoA.LP.Contains(vuelo.tipo_aeronave)) vuelo.motorizacion = "LP";
+                else if (clasificacionAeronavesLoA.NRminus.Contains(vuelo.tipo_aeronave)) vuelo.motorizacion = "NR-";
+                else if (clasificacionAeronavesLoA.NRplus.Contains(vuelo.tipo_aeronave)) vuelo.motorizacion = "NR+";
+                else vuelo.motorizacion = "R";
             }
         }
 
