@@ -10,11 +10,6 @@ namespace AsterixViewer.Projecte3
     {
         public List<List<string>> CalcularPosicionesEstereograficasMatriz(List<List<string>> datos)
         {
-            GeoUtils geo = new GeoUtils();
-            CoordinatesWGS84 centro_tma = GeoUtils.LatLonStringBoth2Radians("41:06:56.5600N 01:41:33.0100E", 6368942.808);
-            GeoUtils tma = new GeoUtils(Math.Sqrt(geo.E2), geo.A, centro_tma);
-            double rt = 6356752.3142;
-
             for (int i = 0; i < datos.Count; i++)
             {
                 CoordinatesUVH coords_stereographic = ObtenerCoordsEstereograficas(datos[i]);

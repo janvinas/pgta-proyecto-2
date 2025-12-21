@@ -98,7 +98,7 @@ namespace AsterixViewer.Projecte3
 
             double distance;
 
-            int N = 20;
+            int N = 30;
 
             // Itero cada vuelo
             for (int i = 0; i < vuelosOrdenados.Count - 1; i++)
