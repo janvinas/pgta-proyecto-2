@@ -337,9 +337,47 @@ namespace AsterixViewer.Tabs
                 if (resultado.data == null)
                     return;  // ← USUARIO CANCELÓ
 
+                // Obtener intervalo del archivo recién leído
+                if (!TryGetTimeRangeFromDatos(resultado.data, out TimeSpan sNew, out TimeSpan eNew))
+                {
+                    MessageBox.Show("No se pudieron extraer las marcas temporales del fichero importado. Concatenación abortada.",
+                        "Aviso", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                // Si ya hay periodos concatenados, comprobar si el nuevo periodo ya está completamente incluido
+                if (_periodos.Count > 0)
+                {
+                    var contains = _periodos.Any(p => p.Start <= sNew && p.End >= eNew);
+                    if (contains)
+                    {
+                        MessageBox.Show(
+                            "El periodo seleccionado ya se encuentra concatenado. No se duplicará su contenido.",
+                            "Periodo ya concatenado",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Information
+                        );
+                        return;
+                    }
+
+                    var maxExistingEnd = _periodos.Max(p => p.End);
+                    // Si el nuevo periodo termina antes de un periodo ya concatenado -> impedir (evita ordenar incorrecto)
+                    if (eNew < maxExistingEnd)
+                    {
+                        MessageBox.Show(
+                            "Operación cancelada.\n" +
+                            "El periodo que intenta concatenar es anterior a otro ya concatenado.\n" +
+                            "Reinicie la carga y concatene los periodos en orden.",
+                            "Fallo en concatenación",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Warning
+                        );
+                        return;
+                    }
+                }
+
                 // registrar periodo del archivo recién leído (antes de concatenar)
-                if (TryGetTimeRangeFromDatos(resultado.data, out TimeSpan sNew, out TimeSpan eNew))
-                    AddPeriodo(sNew, eNew, System.IO.Path.GetFileName(resultado.filePath));
+                AddPeriodo(sNew, eNew, System.IO.Path.GetFileName(resultado.filePath));
 
                 // Concatenar datos
                 if (datosAsterix != null && datosAsterix.Count > 0)
