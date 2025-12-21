@@ -68,15 +68,18 @@
                         <Button Content="Concatenar Datos ASTERIX" 
                                 Width="250" Margin="5"
                                 Click="ConcatenarDatosAsterix_Click"
-                                MaxWidth="300"/>
+                                MaxWidth="300"
+                                IsEnabled="{Binding CanLoadAuxFiles}"/>
                         <Button Content="Cargar Planes de Vuelo" 
                                 Width="250" Margin="5"
                                 Click="Planvuelo_click"
-                                MaxWidth="300"/>
+                                MaxWidth="300"
+                                IsEnabled="{Binding CanLoadAuxFiles}"/>
                         <Button Content="Cargar Clasificación Aeronaves" 
                                 Width="250" Margin="5"
                                 Click="ClasificacionAeronaves_Click"
-                                MaxWidth="300"/>
+                                MaxWidth="300"
+                                IsEnabled="{Binding CanLoadAuxFiles}"/>
                     </WrapPanel>
 
                     <!-- Lista de periodos colocada debajo de los botones;
@@ -121,10 +124,10 @@
                                Foreground="DarkGray"
                                Visibility="{Binding InfoPaso2Visibility}" />
 
-                    <Button Content="Hacer Cálculos Preliminares" Width="220"
-                            HorizontalAlignment="Left" Margin="5"
-                            IsEnabled="{Binding Paso2Permitido}"
-                            Click="CalculosPreliminares_Click"/>
+                    <Button Content="Cálculos preliminares"
+                            Width="250" Margin="5"
+                            Click="CalculosPreliminares_Click"
+                            IsEnabled="{Binding CanRunPreliminares}" />
                 </StackPanel>
             </GroupBox>
 

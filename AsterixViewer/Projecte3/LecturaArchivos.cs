@@ -65,7 +65,7 @@ namespace AsterixViewer.Projecte3
             int tiempoFinalPrevio = ParseAsterixTime(previo.Last()[colAST_time]);
 
             // Encontrar el índice donde posterior deja de solaparse
-            int indexPosteriorStart = 0;
+            int indexPosteriorStart = 1;
 
             for (int i = 1; i < posterior.Count; i++)
             {

@@ -133,10 +133,61 @@ namespace AsterixViewer.Tabs
             }
         }
 
+        // Controla si el botón de "Cálculos preliminares" está habilitado
+        private bool _canRunPreliminares = true;
+        public bool CanRunPreliminares
+        {
+            get => _canRunPreliminares;
+            set
+            {
+                if (_canRunPreliminares != value)
+                {
+                    _canRunPreliminares = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        // Nueva propiedad que controla los botones de carga auxiliares (Concatenar, Planes, Clasificación)
+        private bool _canLoadAuxFiles = false;
+        public bool CanLoadAuxFiles
+        {
+            get => _canLoadAuxFiles;
+            set
+            {
+                if (_canLoadAuxFiles != value)
+                {
+                    _canLoadAuxFiles = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        private void UpdateButtonStates()
+        {
+            // Botones de carga auxiliar: solo cuando hay datos ASTERIX y no se hayan hecho (o estén bloqueados) los preliminares
+            CanLoadAuxFiles = DatosAsterixCargados && !PreliminaresHechos;
+
+            // Desbloquear "Cálculos preliminares" siempre que los tres ficheros estén cargados.
+            // Esto permite reactivar el botón si se vuelven a cargar Datos + PV + Clasificación.
+            CanRunPreliminares = DatosAsterixCargados && DatosPVCargados && ClasificacionCargada;
+
+            // Paso3 sigue dependiendo de PreliminaresHechos (ya definido en la propiedad Paso3Permitido)
+        }
+
         public Proyecto3()
         {
             InitializeComponent();
             DataContext = this;
+
+            // Estado inicial: TODO bloqueado excepto el botón "Cargar Datos ASTERIX"
+            DatosAsterixCargados = false;
+            DatosPVCargados = false;
+            ClasificacionCargada = false;
+            PreliminaresHechos = false;
+
+            // Forzar actualización de botones (dejarlos bloqueados)
+            UpdateButtonStates();
 
             // Inicializar altura según estado inicial (sin items)
             RefreshPeriodosCollection();
@@ -154,11 +205,13 @@ namespace AsterixViewer.Tabs
             get => _datosAsterixCargados;
             set
             {
+                if (_datosAsterixCargados == value) return;
                 _datosAsterixCargados = value;
                 OnPropertyChanged(); // Notifica a DatosAsterixCargados
                 OnPropertyChanged(nameof(EstadoAsterix)); // Notifica a EstadoAsterix
                 OnPropertyChanged(nameof(Paso2Permitido));
                 OnPropertyChanged(nameof(InfoPaso2Visibility));
+                UpdateButtonStates();
             }
         }
 
@@ -168,11 +221,13 @@ namespace AsterixViewer.Tabs
             get => _datosPVCargados;
             set
             {
+                if (_datosPVCargados == value) return;
                 _datosPVCargados = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(EstadoPV));
                 OnPropertyChanged(nameof(Paso2Permitido));
                 OnPropertyChanged(nameof(InfoPaso2Visibility));
+                UpdateButtonStates();
             }
         }
 
@@ -182,11 +237,13 @@ namespace AsterixViewer.Tabs
             get => _clasificacionCargada;
             set
             {
+                if (_clasificacionCargada == value) return;
                 _clasificacionCargada = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(EstadoClasificacion));
                 OnPropertyChanged(nameof(Paso2Permitido));
                 OnPropertyChanged(nameof(InfoPaso2Visibility));
+                UpdateButtonStates();
             }
         }
 
@@ -194,7 +251,14 @@ namespace AsterixViewer.Tabs
         public bool PreliminaresHechos
         {
             get => _preliminaresHechos;
-            set { _preliminaresHechos = value; OnPropertyChanged(); OnPropertyChanged(nameof(Paso3Permitido)); }
+            set
+            {
+                if (_preliminaresHechos == value) return;
+                _preliminaresHechos = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(Paso3Permitido));
+                UpdateButtonStates();
+            }
         }
 
         public bool Paso2Permitido => DatosAsterixCargados && DatosPVCargados && ClasificacionCargada;
@@ -224,12 +288,38 @@ namespace AsterixViewer.Tabs
                 if (resultado.data == null)
                     return;  // ← USUARIO CANCELÓ
 
+                // Asignar nuevos datos ASTERIX
                 datosAsterix = resultado.data;
+
+                // Marcamos que ASTERIX está cargado
                 DatosAsterixCargados = true;
 
                 // Añadir periodo leído con filename
                 if (TryGetTimeRangeFromDatos(resultado.data, out TimeSpan tStart, out TimeSpan tEnd))
                     AddPeriodo(tStart, tEnd, System.IO.Path.GetFileName(resultado.filePath));
+
+                // COMPORTAMIENTO REQUERIDO:
+                // Cuando se carga un nuevo fichero ASTERIX queremos forzar que el usuario recargue
+                // también Planes de Vuelo y Clasificación para poder ejecutar "Cálculos preliminares".
+                // Por tanto reiniciamos esos flags y dejamos habilitados los botones de carga
+                // (para que el usuario pueda volver a cargar PV y Clasificación).
+                DatosPVCargados = false;
+                ClasificacionCargada = false;
+
+                // Asegurarnos de que los preliminares no están marcados
+                calculosPreliminaresHechos = false;
+                PreliminaresHechos = false;
+
+                // Habilitar botones de carga auxiliar para que el usuario pueda recargar PV / Clasificación
+                CanLoadAuxFiles = true;
+
+                // Asegurar que no se puedan ejecutar preliminares hasta que PV y Clasificación se recarguen
+                CanRunPreliminares = false;
+
+                // Actualizar estados visuales de botones y textos
+                UpdateButtonStates();
+                OnPropertyChanged(nameof(InfoPaso2Visibility));
+                OnPropertyChanged(nameof(InfoPaso3Visibility));
             }
             catch (Exception ex)
             {
@@ -263,6 +353,9 @@ namespace AsterixViewer.Tabs
                 }
 
                 DatosAsterixCargados = true;
+
+                // Actualizar estados de botones tras concatenar
+                UpdateButtonStates();
             }
             catch (Exception ex)
             {
@@ -404,6 +497,9 @@ namespace AsterixViewer.Tabs
 
                 listaPV = resultado;
                 DatosPVCargados = true;
+
+                // Actualizar estados después de cargar planes de vuelo
+                UpdateButtonStates();
             }
             catch (Exception ex)
             {
@@ -425,6 +521,9 @@ namespace AsterixViewer.Tabs
 
                 clasificacionAeronavesLoA = resultado;
                 ClasificacionCargada = true;
+
+                // Actualizar estados después de cargar clasificación
+                UpdateButtonStates();
             }
             catch (Exception ex)
             {
@@ -436,6 +535,8 @@ namespace AsterixViewer.Tabs
 
         private void CalculosPreliminares_Click(object sender, RoutedEventArgs e)
         {
+            // NO manipular aquí IsEnabled del botón; el binding a CanRunPreliminares controla la UI.
+
             if (!calculosPreliminaresHechos)
             {
                 try
@@ -455,8 +556,23 @@ namespace AsterixViewer.Tabs
 
                     AñadirMotorizacion();
 
+                    // Marcar preliminares realizados
                     calculosPreliminaresHechos = true;
                     PreliminaresHechos = true;
+
+                    // BLOQUEAR botones: no se deben poder recargar/concatenar ni volver a ejecutar preliminares
+                    // (UpdateButtonStates aplicará las reglas)
+                    CanLoadAuxFiles = false;
+
+                    // Si quieres que, al ejecutar los preliminares, los textos vuelvan a "Pendiente",
+                    // mantén los flags a false; pero para permitir reactivar el botón al recargar los 3 ficheros,
+                    // NO forzamos permanentemente CanRunPreliminares aquí.
+                    DatosAsterixCargados = false;
+                    DatosPVCargados = false;
+                    ClasificacionCargada = false;
+
+                    // Forzar actualización de estados en la UI
+                    UpdateButtonStates();
 
                     OnPropertyChanged(nameof(Paso3Permitido));
                     OnPropertyChanged(nameof(InfoPaso3Visibility));
@@ -487,6 +603,13 @@ namespace AsterixViewer.Tabs
             datosAsterix.Clear();
             listaPV.Clear();
             vuelosOrdenados.Clear();
+
+            // Restaurar permisos de carga por estado inicial
+            CanLoadAuxFiles = false;
+            CanRunPreliminares = false;
+
+            // Forzar actualización visual de botones
+            UpdateButtonStates();
 
             OnPropertyChanged(nameof(Paso2Permitido));
             OnPropertyChanged(nameof(Paso3Permitido));
