@@ -122,7 +122,9 @@ namespace AsterixViewer.Projecte3
 
                         posVuelo1 = new Point(Convert.ToDouble(datosAsterix[j][Xcol]), Convert.ToDouble(datosAsterix[j][Ycol]));
                         tiempo_ms_vuelo1 = int.Parse(datosAsterix[j][TIMEcol].Split(':')[0]) * 3600 * 1000 + int.Parse(datosAsterix[j][TIMEcol].Split(':')[1]) * 60000 + int.Parse(datosAsterix[j][TIMEcol].Split(':')[2]) * 1000 + int.Parse(datosAsterix[j][TIMEcol].Split(':')[3]);
-                        tiempo_ms_vuelo1_05NM = int.Parse(vuelo1.timeDEP_05NM.Split(':')[0]) * 3600 * 1000 + int.Parse(vuelo1.timeDEP_05NM.Split(':')[1]) * 60000 + int.Parse(vuelo1.timeDEP_05NM.Split(':')[2]) * 1000 + int.Parse(vuelo1.timeDEP_05NM.Split(':')[3]);
+
+                        if (vuelo1.timeDEP_05NM != "") tiempo_ms_vuelo1_05NM = int.Parse(vuelo1.timeDEP_05NM.Split(':')[0]) * 3600 * 1000 + int.Parse(vuelo1.timeDEP_05NM.Split(':')[1]) * 60000 + int.Parse(vuelo1.timeDEP_05NM.Split(':')[2]) * 1000 + int.Parse(vuelo1.timeDEP_05NM.Split(':')[3]);
+                        else tiempo_ms_vuelo1_05NM = 0;
 
                         condicion05NMvuelo1 = tiempo_ms_vuelo1 >= tiempo_ms_vuelo1_05NM;
 
@@ -135,7 +137,9 @@ namespace AsterixViewer.Projecte3
                                 {
                                     posVuelo2 = new Point(Convert.ToDouble(datosAsterix[j2][Xcol]), Convert.ToDouble(datosAsterix[j2][Ycol]));
                                     tiempo_ms_vuelo2 = int.Parse(datosAsterix[j2][TIMEcol].Split(':')[0]) * 3600 * 1000 + int.Parse(datosAsterix[j2][TIMEcol].Split(':')[1]) * 60000 + int.Parse(datosAsterix[j2][TIMEcol].Split(':')[2]) * 1000 + int.Parse(datosAsterix[j2][TIMEcol].Split(':')[3]);
-                                    tiempo_ms_vuelo2_05NM = int.Parse(vuelo2.timeDEP_05NM.Split(':')[0]) * 3600 * 1000 + int.Parse(vuelo2.timeDEP_05NM.Split(':')[1]) * 60000 + int.Parse(vuelo2.timeDEP_05NM.Split(':')[2]) * 1000 + int.Parse(vuelo2.timeDEP_05NM.Split(':')[3]);
+                                    
+                                    if (vuelo2.timeDEP_05NM != "") tiempo_ms_vuelo2_05NM = int.Parse(vuelo2.timeDEP_05NM.Split(':')[0]) * 3600 * 1000 + int.Parse(vuelo2.timeDEP_05NM.Split(':')[1]) * 60000 + int.Parse(vuelo2.timeDEP_05NM.Split(':')[2]) * 1000 + int.Parse(vuelo2.timeDEP_05NM.Split(':')[3]);
+                                    else tiempo_ms_vuelo2_05NM = 0;
 
                                     condicion05NMvuelo2 = tiempo_ms_vuelo2 >= tiempo_ms_vuelo2_05NM;
 

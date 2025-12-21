@@ -180,7 +180,7 @@ namespace AsterixViewer.Projecte3
                             int max = vuelo.mensajesVuelo.Count;
                             int maxOffset = Math.Min(index, max - index);
 
-                            for (int offset = 1; offset <= maxOffset; offset++)
+                            for (int offset = 1; offset < maxOffset; offset++)
                             {
                                 // mirar hacia adelante
                                 int adelante = index + offset;

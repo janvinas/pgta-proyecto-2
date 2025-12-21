@@ -255,7 +255,8 @@ namespace AsterixViewer.Projecte3
                             + int.Parse(datosAsterix[i][colAST_time].Split(':')[2]) * 1000
                             + int.Parse(datosAsterix[i][colAST_time].Split(':')[3]);
 
-                        if (Math.Abs(ATOT_ms - ASTtime_ms) < 0.5 * 3600 * 1000)
+                        // Solo añadimos los mensajes que estén dentro de un margen de 5 minutos con respecto al ATOT
+                        if (Math.Abs(ATOT_ms - ASTtime_ms) < 5 * 60 * 1000)
                         {
                             for (int j = i; j < datosAsterix.Count; j++)
                             {
@@ -268,6 +269,8 @@ namespace AsterixViewer.Projecte3
 
                                 if (counter >= 100) break;
                             }
+
+                            break;
                         }
                     }
                 }

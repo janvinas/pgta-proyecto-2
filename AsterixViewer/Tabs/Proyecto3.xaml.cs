@@ -677,19 +677,31 @@ namespace AsterixViewer.Tabs
         // Todas las llamadas necesarias para calcular las separciones entre despegues consecutivos
         private void CalculoSeparacionesDespegues_Click(object sender, RoutedEventArgs e)
         {
-            if (calculosPreliminaresHechos)
+            try
             {
-                listaConjuntosDistanciasDespeguesConsecutivos.Clear();
+                if (calculosPreliminaresHechos)
+                {
+                    listaConjuntosDistanciasDespeguesConsecutivos.Clear();
 
-                PerdidasSeparacion sep = new PerdidasSeparacion();
-                listaConjuntosDistanciasDespeguesConsecutivos = sep.CalcularDistanciasDespeguesConsecutivos(vuelosOrdenados,datosAsterix,THR_24L,THR_06R,listaConjuntosDistanciasDespeguesConsecutivos);
-                sep.GuardarDistDESPConsecutivos(vuelosOrdenados,clasificacionAeronavesLoA,listaConjuntosDistanciasDespeguesConsecutivos);
+                    PerdidasSeparacion sep = new PerdidasSeparacion();
+                    listaConjuntosDistanciasDespeguesConsecutivos = sep.CalcularDistanciasDespeguesConsecutivos(vuelosOrdenados, datosAsterix, THR_24L, THR_06R, listaConjuntosDistanciasDespeguesConsecutivos);
+                    sep.GuardarDistDESPConsecutivos(vuelosOrdenados, clasificacionAeronavesLoA, listaConjuntosDistanciasDespeguesConsecutivos);
+                }
+                else
+                {
+                    MessageBox.Show(
+                        $"NO se pueden hacer los cálculos apropiados \n" +
+                        $"realizar previamente los cálculos preliminares",
+                        "Error",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error
+                    );
+                }
             }
-            else
+            catch
             {
                 MessageBox.Show(
-                    $"NO se pueden hacer los cálculos apropiados \n" +
-                    $"realizar previamente los cálculos preliminares",
+                    $"Error en el cálculo de las separaciones entre despegues consecutivos",
                     "Error",
                     MessageBoxButton.OK,
                     MessageBoxImage.Error
@@ -699,19 +711,31 @@ namespace AsterixViewer.Tabs
 
         private void DistanciasMinimasSonometro_Click(object sender, RoutedEventArgs e)
         {
-            if (calculosPreliminaresHechos)
+            try
             {
-                listaDistanciasMinimasSonometro.Clear();
+                if (calculosPreliminaresHechos)
+                {
+                    listaDistanciasMinimasSonometro.Clear();
 
-                DistanciasSonometro dist = new DistanciasSonometro();
-                listaDistanciasMinimasSonometro = dist.CalcularDistanciaMinimaSonometro(datosAsterix,vuelosOrdenados,sonometro,listaDistanciasMinimasSonometro);
-                dist.GuardarDistMinSonometro(listaDistanciasMinimasSonometro);
+                    DistanciasSonometro dist = new DistanciasSonometro();
+                    listaDistanciasMinimasSonometro = dist.CalcularDistanciaMinimaSonometro(datosAsterix, vuelosOrdenados, sonometro, listaDistanciasMinimasSonometro);
+                    dist.GuardarDistMinSonometro(listaDistanciasMinimasSonometro);
+                }
+                else
+                {
+                    MessageBox.Show(
+                        $"NO se pueden hacer los cálculos apropiados \n" +
+                        $"realizar previamente los cálculos preliminares",
+                        "Error",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error
+                    );
+                }
             }
-            else
+            catch
             {
                 MessageBox.Show(
-                    $"NO se pueden hacer los cálculos apropiados \n" +
-                    $"realizar previamente los cálculos preliminares",
+                    $"Error en el cálculo de las distancias mínimas respecto al sonómetro",
                     "Error",
                     MessageBoxButton.OK,
                     MessageBoxImage.Error
@@ -721,19 +745,32 @@ namespace AsterixViewer.Tabs
 
         private void VelocidadIASDespegue_Click(object sender, RoutedEventArgs e)
         {
-            if (calculosPreliminaresHechos)
+            try
             {
-                listaVelocidadesIASDespegue.Clear();
 
-                VelocidadesDespegue vel = new VelocidadesDespegue();
-                listaVelocidadesIASDespegue = vel.CalcularVelocidadIASDespegue(vuelosOrdenados,listaVelocidadesIASDespegue);
-                vel.GuardarVelocidadIASDespegue(listaVelocidadesIASDespegue);
+                if (calculosPreliminaresHechos)
+                {
+                    listaVelocidadesIASDespegue.Clear();
+
+                    VelocidadesDespegue vel = new VelocidadesDespegue();
+                    listaVelocidadesIASDespegue = vel.CalcularVelocidadIASDespegue(vuelosOrdenados, listaVelocidadesIASDespegue);
+                    vel.GuardarVelocidadIASDespegue(listaVelocidadesIASDespegue);
+                }
+                else
+                {
+                    MessageBox.Show(
+                        $"NO se pueden hacer los cálculos apropiados \n" +
+                        $"realizar previamente los cálculos preliminares",
+                        "Error",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error
+                    );
+                }
             }
-            else
+            catch
             {
                 MessageBox.Show(
-                    $"NO se pueden hacer los cálculos apropiados \n" +
-                    $"realizar previamente los cálculos preliminares",
+                    $"Error en el cálculo de las velocidades IAS en despegue a distintas altitudes",
                     "Error",
                     MessageBoxButton.OK,
                     MessageBoxImage.Error
@@ -743,40 +780,65 @@ namespace AsterixViewer.Tabs
 
         private void PosicionAltitudViraje_Click(object sender, RoutedEventArgs e)
         {
-            if (calculosPreliminaresHechos)
+            try
             {
-                listaVirajes.Clear();
-                
-                DatosVirajes vir = new DatosVirajes();
-                listaVirajes = vir.CalcularPosicionAltitudViraje(datosAsterix,vuelosOrdenados,listaVirajes,DVOR_BCN);
-                vir.GuardarPosicionAltitudViraje(listaVirajes);
+                if (calculosPreliminaresHechos)
+                {
+                    listaVirajes.Clear();
+
+                    DatosVirajes vir = new DatosVirajes();
+                    listaVirajes = vir.CalcularPosicionAltitudViraje(datosAsterix, vuelosOrdenados, listaVirajes, DVOR_BCN);
+                    vir.GuardarPosicionAltitudViraje(listaVirajes);
+                }
+                else
+                {
+                    MessageBox.Show(
+                        $"NO se pueden hacer los cálculos apropiados \n" +
+                        $"realizar previamente los cálculos preliminares",
+                        "Error",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error
+                    );
+                }
             }
-            else
+            catch
             {
                 MessageBox.Show(
-                    $"NO se pueden hacer los cálculos apropiados \n" +
-                    $"realizar previamente los cálculos preliminares",
+                    $"Error en el cálculo de la posición y altitud de los virajes respecto al DVOR",
                     "Error",
                     MessageBoxButton.OK,
                     MessageBoxImage.Error
                 );
             }
+
         }
         private void AltitudVelocidadTHR_Click(object sender, RoutedEventArgs e)
         {
-            if (calculosPreliminaresHechos)
+            try
             {
-                listaTHRAltitudVelocidad.Clear();
+                if (calculosPreliminaresHechos)
+                {
+                    listaTHRAltitudVelocidad.Clear();
 
-                DatosTHR thr = new DatosTHR();
-                listaTHRAltitudVelocidad = thr.CalcularAltitudVelocidadTHR(datosAsterix, vuelosOrdenados, listaTHRAltitudVelocidad);
-                thr.GuardarAltitudVelocidadTHR(listaTHRAltitudVelocidad);
+                    DatosTHR thr = new DatosTHR();
+                    listaTHRAltitudVelocidad = thr.CalcularAltitudVelocidadTHR(datosAsterix, vuelosOrdenados, listaTHRAltitudVelocidad);
+                    thr.GuardarAltitudVelocidadTHR(listaTHRAltitudVelocidad);
+                }
+                else
+                {
+                    MessageBox.Show(
+                        $"NO se pueden hacer los cálculos apropiados \n" +
+                        $"realizar previamente los cálculos preliminares",
+                        "Error",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error
+                    );
+                }
             }
-            else
+            catch
             {
                 MessageBox.Show(
-                    $"NO se pueden hacer los cálculos apropiados \n" +
-                    $"realizar previamente los cálculos preliminares",
+                    $"Error en el cálculo de las altitudes y velocidades respecto al THR",
                     "Error",
                     MessageBoxButton.OK,
                     MessageBoxImage.Error
