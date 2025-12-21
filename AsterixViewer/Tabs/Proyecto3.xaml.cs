@@ -199,6 +199,17 @@ namespace AsterixViewer.Tabs
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
+        // Nuevo: mensaje dinámico para el bloque de Paso 3
+        public string Paso3Message
+        {
+            get
+            {
+                return PreliminaresHechos
+                    ? "Cálculos preliminares hechos, seleccione el cálculo deseado para extraer sus métricas."
+                    : "¡¡ Realice primero los cálculos preliminares !!";
+            }
+        }
+
         private bool _datosAsterixCargados;
         public bool DatosAsterixCargados
         {
@@ -212,6 +223,7 @@ namespace AsterixViewer.Tabs
                 OnPropertyChanged(nameof(Paso2Permitido));
                 OnPropertyChanged(nameof(InfoPaso2Visibility));
                 UpdateButtonStates();
+                OnPropertyChanged(nameof(Paso3Message));
             }
         }
 
@@ -228,6 +240,7 @@ namespace AsterixViewer.Tabs
                 OnPropertyChanged(nameof(Paso2Permitido));
                 OnPropertyChanged(nameof(InfoPaso2Visibility));
                 UpdateButtonStates();
+                OnPropertyChanged(nameof(Paso3Message));
             }
         }
 
@@ -244,6 +257,7 @@ namespace AsterixViewer.Tabs
                 OnPropertyChanged(nameof(Paso2Permitido));
                 OnPropertyChanged(nameof(InfoPaso2Visibility));
                 UpdateButtonStates();
+                OnPropertyChanged(nameof(Paso3Message));
             }
         }
 
@@ -258,6 +272,7 @@ namespace AsterixViewer.Tabs
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(Paso3Permitido));
                 UpdateButtonStates();
+                OnPropertyChanged(nameof(Paso3Message));
             }
         }
 
