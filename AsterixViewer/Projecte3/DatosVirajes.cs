@@ -76,8 +76,6 @@ namespace AsterixViewer.Projecte3
 
                     if (Math.Abs(headingIntended_24L - headingInicial) > 10)    // Si el heading inicial no se parece al heading inicial de la 24L -> algo falla
                     {
-                        listaVirajes.Add(viraje);
-                         
                         bool encontrado = false;
                         for (int k = 1; k < Math.Min(vuelo.mensajesVuelo.Count, 10); k++)
                         {
@@ -91,9 +89,11 @@ namespace AsterixViewer.Projecte3
                                 }
                             }
                         }
-                        if (encontrado) continue;
-
-                        continue;
+                        if (!encontrado)
+                        {
+                            listaVirajes.Add(viraje);
+                            continue;
+                        }
                     }
 
                     for (int i = 1; i < vuelo.mensajesVuelo.Count; i++)
@@ -107,7 +107,7 @@ namespace AsterixViewer.Projecte3
                             if (vuelo.mensajesVuelo[i - 1][colAST_HDG] == "N/A" && vuelo.mensajesVuelo[0][colAST_HDG] != "NV") heading_prev = headingInicial;
                             else heading_prev = Convert.ToDouble(vuelo.mensajesVuelo[i - 1][colAST_HDG]);
 
-                            if (heading < heading_prev && heading < headingInicial && Math.Abs(heading - headingInicial) > variacionMinima)     // El heading en la salida de 24L se va a valores mas negativos (mas pequeños)
+                            if (heading < heading_prev && heading < headingInicial && Math.Abs(heading - headingIntended_24L) > variacionMinima && heading < 0)     // El heading en la salida de 24L se va a valores mas negativos (mas pequeños)
                             {
                                 for (int j = i + 1; j < Math.Min(vuelo.mensajesVuelo.Count, i + 5); j++)
                                 {
